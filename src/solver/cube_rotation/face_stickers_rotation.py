@@ -2,7 +2,7 @@ from src.solver.enums.Color import Color
 from src.solver.enums.Direction import Direction
 
 
-class FaceRotation:
+class FaceStickersRotation:
     """
     Face rotation maps and a method to rotate face.
     The rotation involves moving the colors around in the face array.

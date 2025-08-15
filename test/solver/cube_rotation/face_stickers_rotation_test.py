@@ -4,7 +4,7 @@ from typing import Callable
 
 from src.solver.enums.Color import Color
 from src.solver.enums.Direction import Direction
-from src.solver.cube_rotation.face_stickers_rotation import FaceRotation
+from src.solver.cube_rotation.face_stickers_rotation import FaceStickersRotation
 
 
 # -----------------------
@@ -14,12 +14,12 @@ RUBIKS_CUBE_COLORS: list[Color] = [Color.WHITE, Color.YELLOW, Color.ORANGE, Colo
 
 
 @pytest.fixture
-def rotation() -> FaceRotation:
+def rotation() -> FaceStickersRotation:
     """
     Returns an instance of FaceRotation
     :return: FaceRotation
     """
-    return FaceRotation()
+    return FaceStickersRotation()
 
 
 @pytest.fixture
@@ -48,7 +48,7 @@ def generate_face() -> Callable[[int], list[Color]]:
 # Tests
 # -----------------------
 @pytest.mark.parametrize("n", [2, 3, 4, 5, 6, 7])
-def test_rotate_face_round_trip(rotation: FaceRotation, generate_face: Callable[[int], list[Color]], n: int) -> None:
+def test_rotate_face_round_trip(rotation: FaceStickersRotation, generate_face: Callable[[int], list[Color]], n: int) -> None:
     """
     Tests rotation of a face with round trips.
     Parametrized for cube size from 2x2 to 7x7.
@@ -78,7 +78,7 @@ def test_rotate_face_round_trip(rotation: FaceRotation, generate_face: Callable[
     (Direction.CCW, [2, 5, 8, 1, 4, 7, 0, 3, 6]),
     (Direction.DOUBLE, [8, 7, 6, 5, 4, 3, 2, 1, 0])
 ])
-def test_rotate_face_3x3_exact(rotation: FaceRotation, direction: Direction, expected_indices: list[int]) -> None:
+def test_rotate_face_3x3_exact(rotation: FaceStickersRotation, direction: Direction, expected_indices: list[int]) -> None:
     """
     For 3x3 cube, verify that the rotation produces exactly the expected sticker positions.
 
