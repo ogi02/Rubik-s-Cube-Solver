@@ -2,19 +2,55 @@ from src.solver.enums.Color import Color
 from src.solver.enums.Direction import Direction
 from src.solver.enums.Layer import Layer
 
-
 class Cube:
-    def __init__(self):
+    def __init__(self, size: int):
         # Initialize the cube with a solved state
-        self.layers = {
-            Layer.UP: [Color.WHITE] * 9,
-            Layer.DOWN: [Color.YELLOW] * 9,
-            Layer.LEFT: [Color.ORANGE] * 9,
-            Layer.RIGHT: [Color.RED] * 9,
-            Layer.FRONT: [Color.GREEN] * 9,
-            Layer.BACK: [Color.BLUE] * 9
+        self.__layers = {
+            Layer.UP: [Color.WHITE] * size * size,
+            Layer.DOWN: [Color.YELLOW] * size * size,
+            Layer.LEFT: [Color.ORANGE] * size * size,
+            Layer.RIGHT: [Color.RED] * size * size,
+            Layer.FRONT: [Color.GREEN] * size * size,
+            Layer.BACK: [Color.BLUE] * size * size
         }
-        self.cube_size = 3
+        self.__size = size
+
+    @property
+    def size(self) -> int:
+        """
+        Cube size getter
+
+        :return: The cube size
+        """
+        return self.__size
+
+    @size.setter
+    def size(self, cube_size: int) -> None:
+        """
+        Cube size setter
+
+        :param cube_size: The cube size
+        """
+        self.__size = cube_size
+
+    @property
+    def layers(self) -> dict[Layer, list[Color]]:
+        """
+        Layers getter
+
+        :return: The layers of the cube
+        """
+        return self.__layers
+
+    @layers.setter
+    def layers(self, layers: dict[Layer, list[Color]]) -> None:
+        """
+        Layers setter
+
+        :param layers: The layers of the cube
+        """
+        self.__layers = layers
+
 
     def __str__(self):
         """
@@ -41,43 +77,29 @@ class Cube:
             :param r: The row to be printed.
             :return: The string representation of the row
             """
-            start = row * self.cube_size
-            end = start + self.cube_size
+            start = r * self.size
+            end = start + self.size
             return " ".join(f.value for f in face[start:end])
 
         # Dynamic padding to UP and DOWN layers
-        pad = " " * (self.cube_size * 2)
+        pad = " " * (self.size * 2)
 
         string_representation = ""
 
         # Add UP layer
-        for row in range(self.cube_size):
+        for row in range(self.size):
             string_representation += f"{pad}{row_str(self.layers[Layer.UP], row)}\n"
         # Add LEFT, FRONT, RIGHT and BACK layers
-        for row in range(self.cube_size):
+        for row in range(self.size):
             string_representation += (f"{row_str(self.layers[Layer.LEFT], row)} "
                                       f"{row_str(self.layers[Layer.FRONT], row)} "
                                       f"{row_str(self.layers[Layer.RIGHT], row)} "
                                       f"{row_str(self.layers[Layer.BACK], row)}\n")
         # Add DOWN layer
-        for row in range(self.cube_size):
+        for row in range(self.size):
             string_representation += f"{pad}{row_str(self.layers[Layer.DOWN], row)}\n"
 
         return string_representation
-
-    def rotate(self, layer: Layer, layer_amount: int, direction: Direction):
-        """
-        Rotates a given amount of layers in the given direction.
-        Acts as a wrapper method for rotating the face and the sides of a layer
-        Possible faces: 'U', 'D', 'L', 'R', 'F', 'B'.
-        Possible directions: clockwise, counter-clockwise, double
-
-        :param layer: The layer to rotate
-        :param layer_amount: The amount of layers to rotate
-        :param direction: The direction to rotate
-        :return: None
-        """
-        pass
 
     def scramble(self):
         # Implement scramble logic
@@ -86,8 +108,3 @@ class Cube:
     def solve(self):
         # Implement solve logic using CFOP
         pass
-
-if __name__ == '__main__':
-    cube = Cube()
-    print(cube)
-
