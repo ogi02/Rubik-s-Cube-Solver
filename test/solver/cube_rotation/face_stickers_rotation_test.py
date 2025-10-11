@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 
 from typing import Callable
@@ -179,3 +181,29 @@ def test_generate_double_rotation_map(cube_size: int, expected_rotation_map: lis
     """
 
     assert generate_double_rotation_map(cube_size) == expected_rotation_map
+
+
+@pytest.mark.parametrize("direction, cube_size, expected_method", [
+    (Direction.CW, 3, generate_clockwise_rotation_map),
+    (Direction.CCW, 4, generate_counter_clockwise_rotation_map),
+    (Direction.DOUBLE, 5, generate_double_rotation_map)
+])
+def test_generate_rotation_map(direction: Direction, cube_size: int, expected_method: Callable[[int], list[int]]) -> None:
+    """
+    Tests the generation of an n x n rotation map.
+
+    :param direction: The direction of the turn
+    :param cube_size: The size of the cube
+    :param expected_method: The expected method which is called
+    :return: None
+    """
+
+    with patch(f"src.solver.cube_rotation.face_stickers_rotation.{expected_method.__name__}") as mocked_method:
+        # Dummy value
+        mocked_method.return_value = [1, 2, 3]
+
+        result = generate_rotation_map(direction, cube_size)
+
+        # Assert
+        mocked_method.assert_called_once_with(cube_size)
+        assert result == [1, 2, 3]
