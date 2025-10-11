@@ -1,13 +1,17 @@
-from unittest.mock import patch
-
 import pytest
 
 from typing import Callable
+from unittest.mock import patch
+
 
 from src.solver.cube import Cube
+from src.solver.cube_rotation.face_stickers_rotation import (
+    generate_clockwise_rotation_map, generate_counter_clockwise_rotation_map,
+    generate_double_rotation_map, generate_rotation_map, rotate_face
+)
 from src.solver.enums.Color import Color
 from src.solver.enums.Direction import Direction
-from src.solver.cube_rotation.face_stickers_rotation import *
+from src.solver.enums.Layer import Layer
 
 # -----------------------
 # Fixtures
@@ -88,7 +92,7 @@ def generate_face() -> Callable[[int], list[Color]]:
          1, 8,  15, 22, 29, 36, 43,
          0, 7,  14, 21, 28, 35, 42])
 ])
-def test_generate_clockwise_rotation_map(cube_size: int, expected_rotation_map: list[int]) -> None:
+def test_success_generate_clockwise_rotation_map(cube_size: int, expected_rotation_map: list[int]) -> None:
     """
     Tests the generation of the map for a clockwise rotation.
 
@@ -130,7 +134,7 @@ def test_generate_clockwise_rotation_map(cube_size: int, expected_rotation_map: 
          48, 41, 34, 27, 20, 13, 6])
 
 ])
-def test_generate_counter_clockwise_rotation_map(cube_size: int, expected_rotation_map: list[int]) -> None:
+def test_success_generate_counter_clockwise_rotation_map(cube_size: int, expected_rotation_map: list[int]) -> None:
     """
     Tests the generation of the map for a counter-clockwise rotation.
 
@@ -171,7 +175,7 @@ def test_generate_counter_clockwise_rotation_map(cube_size: int, expected_rotati
          13, 12, 11, 10, 9, 8, 7,
          6, 5, 4, 3, 2, 1, 0]),
 ])
-def test_generate_double_rotation_map(cube_size: int, expected_rotation_map: list[int]) -> None:
+def test_success_generate_double_rotation_map(cube_size: int, expected_rotation_map: list[int]) -> None:
     """
     Tests the generation of the map for a double rotation.
 
@@ -188,7 +192,7 @@ def test_generate_double_rotation_map(cube_size: int, expected_rotation_map: lis
     (Direction.CCW, 4, generate_counter_clockwise_rotation_map),
     (Direction.DOUBLE, 5, generate_double_rotation_map)
 ])
-def test_generate_rotation_map(direction: Direction, cube_size: int, expected_method: Callable[[int], list[int]]) -> None:
+def test_success_generate_rotation_map(direction: Direction, cube_size: int, expected_method: Callable[[int], list[int]]) -> None:
     """
     Tests the generation of an n x n rotation map.
 
@@ -207,3 +211,78 @@ def test_generate_rotation_map(direction: Direction, cube_size: int, expected_me
         # Assert
         mocked_method.assert_called_once_with(cube_size)
         assert result == [1, 2, 3]
+
+
+@pytest.mark.parametrize("direction, cube_size", [("invalid-direction", 3)])
+def test_exception_generate_rotation_map(direction: Direction, cube_size: int) -> None:
+    """
+    Tests exception during the generation of an n x n rotation map.
+
+    :param direction: The direction of the turn
+    :param cube_size: The size of the cube
+    :return: None
+    """
+
+    with pytest.raises(ValueError, match="Unexpected direction when trying to rotate face!"):
+        generate_rotation_map(direction, cube_size)
+
+@pytest.mark.parametrize("direction, cube_size, rotation_map, expected_face", [
+    (Direction.CW, 3, [2, 5, 8,
+                       1, 4, 7,
+                       0, 3, 6], [Color.WHITE,  Color.RED,   Color.WHITE,
+                                  Color.YELLOW, Color.GREEN, Color.YELLOW,
+                                  Color.ORANGE, Color.BLUE,  Color.ORANGE]),
+    (Direction.CCW, 3, [6, 3, 0,
+                        7, 4, 1,
+                        8, 5, 2], [Color.ORANGE, Color.BLUE,  Color.ORANGE,
+                                   Color.YELLOW, Color.GREEN, Color.YELLOW,
+                                   Color.WHITE,  Color.RED,   Color.WHITE]),
+    (Direction.DOUBLE, 3, [8, 7, 6,
+                           5, 4, 3,
+                           2, 1, 0], [Color.ORANGE, Color.YELLOW, Color.WHITE,
+                                      Color.BLUE,   Color.GREEN,  Color.RED,
+                                      Color.ORANGE, Color.YELLOW, Color.WHITE]),
+    (Direction.CW, 2, [1, 3,
+                       0, 2], [Color.ORANGE, Color.WHITE,
+                               Color.RED,    Color.YELLOW]),
+    (Direction.CCW, 4, [12, 8, 4, 0,
+                        13, 9, 5, 1,
+                        14, 10, 6, 2,
+                        15, 11, 7, 3], [Color.RED,    Color.YELLOW, Color.BLUE, Color.RED,
+                                        Color.ORANGE, Color.WHITE,  Color.GREEN, Color.ORANGE,
+                                        Color.YELLOW, Color.BLUE,   Color.RED,  Color.YELLOW,
+                                        Color.WHITE,  Color.GREEN,  Color.ORANGE, Color.WHITE]),
+])
+def test_success_rotate_face(
+        generate_cube: Callable[[int], Cube], generate_face: Callable[[int], list[Color]],
+        direction: Direction, cube_size: int, rotation_map: list[int], expected_face: list[Color]
+) -> None:
+    """
+    Tests the rotation of a face.
+
+    :param generate_cube: Fixture to generate a cube
+    :param generate_face: Fixture to generate a face
+    :param direction: The direction of the turn
+    :param cube_size: The size of the cube
+    :param rotation_map: The mocked rotation map
+    :param expected_face: The expected face after the turn
+    :return: None
+    """
+
+    # Mock the cube
+    cube = generate_cube(cube_size)
+    cube.layers = {
+        Layer.UP: generate_face(cube_size),
+    }
+
+    with patch("src.solver.cube_rotation.face_stickers_rotation.generate_rotation_map") as mocked_method:
+        # Mock the generate_rotation_map() method
+        mocked_method.return_value = rotation_map
+
+        # Run
+        rotate_face(cube, Layer.UP, direction)
+
+        # Assert
+        mocked_method.assert_called_once_with(direction, cube_size)
+
+        assert cube.layers.get(Layer.UP) == expected_face
