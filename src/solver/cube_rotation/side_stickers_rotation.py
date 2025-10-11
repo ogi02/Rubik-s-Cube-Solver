@@ -115,18 +115,18 @@ def should_flip_edge(turned_layer: Layer, direction: Direction, adj_layer: Layer
     return adj_layer in layers_to_flip
 
 
-def rotate_sides(cube: Cube, face: Layer, direction: Direction, layer_amount: int) -> None:
+def rotate_sides(cube: Cube, layer: Layer, direction: Direction, layer_amount: int) -> None:
     """
     Rotates the edges of the adjacent faces
 
     :param cube: The cube
-    :param face: The face of the cube
+    :param layer: The layer of the cube
     :param direction: The direction of the rotation
     :param layer_amount: The amount of layers
     :return: None
     """
-    # Get the adjacent faces of the face which is being rotated
-    adj = ADJACENT_FACES[face]
+    # Get the adjacent faces of the layer which is being rotated
+    adj = ADJACENT_FACES[layer]
 
     # Check if not too many layers are being turned
     if cube.size / layer_amount < 2:
@@ -153,6 +153,6 @@ def rotate_sides(cube: Cube, face: Layer, direction: Direction, layer_amount: in
         # Write back rotated edges
         for (f, pos), edge in zip(adj, rotated_edges):
             # Some edges need to be reversed to match orientation
-            if should_flip_edge(face, direction, f):
+            if should_flip_edge(layer, direction, f):
                 edge = edge[::-1]
             set_edge(cube.layers[f], layer_index, pos, cube.size, edge)
