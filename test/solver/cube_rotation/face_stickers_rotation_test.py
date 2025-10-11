@@ -2,10 +2,10 @@ import pytest
 
 from typing import Callable
 
+from src.solver.cube import Cube
 from src.solver.enums.Color import Color
 from src.solver.enums.Direction import Direction
-from src.solver.cube_rotation.face_stickers_rotation import FaceStickersRotation
-
+from src.solver.cube_rotation.face_stickers_rotation import *
 
 # -----------------------
 # Fixtures
@@ -14,20 +14,30 @@ RUBIKS_CUBE_COLORS: list[Color] = [Color.WHITE, Color.YELLOW, Color.ORANGE, Colo
 
 
 @pytest.fixture
-def rotation() -> FaceStickersRotation:
+def generate_cube() -> Callable[[int], Cube]:
     """
-    Returns an instance of FaceRotation
-    :return: FaceRotation
+    Returns a method to generate an n x n cube.
+
+    :return: The callable method
     """
-    return FaceStickersRotation()
+    def _generate(n: int) -> Cube:
+        """
+        Generates an n x n cube.
+
+        :param n: Cube size
+        :return: The cube
+        """
+        return Cube(n)
+
+    return _generate
 
 
 @pytest.fixture
 def generate_face() -> Callable[[int], list[Color]]:
     """
-    Returns a function to generate an n x n face with repeating Rubik's colors.
+    Returns a method to generate an n x n face with repeating Rubik's colors.
 
-    :return: The callable function
+    :return: The callable method
     """
     def _generate(n: int) -> list[Color]:
         """
@@ -47,56 +57,125 @@ def generate_face() -> Callable[[int], list[Color]]:
 # -----------------------
 # Tests
 # -----------------------
-@pytest.mark.parametrize("n", [2, 3, 4, 5, 6, 7])
-def test_rotate_face_round_trip(rotation: FaceStickersRotation, generate_face: Callable[[int], list[Color]], n: int) -> None:
-    """
-    Tests rotation of a face with round trips.
-    Parametrized for cube size from 2x2 to 7x7.
-
-    :param rotation: The FaceRotation fixture
-    :param generate_face: The callable fixture
-    :param n: Cube size
-    :return: None
-    """
-    face: list[Color] = generate_face(n)
-
-    # Clockwise rotation
-    rotated_cw: list[Color] = rotation.rotate_face(n, face, Direction.CW)
-    # Counter-clockwise rotation
-    rotated_ccw: list[Color] = rotation.rotate_face(n, face, Direction.CCW)
-    # Double rotation
-    rotated_double: list[Color] = rotation.rotate_face(n, face, Direction.DOUBLE)
-
-    # Round-trip checks
-    assert rotation.rotate_face(n, rotated_cw, Direction.CCW) == face
-    assert rotation.rotate_face(n, rotated_ccw, Direction.CW) == face
-    assert rotation.rotate_face(n, rotated_double, Direction.DOUBLE) == face
-
-
-@pytest.mark.parametrize("direction,expected_indices", [
-    (Direction.CW, [6, 3, 0, 7, 4, 1, 8, 5, 2]),
-    (Direction.CCW, [2, 5, 8, 1, 4, 7, 0, 3, 6]),
-    (Direction.DOUBLE, [8, 7, 6, 5, 4, 3, 2, 1, 0])
+@pytest.mark.parametrize("cube_size, expected_rotation_map", [
+    (2, [1, 3,
+         0, 2]),
+    (3, [2, 5, 8,
+         1, 4, 7,
+         0, 3, 6]),
+    (4, [3, 7, 11, 15,
+         2, 6, 10, 14,
+         1, 5, 9,  13,
+         0, 4, 8,  12]),
+    (5, [4, 9, 14, 19, 24,
+         3, 8, 13, 18, 23,
+         2, 7, 12, 17, 22,
+         1, 6, 11, 16, 21,
+         0, 5, 10, 15, 20]),
+    (6, [5, 11, 17, 23, 29, 35,
+         4, 10, 16, 22, 28, 34,
+         3, 9,  15, 21, 27, 33,
+         2, 8,  14, 20, 26, 32,
+         1, 7,  13, 19, 25, 31,
+         0, 6,  12, 18, 24, 30]),
+    (7, [6, 13, 20, 27, 34, 41, 48,
+         5, 12, 19, 26, 33, 40, 47,
+         4, 11, 18, 25, 32, 39, 46,
+         3, 10, 17, 24, 31, 38, 45,
+         2, 9,  16, 23, 30, 37, 44,
+         1, 8,  15, 22, 29, 36, 43,
+         0, 7,  14, 21, 28, 35, 42])
 ])
-def test_rotate_face_3x3_exact(rotation: FaceStickersRotation, direction: Direction, expected_indices: list[int]) -> None:
+def test_generate_clockwise_rotation_map(cube_size: int, expected_rotation_map: list[int]) -> None:
     """
-    For 3x3 cube, verify that the rotation produces exactly the expected sticker positions.
+    Tests the generation of the map for a clockwise rotation.
 
-    :param rotation: The FaceRotation fixture
-    :param direction: The Direction fixture
-    :param expected_indices: The expected sticker positions
+    :param cube_size: Cube size
+    :param expected_rotation_map: The expected rotation map
     :return: None
     """
-    # 3x3 face with unique colors for easy tracking
-    face: list[Color] = [
-        Color.WHITE, Color.YELLOW, Color.RED,
-        Color.ORANGE, Color.GREEN, Color.BLUE,
-        Color.WHITE, Color.YELLOW, Color.RED
-    ]
 
-    rotated: list[Color] = rotation.rotate_face(3, face, direction)
+    assert generate_clockwise_rotation_map(cube_size) == expected_rotation_map
 
-    # Expected face after rotation
-    expected: list[Color] = [face[i] for i in expected_indices]
 
-    assert rotated == expected
+@pytest.mark.parametrize("cube_size, expected_rotation_map", [
+    (2, [2, 0,
+         3, 1]),
+    (3, [6, 3, 0,
+         7, 4, 1,
+         8, 5, 2]),
+    (4, [12, 8, 4, 0,
+         13, 9, 5, 1,
+         14, 10, 6, 2,
+         15, 11, 7, 3]),
+    (5, [20, 15, 10, 5, 0,
+         21, 16, 11, 6, 1,
+         22, 17, 12, 7, 2,
+         23, 18, 13, 8, 3,
+         24, 19, 14, 9, 4]),
+    (6, [30, 24, 18, 12, 6, 0,
+         31, 25, 19, 13, 7, 1,
+         32, 26, 20, 14, 8, 2,
+         33, 27, 21, 15, 9, 3,
+         34, 28, 22, 16, 10, 4,
+         35, 29, 23, 17, 11, 5]),
+    (7, [42, 35, 28, 21, 14, 7, 0,
+         43, 36, 29, 22, 15, 8, 1,
+         44, 37, 30, 23, 16, 9, 2,
+         45, 38, 31, 24, 17, 10, 3,
+         46, 39, 32, 25, 18, 11, 4,
+         47, 40, 33, 26, 19, 12, 5,
+         48, 41, 34, 27, 20, 13, 6])
+
+])
+def test_generate_counter_clockwise_rotation_map(cube_size: int, expected_rotation_map: list[int]) -> None:
+    """
+    Tests the generation of the map for a counter-clockwise rotation.
+
+    :param cube_size: Cube size
+    :param expected_rotation_map: The expected rotation map
+    :return: None
+    """
+
+    assert generate_counter_clockwise_rotation_map(cube_size) == expected_rotation_map
+
+
+@pytest.mark.parametrize("cube_size, expected_rotation_map", [
+    (2, [3, 2,
+         1, 0]),
+    (3, [8, 7, 6,
+         5, 4, 3,
+         2, 1, 0]),
+    (4, [15, 14, 13, 12,
+         11, 10, 9, 8,
+         7, 6, 5, 4,
+         3, 2, 1, 0]),
+    (5, [24, 23, 22, 21, 20,
+         19, 18, 17, 16, 15,
+         14, 13, 12, 11, 10,
+         9, 8, 7, 6, 5,
+         4, 3, 2, 1, 0]),
+    (6, [35, 34, 33, 32, 31, 30,
+         29, 28, 27, 26, 25, 24,
+         23, 22, 21, 20, 19, 18,
+         17, 16, 15, 14, 13, 12,
+         11, 10, 9, 8, 7, 6,
+         5, 4, 3, 2, 1, 0]),
+    (7, [48, 47, 46, 45, 44, 43, 42,
+         41, 40, 39, 38, 37, 36, 35,
+         34, 33, 32, 31, 30, 29, 28,
+         27, 26, 25, 24, 23, 22, 21,
+         20, 19, 18, 17, 16, 15, 14,
+         13, 12, 11, 10, 9, 8, 7,
+         6, 5, 4, 3, 2, 1, 0]),
+])
+def test_generate_double_rotation_map(cube_size: int, expected_rotation_map: list[int]) -> None:
+    """
+    Tests the generation of the map for a double rotation.
+
+    :param cube_size: Cube size
+    :param expected_rotation_map: The expected rotation map
+    :return: None
+    """
+
+    assert generate_double_rotation_map(cube_size) == expected_rotation_map
