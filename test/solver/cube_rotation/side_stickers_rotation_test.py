@@ -57,7 +57,7 @@ def test_exception_get_edge(generate_face: Callable[[int], list[Color]],
                             layer_amount: int, position: EdgePosition, cube_size: int,
                             expected_exception_type: BaseException.__type_params__, expected_exception: str) -> None:
     """
-    Tests that get_edge() raises an exception when the position is not valid.
+    Tests that get_edge() raises an exception when the parameters are not valid.
 
     :param generate_face: Fixture to generate a face
     :param layer_amount: The amount of layers
@@ -72,4 +72,19 @@ def test_exception_get_edge(generate_face: Callable[[int], list[Color]],
         ssr.get_edge(generate_face(cube_size), layer_amount, position, cube_size)
 
 
+def test_success_set_edge() -> None:
+    """
+    Tests the setter of the edge based on the position.
 
+    :return: None
+    """
+    pass
+
+
+def test_exception_set_edge() -> None:
+    """
+    Tests that set_edge() raises an exception when the parameters are not valid.
+
+    :return: None
+    """
+    pass
