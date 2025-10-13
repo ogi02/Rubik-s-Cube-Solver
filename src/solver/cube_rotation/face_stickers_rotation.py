@@ -157,7 +157,7 @@ def rotate_face(cube: Cube, layer: Layer, direction: Direction) -> None:
     """
 
     # Create a template for the rotated face
-    rotated_face: list[Color] = [None] * cube.size ** 2
+    rotated_face: list[Color] = [Color.WHITE] * cube.size ** 2
     # Put every sticker of the map in its new position
     for index, new_pos in enumerate(generate_rotation_map(direction, cube.size)):
         rotated_face[new_pos] = cube.layers.get(layer)[index]

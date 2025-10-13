@@ -3,7 +3,6 @@ import pytest
 from typing import Callable
 from unittest.mock import patch
 
-
 from src.solver.cube import Cube
 from src.solver.cube_rotation.face_stickers_rotation import (
     generate_clockwise_rotation_map, generate_counter_clockwise_rotation_map,
