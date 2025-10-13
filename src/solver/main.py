@@ -8,7 +8,7 @@ def main():
     cube = Cube(3)
     rotator = Rotator(cube)
 
-    "U R' L2 F U2 B' D L' R2 F' U B2 D' L R' F2 U' B D2 L'"
+    # U R' L2 F U2 B' D L' R2 F' U B2 D' L R' F2 U' B D2 L'
 
     # Sequence of 20 moves
     moves = [
@@ -49,7 +49,8 @@ def main2():
     cube = Cube(4)
     rotator = Rotator(cube)
 
-    "U Rw' F2 Lw2 D' B U2 L' Fw R' D2 Lw' B2 U' R2 Fw' D Lw2 Bw' U2 R F2 Rw D' L B2 Uw' F' R2 Lw D2 B R' Fw U2 Lw Bw' D"
+    # U Rw' F2 Lw2 D' B U2 L' Fw R' D2 Lw' B2 U' R2 Fw' D Lw2 Bw'
+    # U2 R F2 Rw D' L B2 Uw' F' R2 Lw D2 B R' Fw U2 Lw Bw' D
 
     # Example mapping function
     face_map = {

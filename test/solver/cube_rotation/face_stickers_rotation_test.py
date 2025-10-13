@@ -213,8 +213,8 @@ def test_success_generate_rotation_map(direction: Direction, cube_size: int, exp
         assert result == [1, 2, 3]
 
 
-@pytest.mark.parametrize("direction, cube_size", [("invalid-direction", 3)])
-def test_exception_generate_rotation_map(direction: Direction, cube_size: int) -> None:
+@pytest.mark.parametrize("direction, cube_size", [(None, 3)])
+def test_exception_generate_rotation_map(direction: Direction | None, cube_size: int) -> None:
     """
     Tests exception during the generation of an n x n rotation map.
 
