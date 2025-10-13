@@ -4,13 +4,10 @@ from typing import Callable
 from unittest.mock import patch
 
 from src.solver.cube import Cube
-from src.solver.cube_rotation.face_stickers_rotation import (
-    generate_clockwise_rotation_map, generate_counter_clockwise_rotation_map,
-    generate_double_rotation_map, generate_rotation_map, rotate_face
-)
 from src.solver.enums.Color import Color
 from src.solver.enums.Direction import Direction
 from src.solver.enums.Layer import Layer
+import src.solver.cube_rotation.face_stickers_rotation as fsr
 
 # -----------------------
 # Fixtures
@@ -100,7 +97,7 @@ def test_success_generate_clockwise_rotation_map(cube_size: int, expected_rotati
     :return: None
     """
 
-    assert generate_clockwise_rotation_map(cube_size) == expected_rotation_map
+    assert fsr.generate_clockwise_rotation_map(cube_size) == expected_rotation_map
 
 
 @pytest.mark.parametrize("cube_size, expected_rotation_map", [
@@ -131,7 +128,6 @@ def test_success_generate_clockwise_rotation_map(cube_size: int, expected_rotati
          46, 39, 32, 25, 18, 11, 4,
          47, 40, 33, 26, 19, 12, 5,
          48, 41, 34, 27, 20, 13, 6])
-
 ])
 def test_success_generate_counter_clockwise_rotation_map(cube_size: int, expected_rotation_map: list[int]) -> None:
     """
@@ -142,7 +138,7 @@ def test_success_generate_counter_clockwise_rotation_map(cube_size: int, expecte
     :return: None
     """
 
-    assert generate_counter_clockwise_rotation_map(cube_size) == expected_rotation_map
+    assert fsr.generate_counter_clockwise_rotation_map(cube_size) == expected_rotation_map
 
 
 @pytest.mark.parametrize("cube_size, expected_rotation_map", [
@@ -183,13 +179,13 @@ def test_success_generate_double_rotation_map(cube_size: int, expected_rotation_
     :return: None
     """
 
-    assert generate_double_rotation_map(cube_size) == expected_rotation_map
+    assert fsr.generate_double_rotation_map(cube_size) == expected_rotation_map
 
 
 @pytest.mark.parametrize("direction, cube_size, expected_method", [
-    (Direction.CW, 3, generate_clockwise_rotation_map),
-    (Direction.CCW, 4, generate_counter_clockwise_rotation_map),
-    (Direction.DOUBLE, 5, generate_double_rotation_map)
+    (Direction.CW, 3, fsr.generate_clockwise_rotation_map),
+    (Direction.CCW, 4, fsr.generate_counter_clockwise_rotation_map),
+    (Direction.DOUBLE, 5, fsr.generate_double_rotation_map)
 ])
 def test_success_generate_rotation_map(direction: Direction, cube_size: int, expected_method: Callable[[int], list[int]]) -> None:
     """
@@ -201,11 +197,11 @@ def test_success_generate_rotation_map(direction: Direction, cube_size: int, exp
     :return: None
     """
 
-    with patch(f"src.solver.cube_rotation.face_stickers_rotation.{expected_method.__name__}") as mocked_method:
+    with patch.object(fsr, expected_method.__name__) as mocked_method:
         # Dummy value
         mocked_method.return_value = [1, 2, 3]
 
-        result = generate_rotation_map(direction, cube_size)
+        result = fsr.generate_rotation_map(direction, cube_size)
 
         # Assert
         mocked_method.assert_called_once_with(cube_size)
@@ -223,7 +219,7 @@ def test_exception_generate_rotation_map(direction: Direction | None, cube_size:
     """
 
     with pytest.raises(ValueError, match="Unexpected direction when trying to rotate face!"):
-        generate_rotation_map(direction, cube_size)
+        fsr.generate_rotation_map(direction, cube_size)
 
 @pytest.mark.parametrize("direction, cube_size, rotation_map, expected_face", [
     (Direction.CW, 3, [2, 5, 8,
@@ -279,7 +275,7 @@ def test_success_rotate_face(
         mocked_method.return_value = rotation_map
 
         # Run
-        rotate_face(cube, Layer.UP, direction)
+        fsr.rotate_face(cube, Layer.UP, direction)
 
         # Assert
         mocked_method.assert_called_once_with(direction, cube_size)
