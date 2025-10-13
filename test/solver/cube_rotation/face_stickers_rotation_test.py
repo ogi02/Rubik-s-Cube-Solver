@@ -9,56 +9,7 @@ from src.solver.enums.Direction import Direction
 from src.solver.enums.Layer import Layer
 import src.solver.cube_rotation.face_stickers_rotation as fsr
 
-# -----------------------
-# Fixtures
-# -----------------------
-RUBIKS_CUBE_COLORS: list[Color] = [Color.WHITE, Color.YELLOW, Color.ORANGE, Color.RED, Color.GREEN, Color.BLUE]
 
-
-@pytest.fixture
-def generate_cube() -> Callable[[int], Cube]:
-    """
-    Returns a method to generate an n x n cube.
-
-    :return: The callable method
-    """
-    def _generate(n: int) -> Cube:
-        """
-        Generates an n x n cube.
-
-        :param n: Cube size
-        :return: The cube
-        """
-        return Cube(n)
-
-    return _generate
-
-
-@pytest.fixture
-def generate_face() -> Callable[[int], list[Color]]:
-    """
-    Returns a method to generate an n x n face with repeating Rubik's colors.
-
-    :return: The callable method
-    """
-    def _generate(n: int) -> list[Color]:
-        """
-        Generates an n x n face with repeating Rubik's colors.
-
-        :param n: Cube size
-        :return: Face with repeating Rubik's colors
-        """
-        face: list[Color] = []
-        for i in range(n * n):
-            face.append(RUBIKS_CUBE_COLORS[i % len(RUBIKS_CUBE_COLORS)])
-        return face
-
-    return _generate
-
-
-# -----------------------
-# Tests
-# -----------------------
 @pytest.mark.parametrize("cube_size, expected_rotation_map", [
     (2, [1, 3,
          0, 2]),
@@ -211,7 +162,7 @@ def test_success_generate_rotation_map(direction: Direction, cube_size: int, exp
 @pytest.mark.parametrize("direction, cube_size", [(None, 3)])
 def test_exception_generate_rotation_map(direction: Direction | None, cube_size: int) -> None:
     """
-    Tests exception during the generation of an n x n rotation map.
+    Tests that generate_rotation_map() raises an exception when the direction is not valid.
 
     :param direction: The direction of the turn
     :param cube_size: The size of the cube
