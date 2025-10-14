@@ -72,13 +72,20 @@ def test_exception_get_edge(generate_face: Callable[[int], list[Color]],
         ssr.get_edge(generate_face(cube_size), layer_amount, position, cube_size)
 
 
-def test_success_set_edge() -> None:
+def test_success_set_edge(generate_white_only_face: Callable[[int], list[Color]], layer_amount: int,
+                          position: EdgePosition, cube_size: int, generate_edge: Callable[[int], list[Color]]) -> None:
     """
     Tests the setter of the edge based on the position.
 
+    :param generate_white_only_face: Fixture to generate a face with only white stickers
+    :param layer_amount: The amount of layers
+    :param position: The position of the edge
+    :param cube_size: The size of the cube
+    :param generate_edge: Fixture to generate an edge with repeating Rubik's colors
     :return: None
     """
-    pass
+
+
 
 
 def test_exception_set_edge() -> None:

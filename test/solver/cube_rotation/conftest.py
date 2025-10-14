@@ -46,3 +46,44 @@ def generate_face() -> Callable[[int], list[Color]]:
         return face
 
     return _generate
+
+
+@pytest.fixture
+def generate_white_only_face() -> Callable[[int], list[Color]]:
+    """
+    Returns a method to generate an n x n face with only white stickers.
+
+    :return: The callable method
+    """
+    def _generate(n: int) -> list[Color]:
+        """
+        Generates an n x n face with only white stickers.
+
+        :param n: Cube size
+        :return: Face with only white stickers
+        """
+        return [Color.WHITE] * (n * n)
+
+    return _generate
+
+
+@pytest.fixture
+def generate_edge() -> Callable[[int], list[Color]]:
+    """
+    Returns a method to generate an edge with repeating Rubik's colors.
+
+    :return: The callable method
+    """
+    def _generate(n: int) -> list[Color]:
+        """
+        Generates an edge with repeating Rubik's colors.
+
+        :param n: Cube size
+        :return: Edge with repeating Rubik's colors
+        """
+        edge: list[Color] = []
+        for i in range(n):
+            edge.append(RUBIKS_CUBE_COLORS[i % len(RUBIKS_CUBE_COLORS)])
+        return edge
+
+    return _generate
