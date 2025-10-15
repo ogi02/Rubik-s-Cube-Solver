@@ -1,3 +1,5 @@
+from pickle import FALSE
+
 import pytest
 
 from typing import Callable
@@ -184,3 +186,101 @@ def test_exception_set_edge(generate_white_only_face: Callable[[int], list[Color
 
     with pytest.raises(expected_exception_type, match=expected_exception):
         ssr.set_edge(generate_white_only_face(cube_size), layer_amount, position, cube_size, generate_edge(cube_size))
+
+
+@pytest.mark.parametrize("turned_layer, direction, adj_layer, should_flip_edge", [
+    (Layer.UP,    Direction.CW,     Layer.FRONT, False),
+    (Layer.UP,    Direction.CCW,    Layer.FRONT, False),
+    (Layer.UP,    Direction.DOUBLE, Layer.FRONT, False),
+    (Layer.UP,    Direction.CW,     Layer.BACK,  False),
+    (Layer.UP,    Direction.CCW,    Layer.BACK,  False),
+    (Layer.UP,    Direction.DOUBLE, Layer.BACK,  False),
+    (Layer.UP,    Direction.CW,     Layer.LEFT,  False),
+    (Layer.UP,    Direction.CCW,    Layer.LEFT,  False),
+    (Layer.UP,    Direction.DOUBLE, Layer.LEFT,  False),
+    (Layer.UP,    Direction.CW,     Layer.RIGHT, False),
+    (Layer.UP,    Direction.CCW,    Layer.RIGHT, False),
+    (Layer.UP,    Direction.DOUBLE, Layer.RIGHT, False),
+    (Layer.DOWN,  Direction.CW,     Layer.FRONT, False),
+    (Layer.DOWN,  Direction.CCW,    Layer.FRONT, False),
+    (Layer.DOWN,  Direction.DOUBLE, Layer.FRONT, False),
+    (Layer.DOWN,  Direction.CW,     Layer.BACK,  False),
+    (Layer.DOWN,  Direction.CCW,    Layer.BACK,  False),
+    (Layer.DOWN,  Direction.DOUBLE, Layer.BACK,  False),
+    (Layer.DOWN,  Direction.CW,     Layer.LEFT,  False),
+    (Layer.DOWN,  Direction.CCW,    Layer.LEFT,  False),
+    (Layer.DOWN,  Direction.DOUBLE, Layer.LEFT,  False),
+    (Layer.DOWN,  Direction.CW,     Layer.RIGHT, False),
+    (Layer.DOWN,  Direction.CCW,    Layer.RIGHT, False),
+    (Layer.DOWN,  Direction.DOUBLE, Layer.RIGHT, False),
+    (Layer.FRONT, Direction.CW,     Layer.UP,    True),
+    (Layer.FRONT, Direction.CCW,    Layer.UP,    False),
+    (Layer.FRONT, Direction.DOUBLE, Layer.UP,    True),
+    (Layer.FRONT, Direction.CW,     Layer.DOWN,  True),
+    (Layer.FRONT, Direction.CCW,    Layer.DOWN,  False),
+    (Layer.FRONT, Direction.DOUBLE, Layer.DOWN,  True),
+    (Layer.FRONT, Direction.CW,     Layer.LEFT,  False),
+    (Layer.FRONT, Direction.CCW,    Layer.LEFT,  True),
+    (Layer.FRONT, Direction.DOUBLE, Layer.LEFT,  True),
+    (Layer.FRONT, Direction.CW,     Layer.RIGHT, False),
+    (Layer.FRONT, Direction.CCW,    Layer.RIGHT, True),
+    (Layer.FRONT, Direction.DOUBLE, Layer.RIGHT, True),
+    (Layer.BACK,  Direction.CW,     Layer.UP, False),
+    (Layer.BACK,  Direction.CCW,    Layer.UP, True),
+    (Layer.BACK,  Direction.DOUBLE, Layer.UP, True),
+    (Layer.BACK,  Direction.CW,     Layer.DOWN, False),
+    (Layer.BACK,  Direction.CCW,    Layer.DOWN, True),
+    (Layer.BACK,  Direction.DOUBLE, Layer.DOWN, True),
+    (Layer.BACK,  Direction.CW,     Layer.LEFT, True),
+    (Layer.BACK,  Direction.CCW,    Layer.LEFT, False),
+    (Layer.BACK,  Direction.DOUBLE, Layer.LEFT, True),
+    (Layer.BACK,  Direction.CW,     Layer.RIGHT, True),
+    (Layer.BACK,  Direction.CCW,    Layer.RIGHT, False),
+    (Layer.BACK,  Direction.DOUBLE, Layer.RIGHT, True),
+    (Layer.LEFT,  Direction.CW,     Layer.UP,    True),
+    (Layer.LEFT,  Direction.CCW,    Layer.UP,    False),
+    (Layer.LEFT,  Direction.DOUBLE, Layer.UP,    False),
+    (Layer.LEFT,  Direction.CW,     Layer.DOWN,  False),
+    (Layer.LEFT,  Direction.CCW,    Layer.DOWN,  True),
+    (Layer.LEFT,  Direction.DOUBLE, Layer.DOWN,  False),
+    (Layer.LEFT,  Direction.CW,     Layer.FRONT, False),
+    (Layer.LEFT,  Direction.CCW,    Layer.FRONT, False),
+    (Layer.LEFT,  Direction.DOUBLE, Layer.FRONT, True),
+    (Layer.LEFT,  Direction.CW,     Layer.BACK,  True),
+    (Layer.LEFT,  Direction.CCW,    Layer.BACK,  True),
+    (Layer.LEFT,  Direction.DOUBLE, Layer.BACK,  True),
+    (Layer.RIGHT, Direction.CW,     Layer.UP,    False),
+    (Layer.RIGHT, Direction.CCW,    Layer.UP,    True),
+    (Layer.RIGHT, Direction.DOUBLE, Layer.UP,    False),
+    (Layer.RIGHT, Direction.CW,     Layer.DOWN,  True),
+    (Layer.RIGHT, Direction.CCW,    Layer.DOWN,  False),
+    (Layer.RIGHT, Direction.DOUBLE, Layer.DOWN,  False),
+    (Layer.RIGHT, Direction.CW,     Layer.FRONT, False),
+    (Layer.RIGHT, Direction.CCW,    Layer.FRONT, False),
+    (Layer.RIGHT, Direction.DOUBLE, Layer.FRONT, True),
+    (Layer.RIGHT, Direction.CW,     Layer.BACK,  True),
+    (Layer.RIGHT, Direction.CCW,    Layer.BACK,  True),
+    (Layer.RIGHT, Direction.DOUBLE, Layer.BACK,  True),
+])
+def test_success_should_flip_edge(turned_layer: Layer, direction: Direction,
+                                  adj_layer: Layer, should_flip_edge: bool) -> None:
+    """
+    Tests whether the edge should be flipped.
+
+    :param turned_layer: The layer that is turned
+    :param direction: The direction of the turn
+    :param adj_layer: The adjacent layer
+    :param should_flip_edge: Whether the edge should be flipped
+    :return: None
+    """
+
+    assert ssr.should_flip_edge(turned_layer, direction, adj_layer) == should_flip_edge
+
+
+def test_success_rotate_sides() -> None:
+    """
+    Tests the rotation of the side stickers.
+
+    :return: None
+    """
+
