@@ -32,8 +32,9 @@ import src.solver.cube_rotation.side_stickers_rotation as ssr
     (2, EdgePosition.LEFT,   5, [Color.YELLOW, Color.WHITE,  Color.BLUE,   Color.GREEN,  Color.RED]),
     (2, EdgePosition.RIGHT,  5, [Color.RED,    Color.ORANGE, Color.YELLOW, Color.WHITE,  Color.BLUE]),
 ])
-def test_success_get_edge(generate_face: Callable[[int], list[Color]], layer_amount: int,
-                          position: EdgePosition, cube_size: int, expected_edge: list[Color]) -> None:
+def test_success_get_edge(generate_face: Callable[[int], list[Color]],
+                          layer_amount: int, position: EdgePosition, cube_size: int,
+                          expected_edge: list[Color]) -> None:
     """
     Tests the getter of an edge based on the position.
 
@@ -72,8 +73,72 @@ def test_exception_get_edge(generate_face: Callable[[int], list[Color]],
         ssr.get_edge(generate_face(cube_size), layer_amount, position, cube_size)
 
 
-def test_success_set_edge(generate_white_only_face: Callable[[int], list[Color]], layer_amount: int,
-                          position: EdgePosition, cube_size: int, generate_edge: Callable[[int], list[Color]]) -> None:
+@pytest.mark.parametrize("layer_amount, position, cube_size, expected_face", [
+    (1, EdgePosition.TOP,    3, [Color.WHITE,  Color.YELLOW, Color.ORANGE,
+                                 Color.WHITE,  Color.WHITE,  Color.WHITE,
+                                 Color.WHITE,  Color.WHITE,  Color.WHITE]),
+    (1, EdgePosition.BOTTOM, 3, [Color.WHITE,  Color.WHITE,  Color.WHITE,
+                                 Color.WHITE,  Color.WHITE,  Color.WHITE,
+                                 Color.WHITE,  Color.YELLOW, Color.ORANGE]),
+    (1, EdgePosition.LEFT,   3, [Color.WHITE,  Color.WHITE,  Color.WHITE,
+                                 Color.YELLOW, Color.WHITE,  Color.WHITE,
+                                 Color.ORANGE, Color.WHITE,  Color.WHITE]),
+    (1, EdgePosition.RIGHT,  3, [Color.WHITE,  Color.WHITE,  Color.WHITE,
+                                 Color.WHITE,  Color.WHITE,  Color.YELLOW,
+                                 Color.WHITE,  Color.WHITE,  Color.ORANGE]),
+    (1, EdgePosition.TOP,    2, [Color.WHITE,  Color.YELLOW,
+                                 Color.WHITE,  Color.WHITE]),
+    (1, EdgePosition.BOTTOM, 2, [Color.WHITE,  Color.WHITE,
+                                 Color.WHITE,  Color.YELLOW]),
+    (1, EdgePosition.LEFT,   2, [Color.WHITE,  Color.WHITE,
+                                 Color.YELLOW, Color.WHITE]),
+    (1, EdgePosition.RIGHT,  2, [Color.WHITE,  Color.WHITE,
+                                 Color.WHITE,  Color.YELLOW]),
+    (1, EdgePosition.TOP,    5, [Color.WHITE,  Color.YELLOW, Color.ORANGE, Color.RED,    Color.GREEN,
+                                 Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,
+                                 Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,
+                                 Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,
+                                 Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE]),
+    (1, EdgePosition.BOTTOM, 5, [Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,
+                                 Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,
+                                 Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,
+                                 Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,
+                                 Color.WHITE,  Color.YELLOW, Color.ORANGE, Color.RED,    Color.GREEN]),
+    (1, EdgePosition.LEFT,   5, [Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,
+                                 Color.YELLOW, Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,
+                                 Color.ORANGE, Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,
+                                 Color.RED,    Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,
+                                 Color.GREEN,  Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE]),
+    (1, EdgePosition.RIGHT,  5, [Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,
+                                 Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.YELLOW,
+                                 Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.ORANGE,
+                                 Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.RED,
+                                 Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.GREEN]),
+    (2, EdgePosition.TOP,    5, [Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,
+                                 Color.WHITE,  Color.YELLOW, Color.ORANGE, Color.RED,    Color.GREEN,
+                                 Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,
+                                 Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,
+                                 Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE]),
+    (2, EdgePosition.BOTTOM, 5, [Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,
+                                 Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,
+                                 Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,
+                                 Color.WHITE,  Color.YELLOW, Color.ORANGE, Color.RED,    Color.GREEN,
+                                 Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE]),
+    (2, EdgePosition.LEFT,   5, [Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,
+                                 Color.WHITE,  Color.YELLOW, Color.WHITE,  Color.WHITE,  Color.WHITE,
+                                 Color.WHITE,  Color.ORANGE, Color.WHITE,  Color.WHITE,  Color.WHITE,
+                                 Color.WHITE,  Color.RED,    Color.WHITE,  Color.WHITE,  Color.WHITE,
+                                 Color.WHITE,  Color.GREEN,  Color.WHITE,  Color.WHITE,  Color.WHITE]),
+    (2, EdgePosition.RIGHT,  5, [Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.WHITE,
+                                 Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.YELLOW, Color.WHITE,
+                                 Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.ORANGE, Color.WHITE,
+                                 Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.RED,    Color.WHITE,
+                                 Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.GREEN,  Color.WHITE])
+])
+def test_success_set_edge(generate_white_only_face: Callable[[int], list[Color]],
+                          generate_edge: Callable[[int], list[Color]],
+                          layer_amount: int, position: EdgePosition, cube_size: int,
+                          expected_face: list[Color]) -> None:
     """
     Tests the setter of the edge based on the position.
 
@@ -85,13 +150,37 @@ def test_success_set_edge(generate_white_only_face: Callable[[int], list[Color]]
     :return: None
     """
 
+    # Mock the face
+    actual_face = generate_white_only_face(cube_size)
+
+    # Set the edge
+    ssr.set_edge(actual_face, layer_amount, position, cube_size, generate_edge(cube_size))
+
+    # Assert
+    assert actual_face == expected_face
 
 
-
-def test_exception_set_edge() -> None:
+@pytest.mark.parametrize("layer_amount, position, cube_size, expected_exception_type, expected_exception", [
+    (1, None,             3, ValueError, "Unknown edge position: None"),
+    (0, EdgePosition.TOP, 3, ValueError, "Invalid layer amount: 0"),
+    (1, EdgePosition.TOP, 0, ValueError, "Invalid cube size: 0")
+])
+def test_exception_set_edge(generate_white_only_face: Callable[[int], list[Color]],
+                            generate_edge: Callable[[int], list[Color]],
+                            layer_amount: int, position: EdgePosition, cube_size: int,
+                            expected_exception_type: BaseException.__type_params__, expected_exception: str) -> None:
     """
-    Tests that set_edge() raises an exception when the parameters are not valid.
+    Tests that get_edge() raises an exception when the parameters are not valid.
 
+    :param generate_white_only_face: Fixture to generate a face
+    :param generate_edge: Fixture to generate an edge
+    :param layer_amount: The amount of layers
+    :param position: The position of the edge
+    :param cube_size: The size of the cube
+    :param expected_exception_type: The expected exception type
+    :param expected_exception: The expected exception
     :return: None
     """
-    pass
+
+    with pytest.raises(expected_exception_type, match=expected_exception):
+        ssr.set_edge(generate_white_only_face(cube_size), layer_amount, position, cube_size, generate_edge(cube_size))
