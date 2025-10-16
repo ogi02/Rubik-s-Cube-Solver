@@ -49,20 +49,21 @@ def generate_face() -> Callable[[int], list[Color]]:
 
 
 @pytest.fixture
-def generate_white_only_face() -> Callable[[int], list[Color]]:
+def generate_one_color_only_face() -> Callable[[int, Color], list[Color]]:
     """
-    Returns a method to generate an n x n face with only white stickers.
+    Returns a method to generate an n x n face with only one color stickers.
 
     :return: The callable method
     """
-    def _generate(n: int) -> list[Color]:
+    def _generate(n: int, color: Color) -> list[Color]:
         """
         Generates an n x n face with only white stickers.
 
         :param n: Cube size
+        :param color: The color of the stickers
         :return: Face with only white stickers
         """
-        return [Color.WHITE] * (n * n)
+        return [color] * (n * n)
 
     return _generate
 

@@ -137,14 +137,14 @@ def test_exception_get_edge(generate_face: Callable[[int], list[Color]],
                                  Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.RED,    Color.WHITE,
                                  Color.WHITE,  Color.WHITE,  Color.WHITE,  Color.GREEN,  Color.WHITE])
 ])
-def test_success_set_edge(generate_white_only_face: Callable[[int], list[Color]],
+def test_success_set_edge(generate_one_color_only_face: Callable[[int, Color], list[Color]],
                           generate_edge: Callable[[int], list[Color]],
                           layer_amount: int, position: EdgePosition, cube_size: int,
                           expected_face: list[Color]) -> None:
     """
     Tests the setter of the edge based on the position.
 
-    :param generate_white_only_face: Fixture to generate a face with only white stickers
+    :param generate_one_color_only_face: Fixture to generate a face with only white stickers
     :param layer_amount: The amount of layers
     :param position: The position of the edge
     :param cube_size: The size of the cube
@@ -153,7 +153,7 @@ def test_success_set_edge(generate_white_only_face: Callable[[int], list[Color]]
     """
 
     # Mock the face
-    actual_face = generate_white_only_face(cube_size)
+    actual_face = generate_one_color_only_face(cube_size, Color.WHITE)
 
     # Set the edge
     ssr.set_edge(actual_face, layer_amount, position, cube_size, generate_edge(cube_size))
@@ -167,14 +167,14 @@ def test_success_set_edge(generate_white_only_face: Callable[[int], list[Color]]
     (0, EdgePosition.TOP, 3, ValueError, "Invalid layer amount: 0"),
     (1, EdgePosition.TOP, 0, ValueError, "Invalid cube size: 0")
 ])
-def test_exception_set_edge(generate_white_only_face: Callable[[int], list[Color]],
+def test_exception_set_edge(generate_one_color_only_face: Callable[[int, Color], list[Color]],
                             generate_edge: Callable[[int], list[Color]],
                             layer_amount: int, position: EdgePosition, cube_size: int,
                             expected_exception_type: BaseException.__type_params__, expected_exception: str) -> None:
     """
     Tests that get_edge() raises an exception when the parameters are not valid.
 
-    :param generate_white_only_face: Fixture to generate a face
+    :param generate_one_color_only_face: Fixture to generate a face
     :param generate_edge: Fixture to generate an edge
     :param layer_amount: The amount of layers
     :param position: The position of the edge
@@ -185,7 +185,8 @@ def test_exception_set_edge(generate_white_only_face: Callable[[int], list[Color
     """
 
     with pytest.raises(expected_exception_type, match=expected_exception):
-        ssr.set_edge(generate_white_only_face(cube_size), layer_amount, position, cube_size, generate_edge(cube_size))
+        face = generate_one_color_only_face(cube_size, Color.WHITE)
+        ssr.set_edge(face, layer_amount, position, cube_size, generate_edge(cube_size))
 
 
 @pytest.mark.parametrize("turned_layer, direction, adj_layer, should_flip_edge", [
