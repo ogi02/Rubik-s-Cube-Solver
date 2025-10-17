@@ -1,14 +1,17 @@
-name: Python Tests
+name: Run Pytest and Generate Coverage Badge
 
-on: [push, pull_request]
+on: [pull_request]
 
 jobs:
   test:
+    name: Run Pytest and Generate Coverage Badge
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout the code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -21,10 +24,10 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Run tests
-        run: pytest --cov=src --cov-report=xml
+        run: pytest --cov --cov-branch --cov-report=xml
 
-      - name: Generate coverage badge
-        uses: mikepenz/coverage-badge-action@v1
+      - name: Upload results to Codecov
+        uses: codecov/codecov-action@v5
         with:
-          path: coverage.xml
-          output: coverage-badge.svg
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: ogi02/Rubik-s-Cube-Solver
