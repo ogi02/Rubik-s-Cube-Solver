@@ -33,5 +33,4 @@ jobs:
       - name: Upload results to Codecov
         uses: codecov/codecov-action@v5
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
           slug: ogi02/Rubik-s-Cube-Solver
