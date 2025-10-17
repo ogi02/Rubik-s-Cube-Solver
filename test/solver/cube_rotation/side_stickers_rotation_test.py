@@ -1,9 +1,7 @@
-from pickle import FALSE
-
 import pytest
 
 from typing import Callable
-from unittest.mock import patch
+from unittest.mock import patch, call
 
 from src.solver.cube import Cube
 from src.solver.enums.Color import Color
@@ -278,10 +276,162 @@ def test_success_should_flip_edge(turned_layer: Layer, direction: Direction,
     assert ssr.should_flip_edge(turned_layer, direction, adj_layer) == should_flip_edge
 
 
-def test_success_rotate_sides() -> None:
+@pytest.mark.parametrize("cube_size, turned_layer, direction, layer_amount, original_edges", [
+    (3, Layer.UP,    Direction.CW,     1, [[Color.BLUE] * 3,  [Color.RED] * 3,    [Color.GREEN] * 3,  [Color.ORANGE] * 3]),
+    (3, Layer.UP,    Direction.CCW,    1, [[Color.BLUE] * 3,  [Color.RED] * 3,    [Color.GREEN] * 3,  [Color.ORANGE] * 3]),
+    (3, Layer.UP,    Direction.DOUBLE, 1, [[Color.BLUE] * 3,  [Color.RED] * 3,    [Color.GREEN] * 3,  [Color.ORANGE] * 3]),
+    (3, Layer.DOWN,  Direction.CW,     1, [[Color.GREEN] * 3, [Color.RED] * 3,    [Color.BLUE] * 3,   [Color.ORANGE] * 3]),
+    (3, Layer.DOWN,  Direction.CCW,    1, [[Color.GREEN] * 3, [Color.RED] * 3,    [Color.BLUE] * 3,   [Color.ORANGE] * 3]),
+    (3, Layer.DOWN,  Direction.DOUBLE, 1, [[Color.GREEN] * 3, [Color.RED] * 3,    [Color.BLUE] * 3,   [Color.ORANGE] * 3]),
+    (3, Layer.FRONT, Direction.CW,     1, [[Color.WHITE] * 3, [Color.RED] * 3,    [Color.YELLOW] * 3, [Color.ORANGE] * 3]),
+    (3, Layer.FRONT, Direction.CCW,    1, [[Color.WHITE] * 3, [Color.RED] * 3,    [Color.YELLOW] * 3, [Color.ORANGE] * 3]),
+    (3, Layer.FRONT, Direction.DOUBLE, 1, [[Color.WHITE] * 3, [Color.RED] * 3,    [Color.YELLOW] * 3, [Color.ORANGE] * 3]),
+    (3, Layer.BACK,  Direction.CW,     1, [[Color.WHITE] * 3, [Color.ORANGE] * 3, [Color.YELLOW] * 3, [Color.RED] * 3]),
+    (3, Layer.BACK,  Direction.CCW,    1, [[Color.WHITE] * 3, [Color.ORANGE] * 3, [Color.YELLOW] * 3, [Color.RED] * 3]),
+    (3, Layer.BACK,  Direction.DOUBLE, 1, [[Color.WHITE] * 3, [Color.ORANGE] * 3, [Color.YELLOW] * 3, [Color.RED] * 3]),
+    (3, Layer.LEFT,  Direction.CW,     1, [[Color.WHITE] * 3, [Color.GREEN] * 3,  [Color.YELLOW] * 3, [Color.BLUE] * 3]),
+    (3, Layer.LEFT,  Direction.CCW,    1, [[Color.WHITE] * 3, [Color.GREEN] * 3,  [Color.YELLOW] * 3, [Color.BLUE] * 3]),
+    (3, Layer.LEFT,  Direction.DOUBLE, 1, [[Color.WHITE] * 3, [Color.GREEN] * 3,  [Color.YELLOW] * 3, [Color.BLUE] * 3]),
+    (3, Layer.RIGHT, Direction.CW,     1, [[Color.WHITE] * 3, [Color.BLUE] * 3,   [Color.YELLOW] * 3, [Color.GREEN] * 3]),
+    (3, Layer.RIGHT, Direction.CCW,    1, [[Color.WHITE] * 3, [Color.BLUE] * 3,   [Color.YELLOW] * 3, [Color.GREEN] * 3]),
+    (3, Layer.RIGHT, Direction.DOUBLE, 1, [[Color.WHITE] * 3, [Color.BLUE] * 3,   [Color.YELLOW] * 3, [Color.GREEN] * 3]),
+    (2, Layer.UP,    Direction.CW,     1, [[Color.BLUE] * 2,  [Color.RED] * 2,    [Color.GREEN] * 2,  [Color.ORANGE] * 2]),
+    (2, Layer.UP,    Direction.CCW,    1, [[Color.BLUE] * 2,  [Color.RED] * 2,    [Color.GREEN] * 2,  [Color.ORANGE] * 2]),
+    (2, Layer.UP,    Direction.DOUBLE, 1, [[Color.BLUE] * 2,  [Color.RED] * 2,    [Color.GREEN] * 2,  [Color.ORANGE] * 2]),
+    (2, Layer.DOWN,  Direction.CW,     1, [[Color.GREEN] * 2, [Color.RED] * 2,    [Color.BLUE] * 2,   [Color.ORANGE] * 2]),
+    (2, Layer.DOWN,  Direction.CCW,    1, [[Color.GREEN] * 2, [Color.RED] * 2,    [Color.BLUE] * 2,   [Color.ORANGE] * 2]),
+    (2, Layer.DOWN,  Direction.DOUBLE, 1, [[Color.GREEN] * 2, [Color.RED] * 2,    [Color.BLUE] * 2,   [Color.ORANGE] * 2]),
+    (2, Layer.FRONT, Direction.CW,     1, [[Color.WHITE] * 2, [Color.RED] * 2,    [Color.YELLOW] * 2, [Color.ORANGE] * 2]),
+    (2, Layer.FRONT, Direction.CCW,    1, [[Color.WHITE] * 2, [Color.RED] * 2,    [Color.YELLOW] * 2, [Color.ORANGE] * 2]),
+    (2, Layer.FRONT, Direction.DOUBLE, 1, [[Color.WHITE] * 2, [Color.RED] * 2,    [Color.YELLOW] * 2, [Color.ORANGE] * 2]),
+    (2, Layer.BACK,  Direction.CW,     1, [[Color.WHITE] * 2, [Color.ORANGE] * 2, [Color.YELLOW] * 2, [Color.RED] * 2]),
+    (2, Layer.BACK,  Direction.CCW,    1, [[Color.WHITE] * 2, [Color.ORANGE] * 2, [Color.YELLOW] * 2, [Color.RED] * 2]),
+    (2, Layer.BACK,  Direction.DOUBLE, 1, [[Color.WHITE] * 2, [Color.ORANGE] * 2, [Color.YELLOW] * 2, [Color.RED] * 2]),
+    (2, Layer.LEFT,  Direction.CW,     1, [[Color.WHITE] * 2, [Color.GREEN] * 2,  [Color.YELLOW] * 2, [Color.BLUE] * 2]),
+    (2, Layer.LEFT,  Direction.CCW,    1, [[Color.WHITE] * 2, [Color.GREEN] * 2,  [Color.YELLOW] * 2, [Color.BLUE] * 2]),
+    (2, Layer.LEFT,  Direction.DOUBLE, 1, [[Color.WHITE] * 2, [Color.GREEN] * 2,  [Color.YELLOW] * 2, [Color.BLUE] * 2]),
+    (2, Layer.RIGHT, Direction.CW,     1, [[Color.WHITE] * 2, [Color.BLUE] * 2,   [Color.YELLOW] * 2, [Color.GREEN] * 2]),
+    (2, Layer.RIGHT, Direction.CCW,    1, [[Color.WHITE] * 2, [Color.BLUE] * 2,   [Color.YELLOW] * 2, [Color.GREEN] * 2]),
+    (2, Layer.RIGHT, Direction.DOUBLE, 1, [[Color.WHITE] * 2, [Color.BLUE] * 2,   [Color.YELLOW] * 2, [Color.GREEN] * 2]),
+    (5, Layer.UP,    Direction.CW,     1, [[Color.BLUE] * 5,  [Color.RED] * 5,    [Color.GREEN] * 5,  [Color.ORANGE] * 5]),
+    (5, Layer.UP,    Direction.CCW,    1, [[Color.BLUE] * 5,  [Color.RED] * 5,    [Color.GREEN] * 5,  [Color.ORANGE] * 5]),
+    (5, Layer.UP,    Direction.DOUBLE, 1, [[Color.BLUE] * 5,  [Color.RED] * 5,    [Color.GREEN] * 5,  [Color.ORANGE] * 5]),
+    (5, Layer.DOWN,  Direction.CW,     1, [[Color.GREEN] * 5, [Color.RED] * 5,    [Color.BLUE] * 5,   [Color.ORANGE] * 5]),
+    (5, Layer.DOWN,  Direction.CCW,    1, [[Color.GREEN] * 5, [Color.RED] * 5,    [Color.BLUE] * 5,   [Color.ORANGE] * 5]),
+    (5, Layer.DOWN,  Direction.DOUBLE, 1, [[Color.GREEN] * 5, [Color.RED] * 5,    [Color.BLUE] * 5,   [Color.ORANGE] * 5]),
+    (5, Layer.FRONT, Direction.CW,     1, [[Color.WHITE] * 5, [Color.RED] * 5,    [Color.YELLOW] * 5, [Color.ORANGE] * 5]),
+    (5, Layer.FRONT, Direction.CCW,    1, [[Color.WHITE] * 5, [Color.RED] * 5,    [Color.YELLOW] * 5, [Color.ORANGE] * 5]),
+    (5, Layer.FRONT, Direction.DOUBLE, 1, [[Color.WHITE] * 5, [Color.RED] * 5,    [Color.YELLOW] * 5, [Color.ORANGE] * 5]),
+    (5, Layer.BACK,  Direction.CW,     1, [[Color.WHITE] * 5, [Color.ORANGE] * 5, [Color.YELLOW] * 5, [Color.RED] * 5]),
+    (5, Layer.BACK,  Direction.CCW,    1, [[Color.WHITE] * 5, [Color.ORANGE] * 5, [Color.YELLOW] * 5, [Color.RED] * 5]),
+    (5, Layer.BACK,  Direction.DOUBLE, 1, [[Color.WHITE] * 5, [Color.ORANGE] * 5, [Color.YELLOW] * 5, [Color.RED] * 5]),
+    (5, Layer.LEFT,  Direction.CW,     1, [[Color.WHITE] * 5, [Color.GREEN] * 5,  [Color.YELLOW] * 5, [Color.BLUE] * 5]),
+    (5, Layer.LEFT,  Direction.CCW,    1, [[Color.WHITE] * 5, [Color.GREEN] * 5,  [Color.YELLOW] * 5, [Color.BLUE] * 5]),
+    (5, Layer.LEFT,  Direction.DOUBLE, 1, [[Color.WHITE] * 5, [Color.GREEN] * 5,  [Color.YELLOW] * 5, [Color.BLUE] * 5]),
+    (5, Layer.RIGHT, Direction.CW,     1, [[Color.WHITE] * 5, [Color.BLUE] * 5,   [Color.YELLOW] * 5, [Color.GREEN] * 5]),
+    (5, Layer.RIGHT, Direction.CCW,    1, [[Color.WHITE] * 5, [Color.BLUE] * 5,   [Color.YELLOW] * 5, [Color.GREEN] * 5]),
+    (5, Layer.RIGHT, Direction.DOUBLE, 1, [[Color.WHITE] * 5, [Color.BLUE] * 5,   [Color.YELLOW] * 5, [Color.GREEN] * 5]),
+    (5, Layer.UP,    Direction.CW,     2, [[Color.BLUE] * 2,  [Color.RED] * 2,    [Color.GREEN] * 2,  [Color.ORANGE] * 2]),
+    (5, Layer.UP,    Direction.CCW,    2, [[Color.BLUE] * 2,  [Color.RED] * 2,    [Color.GREEN] * 2,  [Color.ORANGE] * 2]),
+    (5, Layer.UP,    Direction.DOUBLE, 2, [[Color.BLUE] * 2,  [Color.RED] * 2,    [Color.GREEN] * 2,  [Color.ORANGE] * 2]),
+    (5, Layer.DOWN,  Direction.CW,     2, [[Color.GREEN] * 2, [Color.RED] * 2,    [Color.BLUE] * 2,   [Color.ORANGE] * 2]),
+    (5, Layer.DOWN,  Direction.CCW,    2, [[Color.GREEN] * 2, [Color.RED] * 2,    [Color.BLUE] * 2,   [Color.ORANGE] * 2]),
+    (5, Layer.DOWN,  Direction.DOUBLE, 2, [[Color.GREEN] * 2, [Color.RED] * 2,    [Color.BLUE] * 2,   [Color.ORANGE] * 2]),
+    (5, Layer.FRONT, Direction.CW,     2, [[Color.WHITE] * 2, [Color.RED] * 2,    [Color.YELLOW] * 2, [Color.ORANGE] * 2]),
+    (5, Layer.FRONT, Direction.CCW,    2, [[Color.WHITE] * 2, [Color.RED] * 2,    [Color.YELLOW] * 2, [Color.ORANGE] * 2]),
+    (5, Layer.FRONT, Direction.DOUBLE, 2, [[Color.WHITE] * 2, [Color.RED] * 2,    [Color.YELLOW] * 2, [Color.ORANGE] * 2]),
+    (5, Layer.BACK,  Direction.CW,     2, [[Color.WHITE] * 2, [Color.ORANGE] * 2, [Color.YELLOW] * 2, [Color.RED] * 2]),
+    (5, Layer.BACK,  Direction.CCW,    2, [[Color.WHITE] * 2, [Color.ORANGE] * 2, [Color.YELLOW] * 2, [Color.RED] * 2]),
+    (5, Layer.BACK,  Direction.DOUBLE, 2, [[Color.WHITE] * 2, [Color.ORANGE] * 2, [Color.YELLOW] * 2, [Color.RED] * 2]),
+    (5, Layer.LEFT,  Direction.CW,     2, [[Color.WHITE] * 2, [Color.GREEN] * 2,  [Color.YELLOW] * 2, [Color.BLUE] * 2]),
+    (5, Layer.LEFT,  Direction.CCW,    2, [[Color.WHITE] * 2, [Color.GREEN] * 2,  [Color.YELLOW] * 2, [Color.BLUE] * 2]),
+    (5, Layer.LEFT,  Direction.DOUBLE, 2, [[Color.WHITE] * 2, [Color.GREEN] * 2,  [Color.YELLOW] * 2, [Color.BLUE] * 2]),
+    (5, Layer.RIGHT, Direction.CW,     2, [[Color.WHITE] * 2, [Color.BLUE] * 2,   [Color.YELLOW] * 2, [Color.GREEN] * 2]),
+    (5, Layer.RIGHT, Direction.CCW,    2, [[Color.WHITE] * 2, [Color.BLUE] * 2,   [Color.YELLOW] * 2, [Color.GREEN] * 2]),
+    (5, Layer.RIGHT, Direction.DOUBLE, 2, [[Color.WHITE] * 2, [Color.BLUE] * 2,   [Color.YELLOW] * 2, [Color.GREEN] * 2])
+])
+def test_success_rotate_sides(generate_cube: Callable[[int], Cube],
+                              generate_one_color_only_edge: Callable[[int, Color], list[Color]],
+                              generate_one_color_only_face: Callable[[int, Color], list[Color]],
+                              get_adjacent_edge: Callable[[Layer], list[tuple[Layer, EdgePosition]]],
+                              cube_size: int, turned_layer: Layer, direction: Direction,
+                              layer_amount: int, original_edges: list[list[Color]]) -> None:
     """
     Tests the rotation of the side stickers.
 
+    :param generate_cube: Fixture to generate a cube
+    :param generate_one_color_only_edge: Fixture to generate an edge with only one color
+    :param generate_one_color_only_face: Fixture to generate a face with only one color
+    :param get_adjacent_edge: Fixture to get the adjacent edges
+    :param cube_size: The size of the cube
+    :param turned_layer: The layer that is turned
+    :param direction: The direction of the turn
+    :param layer_amount: The amount of layers
     :return: None
     """
 
+    # Mock the cube
+    cube = generate_cube(cube_size)
+    cube.layers = {
+        Layer.UP:    generate_one_color_only_face(cube_size, Color.WHITE),
+        Layer.DOWN:  generate_one_color_only_face(cube_size, Color.YELLOW),
+        Layer.FRONT: generate_one_color_only_face(cube_size, Color.GREEN),
+        Layer.BACK:  generate_one_color_only_face(cube_size, Color.BLUE),
+        Layer.LEFT:  generate_one_color_only_face(cube_size, Color.ORANGE),
+        Layer.RIGHT: generate_one_color_only_face(cube_size, Color.RED)
+    }
+
+    # Prepare all expected calls before the loop
+    expected_calls_get_edge_method = []
+    expected_calls_should_flip_edge_method = []
+    expected_calls_set_edge_method = []
+    rotated_edges = []
+
+    for layer_index in range(1, layer_amount + 1):
+        # Adjacent edges for this layer
+        adjacent_edges = get_adjacent_edge(turned_layer)
+
+        # Rotated edges for this layer
+        if direction == Direction.CW:
+            rotated_edges = [original_edges[3], original_edges[0], original_edges[1], original_edges[2]]
+        elif direction == Direction.CCW:
+            rotated_edges = [original_edges[1], original_edges[2], original_edges[3], original_edges[0]]
+        elif direction == Direction.DOUBLE:
+            rotated_edges = [original_edges[2], original_edges[3], original_edges[0], original_edges[1]]
+
+        # Append expected calls for all layers
+        for i in range(4):
+            adjacent_layer, position = adjacent_edges[i]
+            expected_calls_get_edge_method.append(
+                # Params: face, layer amount, position, cube size
+                call(cube.layers[adjacent_layer], layer_index, position, cube.size)
+            )
+            expected_calls_should_flip_edge_method.append(
+                # Params: turned layer, direction, adjacent layer
+                call(turned_layer, direction, adjacent_layer)
+            )
+            expected_calls_set_edge_method.append(
+                # Params: face, layer amount, position, cube size, rotated edge
+                call(cube.layers[adjacent_layer], layer_index, position, cube.size, rotated_edges[i])
+            )
+
+    # Patch
+    with patch("src.solver.cube_rotation.side_stickers_rotation.get_edge") as mock_get_edge, \
+         patch("src.solver.cube_rotation.side_stickers_rotation.should_flip_edge") as mock_should_flip_edge, \
+         patch("src.solver.cube_rotation.side_stickers_rotation.set_edge") as mock_set_edge:
+
+        # Mock get_edge() return values for all calls
+        mock_get_edge.side_effect = original_edges * layer_amount
+
+        # Call the method under test
+        ssr.rotate_sides(cube, turned_layer, direction, layer_amount)
+
+        # Assert calls across all layers
+        assert mock_get_edge.call_args_list == expected_calls_get_edge_method
+        assert mock_get_edge.call_count == 4 * layer_amount
+
+        assert mock_should_flip_edge.call_args_list == expected_calls_should_flip_edge_method
+        assert mock_should_flip_edge.call_count == 4 * layer_amount
+
+        assert mock_set_edge.call_args_list == expected_calls_set_edge_method
+        assert mock_set_edge.call_count == 4 * layer_amount

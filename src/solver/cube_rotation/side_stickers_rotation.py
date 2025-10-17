@@ -13,14 +13,14 @@ ADJACENT_FACES = {
                   (Layer.FRONT, EdgePosition.TOP),    (Layer.LEFT,  EdgePosition.TOP)],
     Layer.DOWN:  [(Layer.FRONT, EdgePosition.BOTTOM), (Layer.RIGHT, EdgePosition.BOTTOM),
                   (Layer.BACK,  EdgePosition.BOTTOM), (Layer.LEFT,  EdgePosition.BOTTOM)],
-    Layer.LEFT:  [(Layer.UP,    EdgePosition.LEFT),   (Layer.FRONT, EdgePosition.LEFT),
-                  (Layer.DOWN,  EdgePosition.LEFT),   (Layer.BACK,  EdgePosition.RIGHT)],
-    Layer.RIGHT: [(Layer.UP,    EdgePosition.RIGHT),  (Layer.BACK,  EdgePosition.LEFT),
-                  (Layer.DOWN,  EdgePosition.RIGHT),  (Layer.FRONT, EdgePosition.RIGHT)],
     Layer.FRONT: [(Layer.UP,    EdgePosition.BOTTOM), (Layer.RIGHT, EdgePosition.LEFT),
                   (Layer.DOWN,  EdgePosition.TOP),    (Layer.LEFT,  EdgePosition.RIGHT)],
     Layer.BACK:  [(Layer.UP,    EdgePosition.TOP),    (Layer.LEFT,  EdgePosition.LEFT),
-                  (Layer.DOWN,  EdgePosition.BOTTOM), (Layer.RIGHT, EdgePosition.RIGHT)]
+                  (Layer.DOWN,  EdgePosition.BOTTOM), (Layer.RIGHT, EdgePosition.RIGHT)],
+    Layer.LEFT:  [(Layer.UP,    EdgePosition.LEFT),   (Layer.FRONT, EdgePosition.LEFT),
+                  (Layer.DOWN,  EdgePosition.LEFT),   (Layer.BACK,  EdgePosition.RIGHT)],
+    Layer.RIGHT: [(Layer.UP,    EdgePosition.RIGHT),  (Layer.BACK,  EdgePosition.LEFT),
+                  (Layer.DOWN,  EdgePosition.RIGHT),  (Layer.FRONT, EdgePosition.RIGHT)]
 }
 
 
@@ -147,6 +147,8 @@ def rotate_sides(cube: Cube, layer: Layer, direction: Direction, layer_amount: i
     # Check if not too many layers are being turned
     if cube.size // layer_amount < 2:
         raise ValueError(f"Cube size {cube.size} is too small to rotate {layer_amount} layers")
+    if layer_amount <= 0:
+        raise ValueError(f"Invalid layer amount: {layer_amount}")
 
     # Iterate all layers
     for layer_index in range(1, layer_amount + 1):
