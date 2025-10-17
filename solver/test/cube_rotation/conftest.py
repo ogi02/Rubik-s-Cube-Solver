@@ -1,11 +1,11 @@
 import pytest
 from typing import Callable
 
-from solver.cube import Cube
-from solver.cube_rotation.rotator import Rotator
-from solver.enums.Color import Color
-from solver.enums.EdgePosition import EdgePosition
-from solver.enums.Layer import Layer
+from cube import Cube
+from cube_rotation.rotator import Rotator
+from enums.Color import Color
+from enums.EdgePosition import EdgePosition
+from enums.Layer import Layer
 
 RUBIKS_CUBE_COLORS: list[Color] = [Color.WHITE, Color.YELLOW, Color.ORANGE, Color.RED, Color.GREEN, Color.BLUE]
 

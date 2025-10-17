@@ -1,7 +1,7 @@
-from solver.cube import Cube
-from solver.cube_rotation.rotator import Rotator
-from solver.enums.Direction import Direction
-from solver.enums.Layer import Layer
+from cube import Cube
+from cube_rotation.rotator import Rotator
+from enums.Direction import Direction
+from enums.Layer import Layer
 
 def main():
     # Create a Rubik's Cube

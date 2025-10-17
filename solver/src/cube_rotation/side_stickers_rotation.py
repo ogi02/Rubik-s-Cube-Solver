@@ -1,10 +1,10 @@
 from collections import defaultdict
 
-from solver.cube import Cube
-from solver.enums.Color import Color
-from solver.enums.Direction import Direction
-from solver.enums.EdgePosition import EdgePosition
-from solver.enums.Layer import Layer
+from cube import Cube
+from enums.Color import Color
+from enums.Direction import Direction
+from enums.EdgePosition import EdgePosition
+from enums.Layer import Layer
 
 
 # Maps for adjacent faces for each face rotation and the edge location

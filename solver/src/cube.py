@@ -1,5 +1,5 @@
-from solver.enums.Color import Color
-from solver.enums.Layer import Layer
+from enums.Color import Color
+from enums.Layer import Layer
 
 class Cube:
     def __init__(self, size: int):
