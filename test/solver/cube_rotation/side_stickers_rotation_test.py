@@ -170,7 +170,7 @@ def test_exception_set_edge(generate_one_color_only_face: Callable[[int, Color],
                             layer_amount: int, position: EdgePosition, cube_size: int,
                             expected_exception_type: type[BaseException], expected_exception: str) -> None:
     """
-    Tests that get_edge() raises an exception when the parameters are not valid.
+    Tests that set_edge() raises an exception when the parameters are not valid.
 
     :param generate_one_color_only_face: Fixture to generate a face
     :param generate_edge: Fixture to generate an edge

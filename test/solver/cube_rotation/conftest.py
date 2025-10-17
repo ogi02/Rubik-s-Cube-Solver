@@ -99,11 +99,11 @@ def generate_one_color_only_face() -> Callable[[int, Color], list[Color]]:
 
     def _generate(n: int, color: Color) -> list[Color]:
         """
-        Generates an n x n face with only white stickers.
+        Generates an n x n face with only one color stickers.
 
         :param n: Cube size
         :param color: The color of the stickers
-        :return: Face with only white stickers
+        :return: Face with only one color stickers
         """
         return [color] * (n * n)
 
@@ -143,11 +143,11 @@ def generate_one_color_only_edge() -> Callable[[int, Color], list[Color]]:
 
     def _generate(n: int, color: Color) -> list[Color]:
         """
-        Generates an edge with only white stickers.
+        Generates an edge with only one color stickers.
 
         :param n: Cube size
         :param color: The color of the stickers
-        :return: Edge with only white stickers
+        :return: Edge with only one color stickers
         """
         return [color] * n
 
