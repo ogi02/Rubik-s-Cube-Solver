@@ -34,7 +34,7 @@ jobs:
         env:
           PYTHONPATH: src
         run: |
-          pytest test --cov=src --cov-branch --cov-report=xml
+          pytest ./solver/test --cov=src --cov-branch --cov-report=xml
 
       - name: Upload results to Codecov
         uses: codecov/codecov-action@v5
