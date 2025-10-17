@@ -3,10 +3,10 @@ import pytest
 from typing import Callable
 from unittest.mock import patch
 
-from solver.cube import Cube
-from solver.cube_rotation.rotator import Rotator
-from solver.enums.Direction import Direction
-from solver.enums.Layer import Layer
+from cube import Cube
+from cube_rotation.rotator import Rotator
+from enums.Direction import Direction
+from enums.Layer import Layer
 
 # -----------------------
 # Tests
@@ -37,8 +37,8 @@ def test_success_turn(generate_cube: Callable[[int], Cube],
     # Mock the rotator class
     rotator = generate_rotator(cube)
 
-    with patch("solver.cube_rotation.rotator.rotate_face") as mocked_rotate_face, \
-         patch("solver.cube_rotation.rotator.rotate_sides") as mocked_rotate_sides:
+    with patch("cube_rotation.rotator.rotate_face") as mocked_rotate_face, \
+         patch("cube_rotation.rotator.rotate_sides") as mocked_rotate_sides:
 
         # Perform the turn
         rotator.turn(layer, layer_amount, direction)

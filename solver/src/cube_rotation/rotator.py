@@ -1,8 +1,8 @@
-from solver.cube import Cube
-from solver.cube_rotation.face_stickers_rotation import rotate_face
-from solver.cube_rotation.side_stickers_rotation import rotate_sides
-from solver.enums.Direction import Direction
-from solver.enums.Layer import Layer
+from cube import Cube
+from cube_rotation.face_stickers_rotation import rotate_face
+from cube_rotation.side_stickers_rotation import rotate_sides
+from enums.Direction import Direction
+from enums.Layer import Layer
 
 
 class Rotator:
