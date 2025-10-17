@@ -3,6 +3,6 @@ Thesis Project
 
 ## Status
 
-[![Lint](https://img.shields.io/github/actions/workflow/status/ogi02/Rubik-s-Cube-Solver/lint.yml?branch=main)](https://github.com/ogi02/Rubik-s-Cube-Solver/actions)
-[![Pytest](https://img.shields.io/github/actions/workflow/status/ogi02/Rubik-s-Cube-Solver/pytest.yml?branch=main)](https://github.com/ogi02/Rubik-s-Cube-Solver/actions)
+[![Lint](https://img.shields.io/github/actions/workflow/status/ogi02/Rubik-s-Cube-Solver/lint.yml?branch=main&label=Lint)](https://github.com/ogi02/Rubik-s-Cube-Solver/actions)
+[![Pytest](https://img.shields.io/github/actions/workflow/status/ogi02/Rubik-s-Cube-Solver/pytest.yml?branch=main&label=Pytest)](https://github.com/ogi02/Rubik-s-Cube-Solver/actions)
 [![Coverage](https://codecov.io/gh/ogi02/Rubik-s-Cube-Solver/branch/main/graph/badge.svg?token=<CODECOV_TOKEN>)](https://codecov.io/gh/ogi02/Rubik-s-Cube-Solver)
