@@ -1,6 +1,5 @@
-from src.solver.enums.Color import Color
-from src.solver.enums.Direction import Direction
-from src.solver.enums.Layer import Layer
+from solver.enums.Color import Color
+from solver.enums.Layer import Layer
 
 class Cube:
     def __init__(self, size: int):
