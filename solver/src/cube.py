@@ -1,6 +1,7 @@
 from enums.Color import Color
 from enums.Layer import Layer
 
+
 class Cube:
     def __init__(self, size: int):
         # Initialize the cube with a solved state
@@ -10,7 +11,7 @@ class Cube:
             Layer.LEFT: [Color.ORANGE] * size * size,
             Layer.RIGHT: [Color.RED] * size * size,
             Layer.FRONT: [Color.GREEN] * size * size,
-            Layer.BACK: [Color.BLUE] * size * size
+            Layer.BACK: [Color.BLUE] * size * size,
         }
         self.__size = size
 
@@ -49,7 +50,6 @@ class Cube:
         :param layers: The layers of the cube
         """
         self.__layers = layers
-
 
     def __str__(self):
         """
@@ -90,10 +90,12 @@ class Cube:
             string_representation += f"{pad}{row_str(self.layers[Layer.UP], row)}\n"
         # Add LEFT, FRONT, RIGHT and BACK layers
         for row in range(self.size):
-            string_representation += (f"{row_str(self.layers[Layer.LEFT], row)} "
-                                      f"{row_str(self.layers[Layer.FRONT], row)} "
-                                      f"{row_str(self.layers[Layer.RIGHT], row)} "
-                                      f"{row_str(self.layers[Layer.BACK], row)}\n")
+            string_representation += (
+                f"{row_str(self.layers[Layer.LEFT], row)} "
+                f"{row_str(self.layers[Layer.FRONT], row)} "
+                f"{row_str(self.layers[Layer.RIGHT], row)} "
+                f"{row_str(self.layers[Layer.BACK], row)}\n"
+            )
         # Add DOWN layer
         for row in range(self.size):
             string_representation += f"{pad}{row_str(self.layers[Layer.DOWN], row)}\n"

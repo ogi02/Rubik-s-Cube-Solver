@@ -1,44 +1,48 @@
-import pytest
-
 from typing import Callable
 from unittest.mock import patch
 
+import pytest
+
+import cube_rotation.face_stickers_rotation as fsr
 from cube import Cube
 from enums.Color import Color
 from enums.Direction import Direction
 from enums.Layer import Layer
-import cube_rotation.face_stickers_rotation as fsr
 
 
-@pytest.mark.parametrize("cube_size, expected_rotation_map", [
-    (2, [1, 3,
-         0, 2]),
-    (3, [2, 5, 8,
-         1, 4, 7,
-         0, 3, 6]),
-    (4, [3, 7, 11, 15,
-         2, 6, 10, 14,
-         1, 5, 9,  13,
-         0, 4, 8,  12]),
-    (5, [4, 9, 14, 19, 24,
-         3, 8, 13, 18, 23,
-         2, 7, 12, 17, 22,
-         1, 6, 11, 16, 21,
-         0, 5, 10, 15, 20]),
-    (6, [5, 11, 17, 23, 29, 35,
-         4, 10, 16, 22, 28, 34,
-         3, 9,  15, 21, 27, 33,
-         2, 8,  14, 20, 26, 32,
-         1, 7,  13, 19, 25, 31,
-         0, 6,  12, 18, 24, 30]),
-    (7, [6, 13, 20, 27, 34, 41, 48,
-         5, 12, 19, 26, 33, 40, 47,
-         4, 11, 18, 25, 32, 39, 46,
-         3, 10, 17, 24, 31, 38, 45,
-         2, 9,  16, 23, 30, 37, 44,
-         1, 8,  15, 22, 29, 36, 43,
-         0, 7,  14, 21, 28, 35, 42])
-])
+# fmt: off
+@pytest.mark.parametrize(
+    "cube_size, expected_rotation_map", [
+        (2, [1, 3,
+             0, 2]),
+        (3, [2, 5, 8,
+             1, 4, 7,
+             0, 3, 6]),
+        (4, [3, 7, 11, 15,
+             2, 6, 10, 14,
+             1, 5, 9,  13,
+             0, 4, 8,  12]),
+        (5, [4, 9, 14, 19, 24,
+             3, 8, 13, 18, 23,
+             2, 7, 12, 17, 22,
+             1, 6, 11, 16, 21,
+             0, 5, 10, 15, 20]),
+        (6, [5, 11, 17, 23, 29, 35,
+             4, 10, 16, 22, 28, 34,
+             3, 9,  15, 21, 27, 33,
+             2, 8,  14, 20, 26, 32,
+             1, 7,  13, 19, 25, 31,
+             0, 6,  12, 18, 24, 30]),
+        (7, [6, 13, 20, 27, 34, 41, 48,
+             5, 12, 19, 26, 33, 40, 47,
+             4, 11, 18, 25, 32, 39, 46,
+             3, 10, 17, 24, 31, 38, 45,
+             2, 9,  16, 23, 30, 37, 44,
+             1, 8,  15, 22, 29, 36, 43,
+             0, 7,  14, 21, 28, 35, 42])
+    ]
+)
+# fmt: on
 def test_success_generate_clockwise_rotation_map(cube_size: int, expected_rotation_map: list[int]) -> None:
     """
     Tests the generation of the map for a clockwise rotation.
@@ -51,35 +55,39 @@ def test_success_generate_clockwise_rotation_map(cube_size: int, expected_rotati
     assert fsr.generate_clockwise_rotation_map(cube_size) == expected_rotation_map
 
 
-@pytest.mark.parametrize("cube_size, expected_rotation_map", [
-    (2, [2, 0,
-         3, 1]),
-    (3, [6, 3, 0,
-         7, 4, 1,
-         8, 5, 2]),
-    (4, [12, 8, 4, 0,
-         13, 9, 5, 1,
-         14, 10, 6, 2,
-         15, 11, 7, 3]),
-    (5, [20, 15, 10, 5, 0,
-         21, 16, 11, 6, 1,
-         22, 17, 12, 7, 2,
-         23, 18, 13, 8, 3,
-         24, 19, 14, 9, 4]),
-    (6, [30, 24, 18, 12, 6, 0,
-         31, 25, 19, 13, 7, 1,
-         32, 26, 20, 14, 8, 2,
-         33, 27, 21, 15, 9, 3,
-         34, 28, 22, 16, 10, 4,
-         35, 29, 23, 17, 11, 5]),
-    (7, [42, 35, 28, 21, 14, 7, 0,
-         43, 36, 29, 22, 15, 8, 1,
-         44, 37, 30, 23, 16, 9, 2,
-         45, 38, 31, 24, 17, 10, 3,
-         46, 39, 32, 25, 18, 11, 4,
-         47, 40, 33, 26, 19, 12, 5,
-         48, 41, 34, 27, 20, 13, 6])
-])
+# fmt: off
+@pytest.mark.parametrize(
+    "cube_size, expected_rotation_map", [
+        (2, [2, 0,
+             3, 1]),
+        (3, [6, 3, 0,
+             7, 4, 1,
+             8, 5, 2]),
+        (4, [12, 8, 4, 0,
+             13, 9, 5, 1,
+             14, 10, 6, 2,
+             15, 11, 7, 3]),
+        (5, [20, 15, 10, 5, 0,
+             21, 16, 11, 6, 1,
+             22, 17, 12, 7, 2,
+             23, 18, 13, 8, 3,
+             24, 19, 14, 9, 4]),
+        (6, [30, 24, 18, 12, 6, 0,
+             31, 25, 19, 13, 7, 1,
+             32, 26, 20, 14, 8, 2,
+             33, 27, 21, 15, 9, 3,
+             34, 28, 22, 16, 10, 4,
+             35, 29, 23, 17, 11, 5]),
+        (7, [42, 35, 28, 21, 14, 7, 0,
+             43, 36, 29, 22, 15, 8, 1,
+             44, 37, 30, 23, 16, 9, 2,
+             45, 38, 31, 24, 17, 10, 3,
+             46, 39, 32, 25, 18, 11, 4,
+             47, 40, 33, 26, 19, 12, 5,
+             48, 41, 34, 27, 20, 13, 6])
+    ]
+)
+# fmt: on
 def test_success_generate_counter_clockwise_rotation_map(cube_size: int, expected_rotation_map: list[int]) -> None:
     """
     Tests the generation of the map for a counter-clockwise rotation.
@@ -92,35 +100,39 @@ def test_success_generate_counter_clockwise_rotation_map(cube_size: int, expecte
     assert fsr.generate_counter_clockwise_rotation_map(cube_size) == expected_rotation_map
 
 
-@pytest.mark.parametrize("cube_size, expected_rotation_map", [
-    (2, [3, 2,
-         1, 0]),
-    (3, [8, 7, 6,
-         5, 4, 3,
-         2, 1, 0]),
-    (4, [15, 14, 13, 12,
-         11, 10, 9, 8,
-         7, 6, 5, 4,
-         3, 2, 1, 0]),
-    (5, [24, 23, 22, 21, 20,
-         19, 18, 17, 16, 15,
-         14, 13, 12, 11, 10,
-         9, 8, 7, 6, 5,
-         4, 3, 2, 1, 0]),
-    (6, [35, 34, 33, 32, 31, 30,
-         29, 28, 27, 26, 25, 24,
-         23, 22, 21, 20, 19, 18,
-         17, 16, 15, 14, 13, 12,
-         11, 10, 9, 8, 7, 6,
-         5, 4, 3, 2, 1, 0]),
-    (7, [48, 47, 46, 45, 44, 43, 42,
-         41, 40, 39, 38, 37, 36, 35,
-         34, 33, 32, 31, 30, 29, 28,
-         27, 26, 25, 24, 23, 22, 21,
-         20, 19, 18, 17, 16, 15, 14,
-         13, 12, 11, 10, 9, 8, 7,
-         6, 5, 4, 3, 2, 1, 0]),
-])
+# fmt: off
+@pytest.mark.parametrize(
+    "cube_size, expected_rotation_map", [
+        (2, [3, 2,
+             1, 0]),
+        (3, [8, 7, 6,
+             5, 4, 3,
+             2, 1, 0]),
+        (4, [15, 14, 13, 12,
+             11, 10, 9, 8,
+             7, 6, 5, 4,
+             3, 2, 1, 0]),
+        (5, [24, 23, 22, 21, 20,
+             19, 18, 17, 16, 15,
+             14, 13, 12, 11, 10,
+             9, 8, 7, 6, 5,
+             4, 3, 2, 1, 0]),
+        (6, [35, 34, 33, 32, 31, 30,
+             29, 28, 27, 26, 25, 24,
+             23, 22, 21, 20, 19, 18,
+             17, 16, 15, 14, 13, 12,
+             11, 10, 9, 8, 7, 6,
+             5, 4, 3, 2, 1, 0]),
+        (7, [48, 47, 46, 45, 44, 43, 42,
+             41, 40, 39, 38, 37, 36, 35,
+             34, 33, 32, 31, 30, 29, 28,
+             27, 26, 25, 24, 23, 22, 21,
+             20, 19, 18, 17, 16, 15, 14,
+             13, 12, 11, 10, 9, 8, 7,
+             6, 5, 4, 3, 2, 1, 0]),
+    ]
+)
+# fmt: on
 def test_success_generate_double_rotation_map(cube_size: int, expected_rotation_map: list[int]) -> None:
     """
     Tests the generation of the map for a double rotation.
@@ -133,12 +145,18 @@ def test_success_generate_double_rotation_map(cube_size: int, expected_rotation_
     assert fsr.generate_double_rotation_map(cube_size) == expected_rotation_map
 
 
-@pytest.mark.parametrize("direction, cube_size, expected_method", [
-    (Direction.CW, 3, fsr.generate_clockwise_rotation_map),
-    (Direction.CCW, 4, fsr.generate_counter_clockwise_rotation_map),
-    (Direction.DOUBLE, 5, fsr.generate_double_rotation_map)
-])
-def test_success_generate_rotation_map(direction: Direction, cube_size: int, expected_method: Callable[[int], list[int]]) -> None:
+# fmt: off
+@pytest.mark.parametrize(
+    "direction, cube_size, expected_method", [
+        (Direction.CW,     3, fsr.generate_clockwise_rotation_map),
+        (Direction.CCW,    4, fsr.generate_counter_clockwise_rotation_map),
+        (Direction.DOUBLE, 5, fsr.generate_double_rotation_map)
+    ]
+)
+# fmt: on
+def test_success_generate_rotation_map(
+    direction: Direction, cube_size: int, expected_method: Callable[[int], list[int]]
+) -> None:
     """
     Tests the generation of an n x n rotation map.
 
@@ -172,36 +190,45 @@ def test_exception_generate_rotation_map(direction: Direction | None, cube_size:
     with pytest.raises(ValueError, match="Unexpected direction when trying to rotate face!"):
         fsr.generate_rotation_map(direction, cube_size)
 
-@pytest.mark.parametrize("direction, cube_size, rotation_map, expected_face", [
-    (Direction.CW, 3, [2, 5, 8,
-                       1, 4, 7,
-                       0, 3, 6], [Color.WHITE,  Color.RED,   Color.WHITE,
-                                  Color.YELLOW, Color.GREEN, Color.YELLOW,
-                                  Color.ORANGE, Color.BLUE,  Color.ORANGE]),
-    (Direction.CCW, 3, [6, 3, 0,
-                        7, 4, 1,
-                        8, 5, 2], [Color.ORANGE, Color.BLUE,  Color.ORANGE,
-                                   Color.YELLOW, Color.GREEN, Color.YELLOW,
-                                   Color.WHITE,  Color.RED,   Color.WHITE]),
-    (Direction.DOUBLE, 3, [8, 7, 6,
-                           5, 4, 3,
-                           2, 1, 0], [Color.ORANGE, Color.YELLOW, Color.WHITE,
-                                      Color.BLUE,   Color.GREEN,  Color.RED,
-                                      Color.ORANGE, Color.YELLOW, Color.WHITE]),
-    (Direction.CW, 2, [1, 3,
-                       0, 2], [Color.ORANGE, Color.WHITE,
-                               Color.RED,    Color.YELLOW]),
-    (Direction.CCW, 4, [12, 8, 4, 0,
-                        13, 9, 5, 1,
-                        14, 10, 6, 2,
-                        15, 11, 7, 3], [Color.RED,    Color.YELLOW, Color.BLUE, Color.RED,
-                                        Color.ORANGE, Color.WHITE,  Color.GREEN, Color.ORANGE,
-                                        Color.YELLOW, Color.BLUE,   Color.RED,  Color.YELLOW,
-                                        Color.WHITE,  Color.GREEN,  Color.ORANGE, Color.WHITE]),
-])
+
+# fmt: off
+@pytest.mark.parametrize(
+    "direction, cube_size, rotation_map, expected_face", [
+        (Direction.CW, 3, [2, 5, 8,
+                           1, 4, 7,
+                           0, 3, 6], [Color.WHITE,  Color.RED,   Color.WHITE,
+                                      Color.YELLOW, Color.GREEN, Color.YELLOW,
+                                      Color.ORANGE, Color.BLUE,  Color.ORANGE]),
+        (Direction.CCW, 3, [6, 3, 0,
+                            7, 4, 1,
+                            8, 5, 2], [Color.ORANGE, Color.BLUE,  Color.ORANGE,
+                                       Color.YELLOW, Color.GREEN, Color.YELLOW,
+                                       Color.WHITE,  Color.RED,   Color.WHITE]),
+        (Direction.DOUBLE, 3, [8, 7, 6,
+                               5, 4, 3,
+                               2, 1, 0], [Color.ORANGE, Color.YELLOW, Color.WHITE,
+                                          Color.BLUE,   Color.GREEN,  Color.RED,
+                                          Color.ORANGE, Color.YELLOW, Color.WHITE]),
+        (Direction.CW, 2, [1, 3,
+                           0, 2], [Color.ORANGE, Color.WHITE,
+                                   Color.RED,    Color.YELLOW]),
+        (Direction.CCW, 4, [12, 8, 4, 0,
+                            13, 9, 5, 1,
+                            14, 10, 6, 2,
+                            15, 11, 7, 3], [Color.RED,    Color.YELLOW, Color.BLUE, Color.RED,
+                                            Color.ORANGE, Color.WHITE,  Color.GREEN, Color.ORANGE,
+                                            Color.YELLOW, Color.BLUE,   Color.RED,  Color.YELLOW,
+                                            Color.WHITE,  Color.GREEN,  Color.ORANGE, Color.WHITE]),
+    ]
+)
+# fmt: on
 def test_success_rotate_face(
-        generate_cube: Callable[[int], Cube], generate_face: Callable[[int], list[Color]],
-        direction: Direction, cube_size: int, rotation_map: list[int], expected_face: list[Color]
+    generate_cube: Callable[[int], Cube],
+    generate_face: Callable[[int], list[Color]],
+    direction: Direction,
+    cube_size: int,
+    rotation_map: list[int],
+    expected_face: list[Color],
 ) -> None:
     """
     Tests the rotation of a face.

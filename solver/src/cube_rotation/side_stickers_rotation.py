@@ -6,21 +6,44 @@ from enums.Direction import Direction
 from enums.EdgePosition import EdgePosition
 from enums.Layer import Layer
 
-
 # Maps for adjacent faces for each face rotation and the edge location
 ADJACENT_FACES = {
-    Layer.UP:    [(Layer.BACK,  EdgePosition.TOP),    (Layer.RIGHT, EdgePosition.TOP),
-                  (Layer.FRONT, EdgePosition.TOP),    (Layer.LEFT,  EdgePosition.TOP)],
-    Layer.DOWN:  [(Layer.FRONT, EdgePosition.BOTTOM), (Layer.RIGHT, EdgePosition.BOTTOM),
-                  (Layer.BACK,  EdgePosition.BOTTOM), (Layer.LEFT,  EdgePosition.BOTTOM)],
-    Layer.FRONT: [(Layer.UP,    EdgePosition.BOTTOM), (Layer.RIGHT, EdgePosition.LEFT),
-                  (Layer.DOWN,  EdgePosition.TOP),    (Layer.LEFT,  EdgePosition.RIGHT)],
-    Layer.BACK:  [(Layer.UP,    EdgePosition.TOP),    (Layer.LEFT,  EdgePosition.LEFT),
-                  (Layer.DOWN,  EdgePosition.BOTTOM), (Layer.RIGHT, EdgePosition.RIGHT)],
-    Layer.LEFT:  [(Layer.UP,    EdgePosition.LEFT),   (Layer.FRONT, EdgePosition.LEFT),
-                  (Layer.DOWN,  EdgePosition.LEFT),   (Layer.BACK,  EdgePosition.RIGHT)],
-    Layer.RIGHT: [(Layer.UP,    EdgePosition.RIGHT),  (Layer.BACK,  EdgePosition.LEFT),
-                  (Layer.DOWN,  EdgePosition.RIGHT),  (Layer.FRONT, EdgePosition.RIGHT)]
+    Layer.UP: [
+        (Layer.BACK, EdgePosition.TOP),
+        (Layer.RIGHT, EdgePosition.TOP),
+        (Layer.FRONT, EdgePosition.TOP),
+        (Layer.LEFT, EdgePosition.TOP),
+    ],
+    Layer.DOWN: [
+        (Layer.FRONT, EdgePosition.BOTTOM),
+        (Layer.RIGHT, EdgePosition.BOTTOM),
+        (Layer.BACK, EdgePosition.BOTTOM),
+        (Layer.LEFT, EdgePosition.BOTTOM),
+    ],
+    Layer.FRONT: [
+        (Layer.UP, EdgePosition.BOTTOM),
+        (Layer.RIGHT, EdgePosition.LEFT),
+        (Layer.DOWN, EdgePosition.TOP),
+        (Layer.LEFT, EdgePosition.RIGHT),
+    ],
+    Layer.BACK: [
+        (Layer.UP, EdgePosition.TOP),
+        (Layer.LEFT, EdgePosition.LEFT),
+        (Layer.DOWN, EdgePosition.BOTTOM),
+        (Layer.RIGHT, EdgePosition.RIGHT),
+    ],
+    Layer.LEFT: [
+        (Layer.UP, EdgePosition.LEFT),
+        (Layer.FRONT, EdgePosition.LEFT),
+        (Layer.DOWN, EdgePosition.LEFT),
+        (Layer.BACK, EdgePosition.RIGHT),
+    ],
+    Layer.RIGHT: [
+        (Layer.UP, EdgePosition.RIGHT),
+        (Layer.BACK, EdgePosition.LEFT),
+        (Layer.DOWN, EdgePosition.RIGHT),
+        (Layer.FRONT, EdgePosition.RIGHT),
+    ],
 }
 
 
@@ -107,24 +130,27 @@ def should_flip_edge(turned_layer: Layer, direction: Direction, adj_layer: Layer
 
     # Combinations of (turned layer, direction, [origin adjacent face])
     # that require edge flip because of the 2D representation
-    combinations = defaultdict(list, {
-        # FRONT face
-        (Layer.FRONT, Direction.CW):     [Layer.UP,    Layer.DOWN],
-        (Layer.FRONT, Direction.CCW):    [Layer.LEFT,  Layer.RIGHT],
-        (Layer.FRONT, Direction.DOUBLE): [Layer.UP,    Layer.DOWN, Layer.LEFT, Layer.RIGHT],
-        # BACK face
-        (Layer.BACK,  Direction.CW):     [Layer.LEFT,  Layer.RIGHT],
-        (Layer.BACK,  Direction.CCW):    [Layer.UP,    Layer.DOWN],
-        (Layer.BACK,  Direction.DOUBLE): [Layer.UP,    Layer.DOWN, Layer.LEFT, Layer.RIGHT],
-        # LEFT face
-        (Layer.LEFT,  Direction.CW):     [Layer.UP,    Layer.BACK],
-        (Layer.LEFT,  Direction.CCW):    [Layer.BACK,  Layer.DOWN],
-        (Layer.LEFT,  Direction.DOUBLE): [Layer.FRONT, Layer.BACK],
-        # RIGHT face
-        (Layer.RIGHT, Direction.CW):     [Layer.BACK,  Layer.DOWN],
-        (Layer.RIGHT, Direction.CCW):    [Layer.UP,    Layer.BACK],
-        (Layer.RIGHT, Direction.DOUBLE): [Layer.FRONT, Layer.BACK],
-    })
+    combinations = defaultdict(
+        list,
+        {
+            # FRONT face
+            (Layer.FRONT, Direction.CW): [Layer.UP, Layer.DOWN],
+            (Layer.FRONT, Direction.CCW): [Layer.LEFT, Layer.RIGHT],
+            (Layer.FRONT, Direction.DOUBLE): [Layer.UP, Layer.DOWN, Layer.LEFT, Layer.RIGHT],
+            # BACK face
+            (Layer.BACK, Direction.CW): [Layer.LEFT, Layer.RIGHT],
+            (Layer.BACK, Direction.CCW): [Layer.UP, Layer.DOWN],
+            (Layer.BACK, Direction.DOUBLE): [Layer.UP, Layer.DOWN, Layer.LEFT, Layer.RIGHT],
+            # LEFT face
+            (Layer.LEFT, Direction.CW): [Layer.UP, Layer.BACK],
+            (Layer.LEFT, Direction.CCW): [Layer.BACK, Layer.DOWN],
+            (Layer.LEFT, Direction.DOUBLE): [Layer.FRONT, Layer.BACK],
+            # RIGHT face
+            (Layer.RIGHT, Direction.CW): [Layer.BACK, Layer.DOWN],
+            (Layer.RIGHT, Direction.CCW): [Layer.UP, Layer.BACK],
+            (Layer.RIGHT, Direction.DOUBLE): [Layer.FRONT, Layer.BACK],
+        },
+    )
     # Check which layers for the specific combination require flip
     layers_to_flip = combinations.get((turned_layer, direction), [])
 
