@@ -1,6 +1,12 @@
 name: Run Pytest and Generate Coverage Badge
 
-on: [pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   test:
@@ -22,7 +28,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install -e .
+          pip install -e solver
 
       - name: Run tests
         env:
