@@ -3,11 +3,11 @@ import pytest
 from typing import Callable
 from unittest.mock import patch
 
-from src.solver.cube import Cube
-from src.solver.enums.Color import Color
-from src.solver.enums.Direction import Direction
-from src.solver.enums.Layer import Layer
-import src.solver.cube_rotation.face_stickers_rotation as fsr
+from solver.cube import Cube
+from solver.enums.Color import Color
+from solver.enums.Direction import Direction
+from solver.enums.Layer import Layer
+import solver.cube_rotation.face_stickers_rotation as fsr
 
 
 @pytest.mark.parametrize("cube_size, expected_rotation_map", [
@@ -221,7 +221,7 @@ def test_success_rotate_face(
         Layer.UP: generate_face(cube_size),
     }
 
-    with patch("src.solver.cube_rotation.face_stickers_rotation.generate_rotation_map") as mocked_method:
+    with patch("solver.cube_rotation.face_stickers_rotation.generate_rotation_map") as mocked_method:
         # Mock the generate_rotation_map() method
         mocked_method.return_value = rotation_map
 
