@@ -2,22 +2,29 @@ from collections import defaultdict
 
 from src.solver.cube import Cube
 from src.solver.enums.Color import Color
-from src.solver.enums.Layer import Layer
 from src.solver.enums.Direction import Direction
+from src.solver.enums.EdgePosition import EdgePosition
+from src.solver.enums.Layer import Layer
 
 
 # Maps for adjacent faces for each face rotation and the edge location
 ADJACENT_FACES = {
-    Layer.UP: [(Layer.BACK, 'top'), (Layer.RIGHT, 'top'), (Layer.FRONT, 'top'), (Layer.LEFT, 'top')],
-    Layer.DOWN: [(Layer.FRONT, 'bottom'), (Layer.RIGHT, 'bottom'), (Layer.BACK, 'bottom'), (Layer.LEFT, 'bottom')],
-    Layer.LEFT: [(Layer.UP, 'left'), (Layer.FRONT, 'left'), (Layer.DOWN, 'left'), (Layer.BACK, 'right')],
-    Layer.RIGHT: [(Layer.UP, 'right'), (Layer.BACK, 'left'), (Layer.DOWN, 'right'), (Layer.FRONT, 'right')],
-    Layer.FRONT: [(Layer.UP, 'bottom'), (Layer.RIGHT, 'left'), (Layer.DOWN, 'top'), (Layer.LEFT, 'right')],
-    Layer.BACK: [(Layer.UP, 'top'), (Layer.LEFT, 'left'), (Layer.DOWN, 'bottom'), (Layer.RIGHT, 'right')]
+    Layer.UP:    [(Layer.BACK,  EdgePosition.TOP),    (Layer.RIGHT, EdgePosition.TOP),
+                  (Layer.FRONT, EdgePosition.TOP),    (Layer.LEFT,  EdgePosition.TOP)],
+    Layer.DOWN:  [(Layer.FRONT, EdgePosition.BOTTOM), (Layer.RIGHT, EdgePosition.BOTTOM),
+                  (Layer.BACK,  EdgePosition.BOTTOM), (Layer.LEFT,  EdgePosition.BOTTOM)],
+    Layer.FRONT: [(Layer.UP,    EdgePosition.BOTTOM), (Layer.RIGHT, EdgePosition.LEFT),
+                  (Layer.DOWN,  EdgePosition.TOP),    (Layer.LEFT,  EdgePosition.RIGHT)],
+    Layer.BACK:  [(Layer.UP,    EdgePosition.TOP),    (Layer.LEFT,  EdgePosition.LEFT),
+                  (Layer.DOWN,  EdgePosition.BOTTOM), (Layer.RIGHT, EdgePosition.RIGHT)],
+    Layer.LEFT:  [(Layer.UP,    EdgePosition.LEFT),   (Layer.FRONT, EdgePosition.LEFT),
+                  (Layer.DOWN,  EdgePosition.LEFT),   (Layer.BACK,  EdgePosition.RIGHT)],
+    Layer.RIGHT: [(Layer.UP,    EdgePosition.RIGHT),  (Layer.BACK,  EdgePosition.LEFT),
+                  (Layer.DOWN,  EdgePosition.RIGHT),  (Layer.FRONT, EdgePosition.RIGHT)]
 }
 
 
-def get_edge(face: list[Color], layer_amount: int, position: str, cube_size: int) -> list[Color]:
+def get_edge(face: list[Color], layer_amount: int, position: EdgePosition, cube_size: int) -> list[Color]:
     """
     Extracts an edge as a list based on position and which layer it needs to fetch.
 
@@ -32,19 +39,25 @@ def get_edge(face: list[Color], layer_amount: int, position: str, cube_size: int
     :param cube_size: The size of the cube
     :return: The list of colors on the specified adjacent face
     """
-    if position == 'top':
+
+    if layer_amount <= 0:
+        raise ValueError(f"Invalid layer amount: {layer_amount}")
+    if cube_size <= 0:
+        raise ValueError(f"Invalid cube size: {cube_size}")
+
+    if position == EdgePosition.TOP:
         return face[cube_size * (layer_amount - 1) : cube_size * layer_amount]
-    elif position == 'bottom':
+    elif position == EdgePosition.BOTTOM:
         return face[cube_size * (cube_size - layer_amount) : cube_size * (cube_size - layer_amount + 1)]
-    elif position == 'left':
+    elif position == EdgePosition.LEFT:
         return [face[i * cube_size + layer_amount - 1] for i in range(cube_size)]
-    elif position == 'right':
+    elif position == EdgePosition.RIGHT:
         return [face[i * cube_size + cube_size - layer_amount] for i in range(cube_size)]
     else:
         raise ValueError(f"Unknown edge position: {position}")
 
 
-def set_edge(face: list[Color], layer_amount: int, position: str, cube_size: int, values: list[Color]) -> None:
+def set_edge(face: list[Color], layer_amount: int, position: EdgePosition, cube_size: int, values: list[Color]) -> None:
     """
     Writes an edge back into the face.
 
@@ -60,14 +73,20 @@ def set_edge(face: list[Color], layer_amount: int, position: str, cube_size: int
     :param values: The new values for the edge
     :return: None
     """
-    if position == 'top':
+
+    if layer_amount <= 0:
+        raise ValueError(f"Invalid layer amount: {layer_amount}")
+    if cube_size <= 0:
+        raise ValueError(f"Invalid cube size: {cube_size}")
+
+    if position == EdgePosition.TOP:
         face[cube_size * (layer_amount - 1) : cube_size * layer_amount] = values
-    elif position == 'bottom':
+    elif position == EdgePosition.BOTTOM:
         face[cube_size * (cube_size - layer_amount) : cube_size * (cube_size - layer_amount + 1)] = values
-    elif position == 'left':
+    elif position == EdgePosition.LEFT:
         for i in range(cube_size):
             face[i * cube_size + layer_amount - 1] = values[i]
-    elif position == 'right':
+    elif position == EdgePosition.RIGHT:
         for i in range(cube_size):
             face[i * cube_size + cube_size - layer_amount] = values[i]
     else:
@@ -90,23 +109,20 @@ def should_flip_edge(turned_layer: Layer, direction: Direction, adj_layer: Layer
     # that require edge flip because of the 2D representation
     combinations = defaultdict(list, {
         # FRONT face
-        (Layer.FRONT, Direction.CW): [Layer.UP, Layer.DOWN],
-        (Layer.FRONT, Direction.CCW): [Layer.LEFT, Layer.RIGHT],
-        (Layer.FRONT, Direction.DOUBLE): [Layer.UP, Layer.DOWN, Layer.LEFT, Layer.RIGHT],
-
+        (Layer.FRONT, Direction.CW):     [Layer.UP,    Layer.DOWN],
+        (Layer.FRONT, Direction.CCW):    [Layer.LEFT,  Layer.RIGHT],
+        (Layer.FRONT, Direction.DOUBLE): [Layer.UP,    Layer.DOWN, Layer.LEFT, Layer.RIGHT],
         # BACK face
-        (Layer.BACK, Direction.CW): [Layer.LEFT, Layer.RIGHT],
-        (Layer.BACK, Direction.CCW): [Layer.UP, Layer.DOWN],
-        (Layer.BACK, Direction.DOUBLE): [Layer.UP, Layer.DOWN, Layer.LEFT, Layer.RIGHT],
-
+        (Layer.BACK,  Direction.CW):     [Layer.LEFT,  Layer.RIGHT],
+        (Layer.BACK,  Direction.CCW):    [Layer.UP,    Layer.DOWN],
+        (Layer.BACK,  Direction.DOUBLE): [Layer.UP,    Layer.DOWN, Layer.LEFT, Layer.RIGHT],
         # LEFT face
-        (Layer.LEFT, Direction.CW): [Layer.UP, Layer.BACK],
-        (Layer.LEFT, Direction.CCW): [Layer.BACK, Layer.DOWN],
-        (Layer.LEFT, Direction.DOUBLE): [Layer.FRONT, Layer.BACK],
-
+        (Layer.LEFT,  Direction.CW):     [Layer.UP,    Layer.BACK],
+        (Layer.LEFT,  Direction.CCW):    [Layer.BACK,  Layer.DOWN],
+        (Layer.LEFT,  Direction.DOUBLE): [Layer.FRONT, Layer.BACK],
         # RIGHT face
-        (Layer.RIGHT, Direction.CW): [Layer.BACK, Layer.DOWN],
-        (Layer.RIGHT, Direction.CCW): [Layer.UP, Layer.BACK],
+        (Layer.RIGHT, Direction.CW):     [Layer.BACK,  Layer.DOWN],
+        (Layer.RIGHT, Direction.CCW):    [Layer.UP,    Layer.BACK],
         (Layer.RIGHT, Direction.DOUBLE): [Layer.FRONT, Layer.BACK],
     })
     # Check which layers for the specific combination require flip
@@ -129,6 +145,8 @@ def rotate_sides(cube: Cube, layer: Layer, direction: Direction, layer_amount: i
     adj = ADJACENT_FACES[layer]
 
     # Check if not too many layers are being turned
+    if layer_amount <= 0:
+        raise ValueError(f"Invalid layer amount: {layer_amount}")
     if cube.size // layer_amount < 2:
         raise ValueError(f"Cube size {cube.size} is too small to rotate {layer_amount} layers")
 
