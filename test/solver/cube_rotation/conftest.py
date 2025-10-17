@@ -2,6 +2,7 @@ import pytest
 from typing import Callable
 
 from src.solver.cube import Cube
+from src.solver.cube_rotation.rotator import Rotator
 from src.solver.enums.Color import Color
 from src.solver.enums.EdgePosition import EdgePosition
 from src.solver.enums.Layer import Layer
@@ -149,5 +150,26 @@ def generate_one_color_only_edge() -> Callable[[int, Color], list[Color]]:
         :return: Edge with only white stickers
         """
         return [color] * n
+
+    return _generate
+
+
+@pytest.fixture
+def generate_rotator() -> Callable[[Cube], Rotator]:
+    """
+    Returns a method to generate a rotator for a given cube.
+
+    :return: The callable method
+    """
+
+    def _generate(cube: Cube) -> Rotator:
+        """
+        Generates a rotator for a given cube.
+
+        :param cube: The cube
+        :return: The rotator
+        """
+
+        return Rotator(cube)
 
     return _generate
