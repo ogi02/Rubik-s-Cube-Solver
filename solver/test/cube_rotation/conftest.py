@@ -1,5 +1,6 @@
-import pytest
 from typing import Callable
+
+import pytest
 
 from cube import Cube
 from cube_rotation.rotator import Rotator
@@ -27,18 +28,42 @@ def get_adjacent_edge() -> Callable[[Layer], list[tuple[Layer, EdgePosition]]]:
         """
 
         adjacent_faces = {
-            Layer.UP:    [(Layer.BACK,  EdgePosition.TOP),    (Layer.RIGHT, EdgePosition.TOP),
-                          (Layer.FRONT, EdgePosition.TOP),    (Layer.LEFT,  EdgePosition.TOP)],
-            Layer.DOWN:  [(Layer.FRONT, EdgePosition.BOTTOM), (Layer.RIGHT, EdgePosition.BOTTOM),
-                          (Layer.BACK,  EdgePosition.BOTTOM), (Layer.LEFT,  EdgePosition.BOTTOM)],
-            Layer.FRONT: [(Layer.UP,    EdgePosition.BOTTOM), (Layer.RIGHT, EdgePosition.LEFT),
-                          (Layer.DOWN,  EdgePosition.TOP),    (Layer.LEFT,  EdgePosition.RIGHT)],
-            Layer.BACK:  [(Layer.UP,    EdgePosition.TOP),    (Layer.LEFT,  EdgePosition.LEFT),
-                          (Layer.DOWN,  EdgePosition.BOTTOM), (Layer.RIGHT, EdgePosition.RIGHT)],
-            Layer.LEFT:  [(Layer.UP,    EdgePosition.LEFT),   (Layer.FRONT, EdgePosition.LEFT),
-                          (Layer.DOWN,  EdgePosition.LEFT),   (Layer.BACK,  EdgePosition.RIGHT)],
-            Layer.RIGHT: [(Layer.UP,    EdgePosition.RIGHT),  (Layer.BACK,  EdgePosition.LEFT),
-                          (Layer.DOWN,  EdgePosition.RIGHT),  (Layer.FRONT, EdgePosition.RIGHT)]
+            Layer.UP: [
+                (Layer.BACK, EdgePosition.TOP),
+                (Layer.RIGHT, EdgePosition.TOP),
+                (Layer.FRONT, EdgePosition.TOP),
+                (Layer.LEFT, EdgePosition.TOP),
+            ],
+            Layer.DOWN: [
+                (Layer.FRONT, EdgePosition.BOTTOM),
+                (Layer.RIGHT, EdgePosition.BOTTOM),
+                (Layer.BACK, EdgePosition.BOTTOM),
+                (Layer.LEFT, EdgePosition.BOTTOM),
+            ],
+            Layer.FRONT: [
+                (Layer.UP, EdgePosition.BOTTOM),
+                (Layer.RIGHT, EdgePosition.LEFT),
+                (Layer.DOWN, EdgePosition.TOP),
+                (Layer.LEFT, EdgePosition.RIGHT),
+            ],
+            Layer.BACK: [
+                (Layer.UP, EdgePosition.TOP),
+                (Layer.LEFT, EdgePosition.LEFT),
+                (Layer.DOWN, EdgePosition.BOTTOM),
+                (Layer.RIGHT, EdgePosition.RIGHT),
+            ],
+            Layer.LEFT: [
+                (Layer.UP, EdgePosition.LEFT),
+                (Layer.FRONT, EdgePosition.LEFT),
+                (Layer.DOWN, EdgePosition.LEFT),
+                (Layer.BACK, EdgePosition.RIGHT),
+            ],
+            Layer.RIGHT: [
+                (Layer.UP, EdgePosition.RIGHT),
+                (Layer.BACK, EdgePosition.LEFT),
+                (Layer.DOWN, EdgePosition.RIGHT),
+                (Layer.FRONT, EdgePosition.RIGHT),
+            ],
         }
 
         return adjacent_faces[layer]

@@ -1,7 +1,7 @@
-import pytest
-
 from typing import Callable
 from unittest.mock import patch
+
+import pytest
 
 from cube import Cube
 from cube_rotation.rotator import Rotator
@@ -12,14 +12,23 @@ from enums.Layer import Layer
 # Tests
 # -----------------------
 
-@pytest.mark.parametrize("layer, direction, layer_amount", [
-    (Layer.UP,    Direction.CW,     1),
-    (Layer.FRONT, Direction.CCW,    2),
-    (Layer.LEFT,  Direction.DOUBLE, 3),
-])
-def test_success_turn(generate_cube: Callable[[int], Cube],
-                      generate_rotator: Callable[[Cube], Rotator],
-                      layer: Layer, direction: Direction, layer_amount: int) -> None:
+
+# fmt: off
+@pytest.mark.parametrize(
+    "layer, direction, layer_amount", [
+        (Layer.UP,    Direction.CW,     1),
+        (Layer.FRONT, Direction.CCW,    2),
+        (Layer.LEFT,  Direction.DOUBLE, 3),
+    ]
+)
+# fmt: on
+def test_success_turn(
+    generate_cube: Callable[[int], Cube],
+    generate_rotator: Callable[[Cube], Rotator],
+    layer: Layer,
+    direction: Direction,
+    layer_amount: int,
+) -> None:
     """
     Tests the turn method of the Rotator class.
 
@@ -37,8 +46,10 @@ def test_success_turn(generate_cube: Callable[[int], Cube],
     # Mock the rotator class
     rotator = generate_rotator(cube)
 
-    with patch("cube_rotation.rotator.rotate_face") as mocked_rotate_face, \
-         patch("cube_rotation.rotator.rotate_sides") as mocked_rotate_sides:
+    with (
+        patch("cube_rotation.rotator.rotate_face") as mocked_rotate_face,
+        patch("cube_rotation.rotator.rotate_sides") as mocked_rotate_sides,
+    ):
 
         # Perform the turn
         rotator.turn(layer, layer_amount, direction)

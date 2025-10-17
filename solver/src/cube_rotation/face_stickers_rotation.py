@@ -1,7 +1,7 @@
 from cube import Cube
-from enums.Layer import Layer
 from enums.Color import Color
 from enums.Direction import Direction
+from enums.Layer import Layer
 
 
 def generate_clockwise_rotation_map(cube_size: int):
@@ -106,6 +106,7 @@ def generate_counter_clockwise_rotation_map(cube_size: int):
             rotation_map.append((cube_size - 1 - col) * cube_size + row)
     return rotation_map
 
+
 def generate_double_rotation_map(cube_size: int):
     """
     Generates the rotation map for a double rotation.
@@ -122,7 +123,7 @@ def generate_double_rotation_map(cube_size: int):
     :return: The rotation map
     """
 
-    return [i for i in range(cube_size ** 2 - 1, -1, -1)]
+    return [i for i in range(cube_size**2 - 1, -1, -1)]
 
 
 def generate_rotation_map(direction: Direction, cube_size: int) -> list[int]:
@@ -157,7 +158,7 @@ def rotate_face(cube: Cube, layer: Layer, direction: Direction) -> None:
     """
 
     # Create a template for the rotated face
-    rotated_face: list[Color] = [Color.WHITE] * cube.size ** 2
+    rotated_face: list[Color] = [Color.WHITE] * cube.size**2
     # Put every sticker of the map in its new position
     for index, new_pos in enumerate(generate_rotation_map(direction, cube.size)):
         rotated_face[new_pos] = cube.layers.get(layer)[index]
