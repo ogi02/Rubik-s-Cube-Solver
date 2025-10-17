@@ -56,7 +56,7 @@ def test_success_get_edge(generate_face: Callable[[int], list[Color]],
 ])
 def test_exception_get_edge(generate_face: Callable[[int], list[Color]],
                             layer_amount: int, position: EdgePosition, cube_size: int,
-                            expected_exception_type: BaseException.__type_params__, expected_exception: str) -> None:
+                            expected_exception_type: type[BaseException], expected_exception: str) -> None:
     """
     Tests that get_edge() raises an exception when the parameters are not valid.
 
@@ -168,7 +168,7 @@ def test_success_set_edge(generate_one_color_only_face: Callable[[int, Color], l
 def test_exception_set_edge(generate_one_color_only_face: Callable[[int, Color], list[Color]],
                             generate_edge: Callable[[int], list[Color]],
                             layer_amount: int, position: EdgePosition, cube_size: int,
-                            expected_exception_type: BaseException.__type_params__, expected_exception: str) -> None:
+                            expected_exception_type: type[BaseException], expected_exception: str) -> None:
     """
     Tests that get_edge() raises an exception when the parameters are not valid.
 
@@ -435,3 +435,35 @@ def test_success_rotate_sides(generate_cube: Callable[[int], Cube],
 
         assert mock_set_edge.call_args_list == expected_calls_set_edge_method
         assert mock_set_edge.call_count == 4 * layer_amount
+
+
+@pytest.mark.parametrize("cube_size, turned_layer, direction, layer_amount, expected_exception_type, expected_exception", [
+    (3, Layer.UP, Direction.CW, 2, ValueError, "Cube size 3 is too small to rotate 2 layers"),
+    (3, Layer.UP, Direction.CW, 0, ValueError, "Invalid layer amount: 0"),
+    (3, Layer.UP, None,         1, ValueError, "Invalid rotation direction"),
+])
+def test_exception_rotate_sides(generate_cube: Callable[[int], Cube],
+                                cube_size: int, turned_layer: Layer, direction: Direction | None, layer_amount: int,
+                                expected_exception_type: type[BaseException], expected_exception: str) -> None:
+    """
+    Tests that rotate_sides() raises an exception when the parameters are not valid.
+
+    :param generate_cube: Fixture to generate a cube
+    :param cube_size: The size of the cube
+    :param turned_layer: The layer that is turned
+    :param direction: The direction of the turn
+    :param layer_amount: The amount of layers
+    :param expected_exception_type: The expected exception type
+    :param expected_exception: The expected exception
+    :return: None
+    """
+
+    # Patch the get_edge() method to avoid unnecessary calls
+    with patch("src.solver.cube_rotation.side_stickers_rotation.get_edge"):
+
+        # Mock the cube
+        cube = generate_cube(cube_size)
+
+        # Assert exception
+        with pytest.raises(expected_exception_type, match=expected_exception):
+            ssr.rotate_sides(cube, turned_layer, direction, layer_amount)

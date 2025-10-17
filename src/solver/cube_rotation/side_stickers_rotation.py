@@ -145,10 +145,10 @@ def rotate_sides(cube: Cube, layer: Layer, direction: Direction, layer_amount: i
     adj = ADJACENT_FACES[layer]
 
     # Check if not too many layers are being turned
-    if cube.size // layer_amount < 2:
-        raise ValueError(f"Cube size {cube.size} is too small to rotate {layer_amount} layers")
     if layer_amount <= 0:
         raise ValueError(f"Invalid layer amount: {layer_amount}")
+    if cube.size // layer_amount < 2:
+        raise ValueError(f"Cube size {cube.size} is too small to rotate {layer_amount} layers")
 
     # Iterate all layers
     for layer_index in range(1, layer_amount + 1):
