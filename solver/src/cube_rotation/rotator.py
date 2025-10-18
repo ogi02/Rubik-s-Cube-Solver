@@ -1,8 +1,7 @@
 from cube import Cube
 from cube_rotation.face_stickers_rotation import rotate_face
+from cube_rotation.move import Move
 from cube_rotation.side_stickers_rotation import rotate_sides
-from enums.Direction import Direction
-from enums.Layer import Layer
 
 
 class Rotator:
@@ -38,7 +37,7 @@ class Rotator:
         """
         self.__cube = cube
 
-    def turn(self, layer: Layer, layer_amount: int, direction: Direction) -> None:
+    def turn(self, move: Move) -> None:
         """
         Turns a layer or multiple layers of the cube.
         Firstly, it generates a map for the rotation of the face stickers and performs the rotation.
@@ -47,14 +46,12 @@ class Rotator:
         Possible faces: 'U', 'D', 'L', 'R', 'F', 'B'.
         Possible directions: clockwise, counter-clockwise, double
 
-        :param layer: The layer to rotate
-        :param layer_amount: The amount of layers to rotate
-        :param direction: The direction to rotate
+        :param move: The move to perform
         :return: None
         """
 
         # Rotate the face stickers
-        rotate_face(self.__cube, layer, direction)
+        rotate_face(self.__cube, move.layer, move.direction)
 
         # Rotate the side stickers
-        rotate_sides(self.__cube, layer, direction, layer_amount)
+        rotate_sides(self.__cube, move.layer, move.direction, move.layer_amount)

@@ -4,13 +4,10 @@ from unittest.mock import patch
 import pytest
 
 from cube import Cube
+from cube_rotation.move import Move
 from cube_rotation.rotator import Rotator
 from enums.Direction import Direction
 from enums.Layer import Layer
-
-# -----------------------
-# Tests
-# -----------------------
 
 
 # fmt: off
@@ -25,6 +22,7 @@ from enums.Layer import Layer
 def test_success_turn(
     generate_cube: Callable[[int], Cube],
     generate_rotator: Callable[[Cube], Rotator],
+    generate_move: Callable[[Layer, Direction, int], Move],
     layer: Layer,
     direction: Direction,
     layer_amount: int,
@@ -34,6 +32,7 @@ def test_success_turn(
 
     :param generate_cube: Fixture to generate a cube
     :param generate_rotator: Fixture to generate a rotator
+    :param generate_move: Fixture to generate a move
     :param layer: The layer to turn
     :param direction: The direction of the turn
     :param layer_amount: The amount of layers to turn
@@ -46,13 +45,16 @@ def test_success_turn(
     # Mock the rotator class
     rotator = generate_rotator(cube)
 
+    # Mock the move
+    move = generate_move(layer, direction, layer_amount)
+
     with (
         patch("cube_rotation.rotator.rotate_face") as mocked_rotate_face,
         patch("cube_rotation.rotator.rotate_sides") as mocked_rotate_sides,
     ):
 
         # Perform the turn
-        rotator.turn(layer, layer_amount, direction)
+        rotator.turn(move)
 
         # Assert that rotate_face was called once with correct parameters
         mocked_rotate_face.assert_called_once_with(cube, layer, direction)
