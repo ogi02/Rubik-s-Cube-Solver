@@ -60,6 +60,50 @@ def test_success_generate_scramble(scrambler: Scrambler, cube_size: int, scrambl
 
 # fmt: off
 @pytest.mark.parametrize(
+    "cube_size, scramble_length", [
+        (3, 1),
+    ]
+)
+# fmt: on
+def test_success_generate_scramble_invalid_random_move(
+    scrambler: Scrambler, cube_size: int, scramble_length: int
+) -> None:
+    """
+    Tests generating a scramble for a cube of valid size.
+
+    :param scrambler: Fixture of a Scrambler instance
+    :param cube_size: Size of the cube
+    :param scramble_length: Expected length of the scramble
+    :return: None
+    """
+
+    # Predefine a sequence of moves
+    move_sequence = [Move(Layer.UP, Direction.CW, 1)] * (scramble_length + 1)
+
+    # Patch
+    with (
+        patch.object(scrambler, "_generate_random_move", side_effect=move_sequence) as mock_random,
+        patch.object(scrambler, "_is_valid_random_move", side_effect=[False, True]) as mock_valid,
+        patch.object(scrambler, "_should_append_to_previous_moves", return_value=False) as mock_append,
+        patch.object(scrambler, "_get_scramble_length", return_value=scramble_length) as mock_length,
+    ):
+
+        # Call the method
+        scramble = scrambler.generate_scramble(cube_size)
+
+        # Assert
+        assert len(scramble) == scramble_length
+
+        assert mock_length.call_count == 1
+        mock_length.assert_called_once_with(cube_size)
+        assert mock_random.call_count == scramble_length + 1
+        mock_random.assert_called_with(cube_size)
+        assert mock_valid.call_count == scramble_length + 1
+        assert mock_append.call_count == scramble_length
+
+
+# fmt: off
+@pytest.mark.parametrize(
     "expected_exception_type, expected_exception", [
         (ValueError, "Cube size must be at least 2."),
     ]
@@ -261,6 +305,38 @@ def test_success_is_valid_random_move(
 
 # fmt: off
 @pytest.mark.parametrize(
+    "layer, direction, layer_amount", [
+        (Layer.UP, Direction.CW, 1)
+    ]
+)
+# fmt: on
+def test_success_is_valid_random_move_no_previous_moves(
+    scrambler: Scrambler,
+    generate_move: Callable[[Layer, Direction, int], Move],
+    layer: Layer,
+    direction: Direction,
+    layer_amount: int,
+) -> None:
+    """
+    Tests whether a random move is valid based on previous moves.
+
+    :param scrambler: Fixture of a Scrambler instance
+    :param generate_move: Fixture to generate a move
+    :param layer: The layer of the move to test
+    :param direction: The direction of the move to test
+    :param layer_amount: The layer amount of the move to test
+    :return: None
+    """
+
+    # Create the move to test
+    move = generate_move(layer, direction, layer_amount)
+
+    # Assert
+    assert scrambler._is_valid_random_move(move, [])
+
+
+# fmt: off
+@pytest.mark.parametrize(
     "layer, direction, layer_amount, expected", [
         (Layer.UP,    Direction.CW,     1, True),
         (Layer.DOWN,  Direction.CCW,    2, True),
@@ -298,3 +374,35 @@ def test_success_should_append_to_previous_moves(
 
     # Assert
     assert scrambler._should_append_to_previous_moves(move, previous_moves) == expected
+
+
+# fmt: off
+@pytest.mark.parametrize(
+    "layer, direction, layer_amount", [
+        (Layer.UP, Direction.CW, 1)
+    ]
+)
+# fmt: on
+def test_success_should_append_to_previous_moves_no_previous_moves(
+    scrambler: Scrambler,
+    generate_move: Callable[[Layer, Direction, int], Move],
+    layer: Layer,
+    direction: Direction,
+    layer_amount: int,
+) -> None:
+    """
+    Tests whether a move should be appended to the previous moves list based on axis comparison.
+
+    :param scrambler: Fixture of a Scrambler instance
+    :param generate_move: Fixture to generate a move
+    :param layer: The layer of the move to test
+    :param direction: The direction of the move to test
+    :param layer_amount: The layer amount of the move to test
+    :return: None
+    """
+
+    # Create the move to test
+    move = generate_move(layer, direction, layer_amount)
+
+    # Assert
+    assert not scrambler._should_append_to_previous_moves(move, [])
