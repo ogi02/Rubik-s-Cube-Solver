@@ -204,3 +204,7 @@ __marimo__/
 
 # Mac files
 **/.DS_Store
+
+# Node modules
+**/node_modules/
+**/package-lock.json
