@@ -38,21 +38,21 @@ class Scrambler:
             raise ValueError("Cube size must be at least 2.")
 
         # Determine scramble length
-        scramble_length = self.__get_scramble_length(cube_size)
+        scramble_length = self._get_scramble_length(cube_size)
 
         scramble: list[Move] = []
         previous_faces: list[Move] = []
         # Generate scramble
         while len(scramble) < scramble_length:
             # Create a random move
-            move = self.__generate_random_move(cube_size)
+            move = self._generate_random_move(cube_size)
 
             # If the move or its opposite is already in the previous faces, skip
-            if not self.__is_valid_random_move(move, previous_faces):
+            if not self._is_valid_random_move(move, previous_faces):
                 continue
 
             # If a different move on the same axis is picked, append
-            if self.__should_append_to_previous_moves(move, previous_faces):
+            if self._should_append_to_previous_moves(move, previous_faces):
                 previous_faces.append(move)
             # If any other face is picked, reset the previous_face list
             else:
@@ -64,7 +64,7 @@ class Scrambler:
         return scramble
 
     @staticmethod
-    def __get_scramble_length(cube_size: int) -> int:
+    def _get_scramble_length(cube_size: int) -> int:
         """
         Determines the default scramble length based on cube size.
 
@@ -83,7 +83,7 @@ class Scrambler:
             case _:
                 return (cube_size - 2) * 20
 
-    def __generate_random_move(self, cube_size: int) -> Move:
+    def _generate_random_move(self, cube_size: int) -> Move:
         """
         Generates a random move for a cube of given size.
 
@@ -114,7 +114,7 @@ class Scrambler:
         return Move(layer=face, direction=direction, layer_amount=layer_amount)
 
     @staticmethod
-    def __is_valid_random_move(move: Move, previous_moves: list[Move]) -> bool:
+    def _is_valid_random_move(move: Move, previous_moves: list[Move]) -> bool:
         """
         Checks if a randomly generated move is valid based on the previous move.
 
@@ -131,7 +131,7 @@ class Scrambler:
                 return False
         return True
 
-    def __should_append_to_previous_moves(self, move: Move, previous_moves: list[Move]) -> bool:
+    def _should_append_to_previous_moves(self, move: Move, previous_moves: list[Move]) -> bool:
         """
         Determines if the current move should be appended to the list of previous moves.
 
