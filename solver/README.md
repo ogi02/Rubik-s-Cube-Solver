@@ -2,7 +2,7 @@
 
 [![Lint](https://img.shields.io/github/actions/workflow/status/ogi02/Rubik-s-Cube-Solver/lint.yml?branch=main&label=Lint)](https://github.com/ogi02/Rubik-s-Cube-Solver/actions)
 [![Pytest](https://img.shields.io/github/actions/workflow/status/ogi02/Rubik-s-Cube-Solver/pytest.yml?branch=main&label=Pytest)](https://github.com/ogi02/Rubik-s-Cube-Solver/actions)
-[![Coverage](https://codecov.io/gh/ogi02/Rubik-s-Cube-Solver/branch/main/graph/badge.svg?token=<CODECOV_TOKEN>)](https://codecov.io/gh/ogi02/Rubik-s-Cube-Solver)
+[![Coverage](https://codecov.io/gh/ogi02/Rubik-s-Cube-Solver/branch/main/graph/badge.svg)](https://codecov.io/gh/ogi02/Rubik-s-Cube-Solver)
 
 A Python library for solving Rubik’s Cubes of various sizes (2×2 → N×N), with support for generating scrambles, performing rotations, and managing cube state.
 
@@ -10,12 +10,13 @@ A Python library for solving Rubik’s Cubes of various sizes (2×2 → N×N), w
 
 ## Installation
 
-Clone the repository and install the solver in editable mode:
+Clone the repository, install the requirements and the solver in editable mode:
 
 ```bash
 git clone https://github.com/ogi02/Rubik-s-Cube-Solver.git
-cd solver
+cd Rubik-s-Cube-Solver/solver
 pip install -e .
+pip install -r requirements.txt
 ```
 
 ## Usage Examples
