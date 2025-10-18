@@ -10,10 +10,6 @@ from enums.Direction import Direction
 from enums.EdgePosition import EdgePosition
 from enums.Layer import Layer
 
-# -----------------------
-# Tests
-# -----------------------
-
 
 # fmt: off
 @pytest.mark.parametrize(

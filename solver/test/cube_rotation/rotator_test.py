@@ -9,10 +9,6 @@ from cube_rotation.rotator import Rotator
 from enums.Direction import Direction
 from enums.Layer import Layer
 
-# -----------------------
-# Tests
-# -----------------------
-
 
 # fmt: off
 @pytest.mark.parametrize(

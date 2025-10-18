@@ -6,10 +6,6 @@ from cube_rotation.move import Move
 from enums.Direction import Direction
 from enums.Layer import Layer
 
-# -----------------------
-# Tests
-# -----------------------
-
 
 # fmt: off
 @pytest.mark.parametrize(
