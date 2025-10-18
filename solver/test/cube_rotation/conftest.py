@@ -3,8 +3,10 @@ from typing import Callable
 import pytest
 
 from cube import Cube
+from cube_rotation.move import Move
 from cube_rotation.rotator import Rotator
 from enums.Color import Color
+from enums.Direction import Direction
 from enums.EdgePosition import EdgePosition
 from enums.Layer import Layer
 
@@ -196,5 +198,28 @@ def generate_rotator() -> Callable[[Cube], Rotator]:
         """
 
         return Rotator(cube)
+
+    return _generate
+
+
+@pytest.fixture
+def generate_move() -> Callable[[Layer, Direction, int], Move]:
+    """
+    Returns a method to generate a move.
+
+    :return: The callable method
+    """
+
+    def _generate(layer: Layer, direction: Direction, amount: int) -> Move:
+        """
+        Generates a move.
+
+        :param layer: The layer to rotate
+        :param direction: The direction to rotate
+        :param amount: The amount of layers to rotate
+        :return: The move
+        """
+
+        return Move(layer, direction, amount)
 
     return _generate
