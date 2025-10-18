@@ -215,12 +215,12 @@ def test_exception_generate_random_move(
 # fmt: off
 @pytest.mark.parametrize(
     "layer, direction, layer_amount, expected", [
-        (Layer.UP,    Direction.CW,     1, True),
-        (Layer.DOWN,  Direction.CCW,    2, True),
+        (Layer.UP,    Direction.CW,     1, False),
+        (Layer.DOWN,  Direction.CCW,    2, False),
         (Layer.UP,    Direction.DOUBLE, 3, True),
         (Layer.DOWN,  Direction.CW,     4, True),
-        (Layer.FRONT, Direction.CCW,    1, False),
-        (Layer.BACK,  Direction.DOUBLE, 2, False),
+        (Layer.FRONT, Direction.CCW,    1, True),
+        (Layer.BACK,  Direction.DOUBLE, 2, True),
         (Layer.FRONT, Direction.CW,     3, True),
         (Layer.BACK,  Direction.CCW,    4, True),
         (Layer.LEFT,  Direction.DOUBLE, 1, True),
@@ -233,7 +233,7 @@ def test_exception_generate_random_move(
 def test_success_is_valid_random_move(
     scrambler: Scrambler,
     generate_move: Callable[[Layer, Direction, int], Move],
-    generate_previous_moves: Callable[[list[Move]], list[Move]],
+    previous_moves: list[Move],
     layer: Layer,
     direction: Direction,
     layer_amount: int,
@@ -244,21 +244,13 @@ def test_success_is_valid_random_move(
 
     :param scrambler: Fixture of a Scrambler instance
     :param generate_move: Fixture to generate a move
-    :param generate_previous_moves: Fixture to generate previous moves
+    :param previous_moves: List of previous moves
     :param layer: The layer of the move to test
     :param direction: The direction of the move to test
     :param layer_amount: The layer amount of the move to test
     :param expected: The expected result
     :return: None
     """
-
-    # Generate the previous moves list
-    previous_moves = generate_previous_moves(
-        [
-            Move(Layer.FRONT, Direction.CW, 1),
-            Move(Layer.BACK, Direction.CCW, 2),
-        ]
-    )
 
     # Create the move to test
     move = generate_move(layer, direction, layer_amount)
@@ -282,7 +274,7 @@ def test_success_is_valid_random_move(
 def test_success_should_append_to_previous_moves(
     scrambler: Scrambler,
     generate_move: Callable[[Layer, Direction, int], Move],
-    generate_previous_moves: Callable[[list[Move]], list[Move]],
+    previous_moves: list[Move],
     layer: Layer,
     direction: Direction,
     layer_amount: int,
@@ -293,21 +285,13 @@ def test_success_should_append_to_previous_moves(
 
     :param scrambler: Fixture of a Scrambler instance
     :param generate_move: Fixture to generate a move
-    :param generate_previous_moves: Fixture to generate previous moves
+    :param previous_moves: List of previous moves
     :param layer: The layer of the move to test
     :param direction: The direction of the move to test
     :param layer_amount: The layer amount of the move to test
     :param expected: The expected result
     :return: None
     """
-
-    # Generate the previous moves list
-    previous_moves = generate_previous_moves(
-        [
-            Move(Layer.UP, Direction.CW, 1),
-            Move(Layer.DOWN, Direction.CCW, 2),
-        ]
-    )
 
     # Create the move to test
     move = generate_move(layer, direction, layer_amount)

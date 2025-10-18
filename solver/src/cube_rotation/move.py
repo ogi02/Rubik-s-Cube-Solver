@@ -106,6 +106,9 @@ class Move:
         :return: True if equal, False otherwise
         """
 
+        if not isinstance(other, Move):
+            return False
+
         return (
             self.layer == other.layer and self.direction == other.direction and self.layer_amount == other.layer_amount
         )

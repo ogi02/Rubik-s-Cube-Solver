@@ -43,20 +43,11 @@ def generate_move() -> Callable[[Layer, Direction, int], Move]:
 
 
 @pytest.fixture
-def generate_previous_moves() -> Callable[[list[Move]], list[Move]]:
+def previous_moves() -> list[Move]:
     """
-    Returns a method to generate previous moves.
+    Returns previous moves.
 
-    :return: The callable method
+    :return: The previous moves
     """
 
-    def _generate(moves: list[Move]) -> list[Move]:
-        """
-        Generates previous moves.
-
-        :param moves: List of moves
-        :return: Previous moves
-        """
-        return moves
-
-    return _generate
+    return [Move(Layer.UP, Direction.CW, 1), Move(Layer.DOWN, Direction.CCW, 2)]

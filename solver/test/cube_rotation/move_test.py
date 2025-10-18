@@ -24,7 +24,7 @@ def test_move_str(
     move_str: str,
 ) -> None:
     """
-    Tests the turn method of the Rotator class.
+    Tests the string representation of the Move class.
 
     :param generate_move: Fixture to generate a move
     :param layer: The layer to turn
@@ -81,3 +81,32 @@ def test_move_eq(
     other_move = generate_move(other_layer, other_direction, other_layer_amount)
 
     assert (move == other_move) == expected
+
+
+# fmt: off
+@pytest.mark.parametrize(
+    "layer, direction, layer_amount", [
+        (Layer.UP, Direction.CW, 1)
+    ]
+)
+# fmt: on
+def test_move_eq_different_type(
+    generate_move: Callable[[Layer, Direction, int], Move],
+    layer: Layer,
+    direction: Direction,
+    layer_amount: int,
+) -> None:
+    """
+    Tests the equality method of the Move class.
+
+    :param generate_move: Fixture to generate a move
+    :param layer: The layer of the first move
+    :param direction: The direction of the first move
+    :param layer_amount: The layer amount of the first move
+    :return: None
+    """
+
+    move = generate_move(layer, direction, layer_amount)
+    other_move = "Not a Move"
+
+    assert move != other_move
