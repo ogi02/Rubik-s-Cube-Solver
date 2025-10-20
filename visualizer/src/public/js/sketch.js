@@ -3,7 +3,7 @@ const dim = 5;
 const len = 50;
 let cube = [];
 
-setup = () => {
+window.setup = () => {
     window.setupCanvas();
 
     for (let i = 0; i < dim; i++) {
@@ -21,7 +21,7 @@ setup = () => {
     }
 }
 
-draw = () => {
+window.draw = () => {
     window.setBackground();
 
     for (let i = 0; i < dim; i++)
