@@ -1,7 +1,7 @@
 {
-    "name": "sockets_p5",
+    "name": "visualizer",
     "version": "1.0.0",
-    "description": "This is an example for how to use sockets with p5.js.",
+    "description": "Visualizer for a 3D Rubik's Cube solver.",
     "main": "server.js",
     "type": "module",
     "scripts": {
@@ -11,6 +11,7 @@
     "license": "MIT",
     "dependencies": {
         "express": "^5.1.0",
+        "gl-matrix": "^3.4.4",
         "socket.io": "^4.8.1"
     }
 }

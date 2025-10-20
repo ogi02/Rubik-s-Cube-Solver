@@ -1,31 +1,22 @@
 
-const dim = 5;
-const len = 50;
+const dim = 3;
 let cube = [];
 
 window.setup = () => {
     window.setupCanvas();
 
-    for (let i = 0; i < dim; i++) {
-        cube[i] = [];
-        for (let j = 0; j < dim; j++) {
-            cube[i][j] = [];
-            for (let k = 0; k < dim; k++) {
-                const offset = (dim - 1) * len * 0.5;
-                const x = len*i - offset;
-                const y = len*j - offset;
-                const z = len*k - offset;
-                cube[i][j][k] = new window.Piece(x, y, z, len);
-            }
-        }
+    cube = new Cube(dim);
+
+    for (let i = 0; i < cube.pieces.length; i += 3) {
+        cube.pieces[i].highlighted = "red";
+        cube.pieces[i + 1].highlighted = "green";
+        cube.pieces[i + 2].highlighted = "blue";
     }
 }
 
 window.draw = () => {
     window.setBackground();
+    window.scale(50);
 
-    for (let i = 0; i < dim; i++)
-        for (let j = 0; j < dim; j++)
-            for (let k = 0; k < dim; k++)
-                cube[i][j][k].show();
+    cube.show()
 }
