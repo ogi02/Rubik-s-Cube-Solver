@@ -1,17 +1,16 @@
-// sketch.js
-const dim = 3;
-const cube = [];
 
-function setup() {
+const dim = 5;
+const len = 50;
+let cube = [];
+
+setup = () => {
     window.setupCanvas();
 
-    // Initialize cube
     for (let i = 0; i < dim; i++) {
         cube[i] = [];
         for (let j = 0; j < dim; j++) {
             cube[i][j] = [];
             for (let k = 0; k < dim; k++) {
-                const len = 50;
                 const offset = (dim - 1) * len * 0.5;
                 const x = len*i - offset;
                 const y = len*j - offset;
@@ -22,8 +21,9 @@ function setup() {
     }
 }
 
-function draw() {
+draw = () => {
     window.setBackground();
+
     for (let i = 0; i < dim; i++)
         for (let j = 0; j < dim; j++)
             for (let k = 0; k < dim; k++)

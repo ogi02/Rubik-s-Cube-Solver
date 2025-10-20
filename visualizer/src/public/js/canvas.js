@@ -6,7 +6,7 @@ window.setBackground = () => {
 window.setupCanvas = () => {
     // Create a canvas element that fills the screen
     // and disable the context menu on right-click
-    createCanvas(1920, 1080, window.WEBGL).elt.oncontextmenu = () => false;
+    createCanvas(window.innerWidth, window.innerHeight, window.WEBGL).elt.oncontextmenu = () => false;
 
     // Set a background color
     window.setBackground();
