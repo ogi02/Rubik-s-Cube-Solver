@@ -1,11 +1,24 @@
 window.Piece = class {
     constructor(x, y, z) {
-        this.pos = window.createVector(x, y, z);
+        // Initialize transformation matrix
+        this.matrix = window.mat4.create();
+        // Set initial position
+        this.update(x, y, z);
+
+        // this.pos = window.createVector(x, y, z);
+
+        // Highlight flag
         this.highlighted = false;
     }
 
-    show = () => {
+    update = (x, y, z) => {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        window.mat4.fromTranslation(this.matrix, [this.x, this.y, this.z]);
+    }
 
+    show = () => {
         if (this.highlighted) {
             window.fill(255, 0, 0);
         }
@@ -15,7 +28,7 @@ window.Piece = class {
         window.stroke(0);
         window.strokeWeight(2);
         window.push();
-        window.translate(this.pos.x, this.pos.y, this.pos.z);
+        window.applyMatrix(this.matrix);
         window.box(1);
         window.pop();
     }
