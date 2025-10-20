@@ -14,6 +14,13 @@
         <!-- EasyCam -->
         <script src="https://cdn.jsdelivr.net/gh/freshfork/p5.EasyCam@1.2.3/p5.easycam.min.js"></script>
 
+        <!-- Matrices -->
+        <script type="module">
+            import { mat3, mat4 } from "https://cdn.jsdelivr.net/npm/gl-matrix@3.4.4/esm/index.js";
+            window.mat3 = mat3;
+            window.mat4 = mat4;
+        </script>
+
         <!-- Socket.IO -->
         <script type="module">
             import { io } from "https://cdn.socket.io/4.8.1/socket.io.esm.min.js";

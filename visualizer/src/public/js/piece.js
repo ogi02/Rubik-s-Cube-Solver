@@ -1,16 +1,22 @@
 window.Piece = class {
-    constructor(x, y, z, len) {
+    constructor(x, y, z) {
         this.pos = window.createVector(x, y, z);
-        this.len = len;
+        this.highlighted = false;
     }
 
     show = () => {
-        window.fill(255);
+
+        if (this.highlighted) {
+            window.fill(255, 0, 0);
+        }
+        else {
+            window.fill(200);
+        }
         window.stroke(0);
-        window.strokeWeight(8);
+        window.strokeWeight(2);
         window.push();
         window.translate(this.pos.x, this.pos.y, this.pos.z);
-        window.box(this.len);
+        window.box(1);
         window.pop();
     }
 }
