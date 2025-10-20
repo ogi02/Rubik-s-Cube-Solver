@@ -7,7 +7,11 @@ window.setup = () => {
 
     cube = new Cube(dim);
 
-    cube.pieces[2].highlighted = true;
+    for (let i = 0; i < cube.pieces.length; i += 3) {
+        cube.pieces[i].highlighted = "red";
+        cube.pieces[i + 1].highlighted = "green";
+        cube.pieces[i + 2].highlighted = "blue";
+    }
 }
 
 window.draw = () => {

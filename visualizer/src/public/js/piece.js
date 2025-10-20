@@ -4,11 +4,8 @@ window.Piece = class {
         this.matrix = window.mat4.create();
         // Set initial position
         this.update(x, y, z);
-
-        // this.pos = window.createVector(x, y, z);
-
         // Highlight flag
-        this.highlighted = false;
+        this.highlighted = null;
     }
 
     update = (x, y, z) => {
@@ -19,8 +16,14 @@ window.Piece = class {
     }
 
     show = () => {
-        if (this.highlighted) {
+        if (this.highlighted === "red") {
             window.fill(255, 0, 0);
+        }
+        else if (this.highlighted === "green") {
+            window.fill(0, 255, 0);
+        }
+        else if (this.highlighted === "blue") {
+            window.fill(0, 0, 255);
         }
         else {
             window.fill(200);
