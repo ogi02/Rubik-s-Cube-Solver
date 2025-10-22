@@ -53,11 +53,11 @@ export class Move {
      * console.log(move.parse("U'"));
      * // Output: [{ layer: 'U', direction: "'", layerAmount: 1 }]
      */
-    parse = (fromText: string) : {
+    parse(fromText: string) : {
         layer: string | null;
         direction: string | null;
         layerAmount: number;
-    }[] => {
+    }[] {
         // Match examples: R, R', R2, Rw, Rw', 3Rw2, 2Uw', etc.
         const tokens = fromText.match(/\d*[RLUDFB]w?[2']?/g);
 
@@ -115,7 +115,7 @@ export class Move {
      * console.log(move.getAxis());
      * // Output: 'y'
      */
-    getAxis = () : string => {
+    getAxis() : string {
         switch (this.layer) {
             case 'U':
             case 'D':
@@ -150,7 +150,7 @@ export class Move {
      * console.log(move.getAngle());
      * // Output: 3.141592653589793 (180 degrees)
      */
-    getAngle = () : number => {
+    getAngle() : number {
         switch (this.direction) {
             case '':
                 // Default 90 degrees clockwise
@@ -190,7 +190,7 @@ export class Move {
      * console.log(move.getLayerIndexes(5));
      * // Output: [-2, -1]
      */
-    getLayerIndexes = (dim: number) : number[] => {
+    getLayerIndexes(dim: number) : number[] {
         // Ensure layerAmount does not exceed half the cube dimension
         if (Math.floor(dim / 2) < this.layerAmount) {
             throw new Error(`Layer amount ${this.layerAmount} exceeds 1/2 cube dimension ${dim}`);
@@ -236,7 +236,11 @@ export class Move {
      * console.log(move.getTurn(5));
      * // Output: { axis: 'y', angle: 1.5707963267948966, layerIndexes: [-2, -1] }
      */
-    getTurn = (dim: number) : {} => {
+    getTurn(dim: number) : {
+        axis: string;
+        angle: number;
+        layerIndexes: number[];
+    } {
         return {
             axis: this.getAxis(),
             angle: this.getAngle(),

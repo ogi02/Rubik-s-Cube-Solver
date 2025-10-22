@@ -22,7 +22,8 @@ export const setBackground = (p: p5) => {
 export const setupCanvas = (p: p5) => {
     // Create a canvas element that fills the screen
     // and disable the context menu on right-click
-    p.createCanvas(window.innerWidth, window.innerHeight, p.WEBGL).elt.oncontextmenu = () => false;
+    const canvas = p.createCanvas(window.innerWidth, window.innerHeight, p.WEBGL);
+    canvas.elt.oncontextmenu = () => false;
 
     // Set a background color
     setBackground(p);

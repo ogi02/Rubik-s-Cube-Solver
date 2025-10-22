@@ -49,7 +49,7 @@ export class Cube {
      * @method show
      * @returns {void}
      */
-    show = (): void => {
+    show() : void {
         this.pieces.forEach(piece => piece.show());
     }
 
@@ -60,7 +60,7 @@ export class Cube {
      * @param {string} moveText - The text representation of the move (e.g., "R", "U'", "L2")
      * @returns {void}
      */
-    turn = (moveText: string): void => {
+    turn(moveText: string) : void {
         // Parse the move
         const move = new Move(moveText);
         // Get turn details

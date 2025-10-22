@@ -60,7 +60,7 @@ export class Piece {
      * piece.update(2, 2, 2);
      * piece.show();
      */
-    update = (x: number, y: number, z: number) : void => {
+    update(x: number, y: number, z: number) : void {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -76,7 +76,7 @@ export class Piece {
      * piece.highlighted = "red";
      * piece.show();
      */
-    show = (): void => {
+    show() : void {
         if (this.highlighted === "red") {
             this.p.fill(255, 0, 0);
         } else if (this.highlighted === "green") {
