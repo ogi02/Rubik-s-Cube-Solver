@@ -1,6 +1,7 @@
 import { Move } from "./move";
 import { Piece } from "./piece";
 import { turnX, turnY, turnZ } from "./turn";
+import { roundToDecimal } from "../utils/math";
 import type p5 from "p5";
 
 /**
@@ -31,8 +32,8 @@ export class Cube {
         this.pieces = [];
 
         // Define left and right boundaries for the pieces
-        const leftBoundary = -Math.floor(this.dimensions / 2);
-        const rightBoundary = Math.floor(this.dimensions / 2);
+        const leftBoundary = -roundToDecimal(this.dimensions / 2 - 0.5, 1);
+        const rightBoundary = roundToDecimal(this.dimensions / 2 - 0.5, 1);
         // Create pieces for the cube
         for (let x = leftBoundary; x <= rightBoundary; x++) {
             for (let y = leftBoundary; y <= rightBoundary; y++) {
@@ -41,7 +42,7 @@ export class Cube {
                 }
             }
         }
-    }
+    };
 
     /**
      * Display the cube by showing all its pieces
@@ -51,7 +52,7 @@ export class Cube {
      */
     show() : void {
         this.pieces.forEach(piece => piece.show());
-    }
+    };
 
     /**
      * Perform a turn on the cube based on the move text
@@ -79,5 +80,5 @@ export class Cube {
             default:
                 throw new Error(`Invalid axis: ${axis}`);
         }
-    }
-}
+    };
+};

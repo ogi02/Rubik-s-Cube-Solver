@@ -1,3 +1,5 @@
+import {roundToDecimal} from "../utils/math";
+
 /**
  * Class representing a single move on a Rubik's Cube.
  *
@@ -36,7 +38,7 @@ export class Move {
         this.layer = moveInfo.layer;
         this.direction = moveInfo.direction;
         this.layerAmount = moveInfo.layerAmount;
-    }
+    };
 
     /**
      * Parse the move text into its components.
@@ -98,7 +100,7 @@ export class Move {
                 layerAmount: layerAmount
             };
         });
-    }
+    };
 
     /**
      * Get the axis of rotation for the move.
@@ -129,7 +131,7 @@ export class Move {
             default:
                 throw new Error(`Invalid layer: ${this.layer}`);
         }
-    }
+    };
 
     /**
      * Get the angle of rotation for the move.
@@ -172,7 +174,7 @@ export class Move {
             default:
                 throw new Error(`Invalid direction: ${this.direction}`);
         }
-    }
+    };
 
     /**
      * Get the indexes of the layers to be turned based on the cube dimension.
@@ -198,8 +200,8 @@ export class Move {
 
         let indexes: number[] = [];
         // Define left and right boundaries of the cube
-        const leftBoundary = -Math.floor(dim / 2);
-        const rightBoundary = Math.floor(dim / 2);
+        const leftBoundary = -roundToDecimal(dim / 2 - 0.5, 1);
+        const rightBoundary = roundToDecimal(dim / 2 - 0.5, 1);
         // Determine indexes based on the layer being turned
         switch (this.layer) {
             case 'D':
@@ -219,7 +221,7 @@ export class Move {
             default:
                 throw new Error(`Invalid layer: ${this.layer}`);
         }
-    }
+    };
 
     /**
      * Get the complete turn information for the move.
@@ -246,5 +248,5 @@ export class Move {
             angle: this.getAngle(),
             layerIndexes: this.getLayerIndexes(dim)
         };
-    }
-}
+    };
+};

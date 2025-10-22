@@ -1,5 +1,6 @@
 import { mat2d } from "gl-matrix";
 import type { Piece } from "./piece";
+import {roundToDecimal} from "../utils/math";
 
 /**
  * Turn pieces around X axis
@@ -21,10 +22,10 @@ export const turnX = (pieces: Piece[], angle: number, layerIndexes: number[]) =>
             // Translate
             mat2d.translate(matrix, matrix, [piece.y, piece.z]);
             // Update piece position
-            piece.update(piece.x, Math.round(matrix[4]), Math.round(matrix[5]));
+            piece.update(piece.x, roundToDecimal(matrix[4], 1), roundToDecimal(matrix[5], 1));
         }
     });
-}
+};
 
 /**
  * Turn pieces around Y axis
@@ -46,10 +47,10 @@ export const turnY = (pieces: Piece[], angle: number, layerIndexes: number[]) =>
             // Translate
             mat2d.translate(matrix, matrix, [piece.x, piece.z]);
             // Update piece position
-            piece.update(Math.round(matrix[4]), piece.y, Math.round(matrix[5]));
+            piece.update(roundToDecimal(matrix[4], 1), piece.y, roundToDecimal(matrix[5], 1));
         }
     });
-}
+};
 
 /**
  * Turn pieces around Z axis
@@ -71,7 +72,7 @@ export const turnZ = (pieces: Piece[], angle: number, layerIndexes: number[]) =>
             // Translate
             mat2d.translate(matrix, matrix, [piece.x, piece.y]);
             // Update piece position
-            piece.update(Math.round(matrix[4]), Math.round(matrix[5]), piece.z);
+            piece.update(roundToDecimal(matrix[4], 1), roundToDecimal(matrix[5], 1), piece.z);
         }
     });
-}
+};

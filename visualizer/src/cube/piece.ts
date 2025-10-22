@@ -47,7 +47,7 @@ export class Piece {
         this.highlighted = null;
         // p5 instance
         this.p = p;
-    }
+    };
 
     /**
      * Update the position of the piece
@@ -65,7 +65,7 @@ export class Piece {
         this.y = y;
         this.z = z;
         mat4.fromTranslation(this.matrix, [this.x, this.y, this.z]);
-    }
+    };
 
     /**
      * Display the piece
@@ -97,5 +97,5 @@ export class Piece {
         );
         this.p.box(1);
         this.p.pop();
-    }
-}
+    };
+};
