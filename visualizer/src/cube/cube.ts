@@ -42,7 +42,7 @@ export class Cube {
                 }
             }
         }
-    }
+    };
 
     /**
      * Display the cube by showing all its pieces
@@ -52,7 +52,7 @@ export class Cube {
      */
     show() : void {
         this.pieces.forEach(piece => piece.show());
-    }
+    };
 
     /**
      * Perform a turn on the cube based on the move text
@@ -80,5 +80,5 @@ export class Cube {
             default:
                 throw new Error(`Invalid axis: ${axis}`);
         }
-    }
-}
+    };
+};

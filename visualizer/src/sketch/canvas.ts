@@ -10,7 +10,7 @@ import p5 from "p5";
 export const setBackground = (p: p5) => {
     // Set the background color
     p.background(191, 224, 221);
-}
+};
 
 /**
  * Set up the canvas
@@ -27,7 +27,7 @@ export const setupCanvas = (p: p5) => {
 
     // Set a background color
     setBackground(p);
-}
+};
 
 /**
  * Handle window resize event
@@ -41,4 +41,4 @@ export const windowResized = (p: p5) => {
     p.resizeCanvas(window.innerWidth, window.innerHeight);
 
     setBackground(p);
-}
+};

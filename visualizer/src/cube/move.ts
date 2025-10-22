@@ -1,4 +1,4 @@
-import {roundToDecimal} from "../utils/math.ts";
+import {roundToDecimal} from "../utils/math";
 
 /**
  * Class representing a single move on a Rubik's Cube.
@@ -38,7 +38,7 @@ export class Move {
         this.layer = moveInfo.layer;
         this.direction = moveInfo.direction;
         this.layerAmount = moveInfo.layerAmount;
-    }
+    };
 
     /**
      * Parse the move text into its components.
@@ -100,7 +100,7 @@ export class Move {
                 layerAmount: layerAmount
             };
         });
-    }
+    };
 
     /**
      * Get the axis of rotation for the move.
@@ -131,7 +131,7 @@ export class Move {
             default:
                 throw new Error(`Invalid layer: ${this.layer}`);
         }
-    }
+    };
 
     /**
      * Get the angle of rotation for the move.
@@ -174,7 +174,7 @@ export class Move {
             default:
                 throw new Error(`Invalid direction: ${this.direction}`);
         }
-    }
+    };
 
     /**
      * Get the indexes of the layers to be turned based on the cube dimension.
@@ -221,7 +221,7 @@ export class Move {
             default:
                 throw new Error(`Invalid layer: ${this.layer}`);
         }
-    }
+    };
 
     /**
      * Get the complete turn information for the move.
@@ -248,5 +248,5 @@ export class Move {
             angle: this.getAngle(),
             layerIndexes: this.getLayerIndexes(dim)
         };
-    }
-}
+    };
+};
