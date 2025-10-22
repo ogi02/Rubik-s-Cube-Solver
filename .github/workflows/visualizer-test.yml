@@ -1,0 +1,39 @@
+name: Visualizer Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./visualizer
+
+      - name: Build project
+        run: npm run build
+        working-directory: ./visualizer
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+        working-directory: ./visualizer
+
+      - name: Run browser test
+        run: npm run test
+        working-directory: ./visualizer
+        env:
+          CI: true

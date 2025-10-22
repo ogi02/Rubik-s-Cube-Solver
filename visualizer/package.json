@@ -1,0 +1,24 @@
+{
+    "name": "visualizer",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc && vite build",
+        "preview": "vite preview",
+        "test": "npx playwright test"
+    },
+    "devDependencies": {
+        "@playwright/test": "^1.56.1",
+        "@types/node": "^24.9.1",
+        "playwright": "^1.56.1",
+        "typescript": "~5.9.3",
+        "vite": "^7.1.7"
+    },
+    "dependencies": {
+        "@types/p5": "^1.7.6",
+        "gl-matrix": "^3.4.4",
+        "p5": "^2.0.5"
+    }
+}
