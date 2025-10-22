@@ -3,8 +3,8 @@ const Move = class {
         // Parse the move text into layer, direction, and layerAmount
         const moveInfo = this.parse(moveText)[0];
         // Initialize properties
-        this.layer = toLayer(moveInfo.layer);
-        this.direction = toDirection(moveInfo.direction);
+        this.layer = moveInfo.layer;
+        this.direction = moveInfo.direction;
         this.layerAmount = moveInfo.layerAmount;
     }
 
@@ -72,9 +72,17 @@ const Move = class {
         switch (this.direction) {
             case '':
                 // 90 degrees clockwise
+                // D, B and L layers are reversed
+                if (['D', 'B', 'L'].includes(this.layer)) {
+                    return -Math.PI / 2;
+                }
                 return Math.PI / 2;
             case '\'':
                 // 90 degrees counter-clockwise
+                // D, B and L layers are reversed
+                if (['D', 'B', 'L'].includes(this.layer)) {
+                    return Math.PI / 2;
+                }
                 return -Math.PI / 2;
             case '2':
                 // 180 degrees
@@ -86,20 +94,20 @@ const Move = class {
 
     getLayerIndexes = dim => {
         let indexes = [];
-        const leftBoundary = -Math.floor((dim - this.layerAmount) / 2);
-        const rightBoundary = Math.floor((dim - this.layerAmount) / 2);
+        const leftBoundary = -Math.floor(dim / 2);
+        const rightBoundary = Math.floor(dim / 2);
         switch (this.layer) {
-            case 'U':
+            case 'D':
             case 'F':
             case 'R':
                 for (let i = rightBoundary; i > rightBoundary - this.layerAmount; i--) {
                     indexes.push(i);
                 }
                 return indexes;
-            case 'D':
+            case 'U':
             case 'B':
             case 'L':
-                for (let i = leftBoundary; i < rightBoundary; i++) {
+                for (let i = leftBoundary; i < leftBoundary + this.layerAmount; i++) {
                     indexes.push(i);
                 }
                 return indexes;

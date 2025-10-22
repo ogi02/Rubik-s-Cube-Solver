@@ -21,4 +21,24 @@ window.Cube = class {
     show = () => {
         this.pieces.forEach(piece => piece.show());
     }
+
+    turn = (moveText) => {
+        const move = new Move(moveText);
+
+        const {axis, angle, layerIndexes} = move.getTurn(this.dimensions);
+
+        switch (axis) {
+            case 'x':
+                window.turnX(this.pieces, angle, layerIndexes);
+                break;
+            case 'y':
+                window.turnY(this.pieces, angle, layerIndexes);
+                break;
+            case 'z':
+                window.turnZ(this.pieces, angle, layerIndexes);
+                break;
+            default:
+                throw new Error(`Invalid axis: ${axis}`);
+        }
+    }
 }
