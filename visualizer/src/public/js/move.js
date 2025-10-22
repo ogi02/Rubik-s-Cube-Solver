@@ -24,7 +24,8 @@ const Move = class {
         return tokens.map(token => {
             // Extract layer count (if any)
             const layerAmountMatch = token.match(/^\d*/);
-            let layerAmount = layerAmountMatch ? parseInt(layerAmountMatch, 10) : null;
+            console.log(layerAmountMatch);
+            let layerAmount = layerAmountMatch ? parseInt(layerAmountMatch[0], 10) : null;
 
             // Extract face (R, L, etc.)
             const layerMatch = token.match(/[RLUDFB]/);

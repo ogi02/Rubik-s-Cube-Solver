@@ -1,9 +1,9 @@
 turnX = (pieces, angle, layerIndexes) => {
     pieces.forEach(piece => {
         if (layerIndexes.includes(piece.x)) {
-            // Create rotation matrix for 90-degree turn around X axis
+            // Create rotation matrix for a turn around X axis
             let matrix = window.mat2d.create();
-            // Rotate 90 degrees (π/2 radians)
+            // Rotate 90 / 180 / 270 degrees (π/2 / π / 3π/2 radians)
             window.mat2d.rotate(matrix, matrix, angle);
             // Translate
             window.mat2d.translate(matrix, matrix, [piece.y, piece.z])
@@ -16,9 +16,9 @@ turnX = (pieces, angle, layerIndexes) => {
 turnY = (pieces, angle, layerIndexes) => {
     pieces.forEach(piece => {
         if (layerIndexes.includes(piece.y)) {
-            // Create rotation matrix for 90-degree turn around Y axis
+            // Create rotation matrix for a turn around Y axis
             let matrix = window.mat2d.create();
-            // Rotate 90 degrees (π/2 radians)
+            // Rotate 90 / 180 / 270 degrees (π/2 / π / 3π/2 radians)
             window.mat2d.rotate(matrix, matrix, angle);
             // Translate
             window.mat2d.translate(matrix, matrix, [piece.x, piece.z])
@@ -31,9 +31,9 @@ turnY = (pieces, angle, layerIndexes) => {
 turnZ = (pieces, angle, layerIndexes) => {
     pieces.forEach(piece => {
         if (layerIndexes.includes(piece.z)) {
-            // Create rotation matrix for 90-degree turn around Z axis
+            // Create rotation matrix for a turn around Z axis
             let matrix = window.mat2d.create();
-            // Rotate 90 degrees (π/2 radians)
+            // Rotate 90 / 180 / 270 degrees (π/2 / π / 3π/2 radians)
             window.mat2d.rotate(matrix, matrix, angle);
             // Translate
             window.mat2d.translate(matrix, matrix, [piece.x, piece.y])
