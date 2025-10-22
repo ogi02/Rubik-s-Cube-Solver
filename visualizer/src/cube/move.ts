@@ -1,3 +1,5 @@
+import {roundToDecimal} from "../utils/math.ts";
+
 /**
  * Class representing a single move on a Rubik's Cube.
  *
@@ -198,8 +200,8 @@ export class Move {
 
         let indexes: number[] = [];
         // Define left and right boundaries of the cube
-        const leftBoundary = -Math.floor(dim / 2);
-        const rightBoundary = Math.floor(dim / 2);
+        const leftBoundary = -roundToDecimal(dim / 2 - 0.5, 1);
+        const rightBoundary = roundToDecimal(dim / 2 - 0.5, 1);
         // Determine indexes based on the layer being turned
         switch (this.layer) {
             case 'D':

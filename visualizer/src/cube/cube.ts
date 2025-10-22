@@ -1,6 +1,7 @@
 import { Move } from "./move";
 import { Piece } from "./piece";
 import { turnX, turnY, turnZ } from "./turn";
+import { roundToDecimal } from "../utils/math";
 import type p5 from "p5";
 
 /**
@@ -31,8 +32,8 @@ export class Cube {
         this.pieces = [];
 
         // Define left and right boundaries for the pieces
-        const leftBoundary = -Math.floor(this.dimensions / 2);
-        const rightBoundary = Math.floor(this.dimensions / 2);
+        const leftBoundary = -roundToDecimal(this.dimensions / 2 - 0.5, 1);
+        const rightBoundary = roundToDecimal(this.dimensions / 2 - 0.5, 1);
         // Create pieces for the cube
         for (let x = leftBoundary; x <= rightBoundary; x++) {
             for (let y = leftBoundary; y <= rightBoundary; y++) {
