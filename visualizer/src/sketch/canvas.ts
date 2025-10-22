@@ -10,6 +10,8 @@ import p5 from "p5";
 export const setBackground = (p: p5) => {
     // Set the background color
     p.background(191, 224, 221);
+    // Activate orbit control for 3D navigation
+    p.orbitControl();
 };
 
 /**

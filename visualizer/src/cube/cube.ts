@@ -38,7 +38,7 @@ export class Cube {
         for (let x = leftBoundary; x <= rightBoundary; x++) {
             for (let y = leftBoundary; y <= rightBoundary; y++) {
                 for (let z = leftBoundary; z <= rightBoundary; z++) {
-                    this.pieces.push(new Piece(x, y, z, this.p));
+                    this.pieces.push(new Piece(x, y, z, this.dimensions, this.p));
                 }
             }
         }
@@ -81,4 +81,4 @@ export class Cube {
                 throw new Error(`Invalid axis: ${axis}`);
         }
     };
-};
+}
