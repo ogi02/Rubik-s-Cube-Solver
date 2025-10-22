@@ -16,6 +16,7 @@ jobs:
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
+        working-directory: ./visualizer
         with:
           node-version: 20
           cache: "npm"
