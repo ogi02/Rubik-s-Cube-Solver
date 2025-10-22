@@ -1,4 +1,4 @@
-name: CI
+name: Visualizer Test
 
 on:
   push:
@@ -22,14 +22,18 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+        working-directory: visualizer
 
       - name: Build project
         run: npm run build
+        working-directory: visualizer
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
+        working-directory: visualizer
 
       - name: Run browser test
         run: npm run test
+        working-directory: visualizer
         env:
           CI: true
