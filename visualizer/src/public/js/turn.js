@@ -1,10 +1,10 @@
-turnX = pieces => {
+turnX = (pieces, angle, layerIndexes) => {
     pieces.forEach(piece => {
-        if (piece.x === 1) {
-            // Create rotation matrix for 90-degree turn around X axis
+        if (layerIndexes.includes(piece.x)) {
+            // Create rotation matrix for a turn around X axis
             let matrix = window.mat2d.create();
-            // Rotate 90 degrees (π/2 radians)
-            window.mat2d.rotate(matrix, matrix, Math.PI / 2);
+            // Rotate 90 / 180 / 270 degrees (π/2 / π / 3π/2 radians)
+            window.mat2d.rotate(matrix, matrix, angle);
             // Translate
             window.mat2d.translate(matrix, matrix, [piece.y, piece.z])
             // Update piece position
@@ -13,28 +13,28 @@ turnX = pieces => {
     })
 }
 
-turnY = pieces => {
+turnY = (pieces, angle, layerIndexes) => {
     pieces.forEach(piece => {
-        if (piece.y === 1) {
-            // Create rotation matrix for 90-degree turn around Y axis
+        if (layerIndexes.includes(piece.y)) {
+            // Create rotation matrix for a turn around Y axis
             let matrix = window.mat2d.create();
-            // Rotate 90 degrees (π/2 radians)
-            window.mat2d.rotate(matrix, matrix, Math.PI / 2);
+            // Rotate 90 / 180 / 270 degrees (π/2 / π / 3π/2 radians)
+            window.mat2d.rotate(matrix, matrix, angle);
             // Translate
-            window.mat2d.translate(matrix, matrix, [piece.z, piece.x])
+            window.mat2d.translate(matrix, matrix, [piece.x, piece.z])
             // Update piece position
-            piece.update(Math.round(matrix[5]), piece.y, Math.round(matrix[4]));
+            piece.update(Math.round(matrix[4]), piece.y, Math.round(matrix[5]));
         }
     });
 }
 
-turnZ = pieces => {
+turnZ = (pieces, angle, layerIndexes) => {
     pieces.forEach(piece => {
-        if (piece.z === 1) {
-            // Create rotation matrix for 90-degree turn around Z axis
+        if (layerIndexes.includes(piece.z)) {
+            // Create rotation matrix for a turn around Z axis
             let matrix = window.mat2d.create();
-            // Rotate 90 degrees (π/2 radians)
-            window.mat2d.rotate(matrix, matrix, Math.PI / 2);
+            // Rotate 90 / 180 / 270 degrees (π/2 / π / 3π/2 radians)
+            window.mat2d.rotate(matrix, matrix, angle);
             // Translate
             window.mat2d.translate(matrix, matrix, [piece.x, piece.y])
             // Update piece position
