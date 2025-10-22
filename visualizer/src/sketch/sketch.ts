@@ -1,5 +1,5 @@
 import p5 from "p5";
-import { setBackground, setupCanvas } from "./canvas";
+import {setBackground, setupCanvas, windowResized} from "./canvas";
 import { Cube } from "../cube/cube";
 
 /**
@@ -10,7 +10,7 @@ import { Cube } from "../cube/cube";
  * new p5(cubeSketch, document.getElementById("visualizer") as HTMLElement);
  */
 export const cubeSketch = (p: p5) => {
-    const dim = 4;
+    const dim = 3;
     let cube: Cube;
 
     /**
@@ -23,14 +23,6 @@ export const cubeSketch = (p: p5) => {
         setupCanvas(p);
 
         cube = new Cube(dim, p);
-
-        for (let i = 0; i < cube.pieces.length; i += dim) {
-            cube.pieces[i].highlighted = "red";
-            cube.pieces[i + 1].highlighted = "green";
-            cube.pieces[i + 2].highlighted = "blue";
-            // cube.pieces[i + 3].highlighted = "red";
-            // cube.pieces[i + 4].highlighted = "green";
-        }
 
         // let scramble = "R D2 L2 U F' L D U2 B R2 U2 D2 R2 B R2 B2 U L2 B Rw2 Uw2 D Rw2 R' B2 Rw2 D' R2 D2 R2 U2 Fw D2 L' Fw Uw2 Rw Uw2 F2 L D Rw' Uw";
         // let scramble = "R U Dw' Uw2 3Rw 5Lw'";
@@ -48,12 +40,23 @@ export const cubeSketch = (p: p5) => {
     p.draw = () : void => {
         // Set background and controls
         setBackground(p);
-        p.orbitControl();
         // Set scale for better visibility
         p.scale(50);
         // Show the cube
         cube.show();
     };
+
+    Object.assign(p, {
+        /**
+         * Window resized event handler for the p5 sketch
+         *
+         * @example
+         * p.windowResized();
+         */
+        windowResized: () : void => {
+            windowResized(p);
+        }
+    })
 
     /**
      * Key pressed event handler for the p5 sketch
@@ -74,4 +77,4 @@ export const cubeSketch = (p: p5) => {
             }
         }
     };
-};
+}

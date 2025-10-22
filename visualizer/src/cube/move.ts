@@ -249,4 +249,4 @@ export class Move {
             layerIndexes: this.getLayerIndexes(dim)
         };
     };
-};
+}

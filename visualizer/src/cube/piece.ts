@@ -1,5 +1,7 @@
-import { mat4, type mat4 as Mat4Type } from "gl-matrix";
+import { mat4, vec3, type mat4 as Mat4Type } from "gl-matrix";
 import type p5 from "p5";
+import { Face } from "./face";
+import {roundToDecimal} from "../utils/math";
 
 /**
  * Class representing a single piece of a Rubik's Cube
@@ -8,23 +10,24 @@ import type p5 from "p5";
  * @property {number} x - The x position of the piece
  * @property {number} y - The y position of the piece
  * @property {number} z - The z position of the piece
+ * @property {number} dimensions - The dimension of the cube
+ * @property {Face[]} faces - The faces of the piece
  * @property {Mat4Type} matrix - The transformation matrix of the piece
- * @property {string | null} highlighted - The highlight color of the piece
  * @property {p5} p - The p5 instance
  *
  * @example
  * const piece = new Piece(1, 1, 1, p);
  * piece.show();
  * piece.update(2, 2, 2);
- * piece.highlighted = "red";
  * piece.show();
  */
 export class Piece {
     x: number = 0;
     y: number = 0;
     z: number = 0;
+    dimensions: number;
+    faces: Face[] = [];
     matrix: Mat4Type;
-    highlighted: string | null;
     p: p5;
 
     /**
@@ -32,19 +35,22 @@ export class Piece {
      * @param x - The x position of the piece
      * @param y - The y position of the piece
      * @param z - The z position of the piece
+     * @param dimensions - The dimension of the cube
      * @param p - The p5 instance
      *
      * @example
-     * const piece = new Piece(1, 1, 1, p);
+     * const piece = new Piece(1, 1, 1, 3, p);
      * piece.show();
      */
-    constructor(x: number, y: number, z: number, p: p5) {
+    constructor(x: number, y: number, z: number, dimensions: number, p: p5) {
         // Initialize transformation matrix
         this.matrix = mat4.create();
         // Set initial position
         this.update(x, y, z);
-        // Highlight flag
-        this.highlighted = null;
+        // Set dimensions
+        this.dimensions = dimensions;
+        // Color faces
+        this.colorFaces();
         // p5 instance
         this.p = p;
     };
@@ -68,34 +74,78 @@ export class Piece {
     };
 
     /**
+     * Color the faces of the piece based on its position
+     * If the piece is on the outer layer, color the corresponding face, else color it black
+     *
+     * @example
+     * const piece = new Piece(1, 1, 1, p);
+     * piece.colorFaces();
+     */
+    colorFaces() : void {
+        // Calculate the layer boundaries
+        const leftBoundary = -roundToDecimal(this.dimensions / 2 - 0.5, 1);
+        const rightBoundary = roundToDecimal(this.dimensions / 2 - 0.5, 1);
+
+        // Define face configs
+        const faceConfigs = [
+            // index, axis, boundary, normal, color
+            { index: 0, axis: 'y', boundary: leftBoundary, normal: vec3.fromValues(0, -1, 0), color: "#FFFFFF" }, // UP
+            { index: 1, axis: 'y', boundary: rightBoundary, normal: vec3.fromValues(0, 1, 0), color: "#FFFF00" }, // DOWN
+            { index: 2, axis: 'x', boundary: leftBoundary, normal: vec3.fromValues(-1, 0, 0), color: "#FF9000" }, // LEFT
+            { index: 3, axis: 'x', boundary: rightBoundary, normal: vec3.fromValues(1, 0, 0), color: "#FF0000" }, // RIGHT
+            { index: 4, axis: 'z', boundary: rightBoundary, normal: vec3.fromValues(0, 0, 1), color: "#00FF00" }, // FRONT
+            { index: 5, axis: 'z', boundary: leftBoundary, normal: vec3.fromValues(0, 0, -1), color: "#0000FF" }  // BACK
+        ];
+
+        // Draw faces based on configs
+        faceConfigs.forEach(config => {
+            // Check if the piece is on the boundary for the given axis
+            let isOnBoundary = false;
+            switch (config.axis) {
+                case 'x':
+                    isOnBoundary = (this.x === config.boundary);
+                    break;
+                case 'y':
+                    isOnBoundary = (this.y === config.boundary);
+                    break;
+                case 'z':
+                    isOnBoundary = (this.z === config.boundary);
+                    break;
+            }
+            // If on boundary, color the face, else color it black
+            if (isOnBoundary) {
+                this.faces[config.index] = new Face(config.normal, config.color);
+            } else {
+                this.faces[config.index] = new Face(config.normal, "#000000");
+            }
+        });
+    };
+
+    /**
      * Display the piece
      *
      * @example
      * const piece = new Piece(1, 1, 1, p);
      * piece.show();
-     * piece.highlighted = "red";
-     * piece.show();
      */
     show() : void {
-        if (this.highlighted === "red") {
-            this.p.fill(255, 0, 0);
-        } else if (this.highlighted === "green") {
-            this.p.fill(0, 255, 0);
-        } else if (this.highlighted === "blue") {
-            this.p.fill(0, 0, 255);
-        } else {
-            this.p.fill(200);
-        }
+        // Set no fill for the box
+        this.p.noFill();
+        // Draw outline
         this.p.stroke(0);
         this.p.strokeWeight(2);
         this.p.push();
+        // Apply transformation matrix
         this.p.applyMatrix(
             this.matrix[0], this.matrix[1], this.matrix[2], this.matrix[3],
             this.matrix[4], this.matrix[5], this.matrix[6], this.matrix[7],
             this.matrix[8], this.matrix[9], this.matrix[10], this.matrix[11],
             this.matrix[12], this.matrix[13], this.matrix[14], this.matrix[15]
         );
+        // Draw the box
         this.p.box(1);
+        // Draw faces
+        this.faces.forEach(face => face.show(this.p));
         this.p.pop();
     };
-};
+}
