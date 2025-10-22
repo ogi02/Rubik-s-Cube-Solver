@@ -93,6 +93,9 @@ const Move = class {
     }
 
     getLayerIndexes = dim => {
+        if (Math.floor(dim / 2) < this.layerAmount) {
+            throw new Error(`Layer amount ${this.layerAmount} exceeds 1/2 cube dimension ${dim}`);
+        }
         let indexes = [];
         const leftBoundary = -Math.floor(dim / 2);
         const rightBoundary = Math.floor(dim / 2);
