@@ -1,7 +1,7 @@
 import { mat4, vec3, type mat4 as Mat4Type } from "gl-matrix";
 import type p5 from "p5";
 import { Face } from "./face";
-import {roundToDecimal} from "../utils/math.ts";
+import {roundToDecimal} from "../utils/math";
 
 /**
  * Class representing a single piece of a Rubik's Cube
@@ -85,56 +85,40 @@ export class Piece {
         // Calculate the layer boundaries
         const leftBoundary = -roundToDecimal(this.dimensions / 2 - 0.5, 1);
         const rightBoundary = roundToDecimal(this.dimensions / 2 - 0.5, 1);
-        // If the layer is on the outer side, color the face, else color it black
 
-        // UP face
-        if (this.y === leftBoundary) {
-            this.faces[0] = new Face(vec3.fromValues(0, -1, 0), "#FFFFFF");
-        }
-        else {
-            this.faces[0] = new Face(vec3.fromValues(0, -1, 0), "#000000");
-        }
+        // Define face configs
+        const faceConfigs = [
+            // index, axis, boundary, normal, color
+            { index: 0, axis: 'y', boundary: leftBoundary, normal: vec3.fromValues(0, -1, 0), color: "#FFFFFF" }, // UP
+            { index: 1, axis: 'y', boundary: rightBoundary, normal: vec3.fromValues(0, 1, 0), color: "#FFFF00" }, // DOWN
+            { index: 2, axis: 'x', boundary: leftBoundary, normal: vec3.fromValues(-1, 0, 0), color: "#FF9000" }, // LEFT
+            { index: 3, axis: 'x', boundary: rightBoundary, normal: vec3.fromValues(1, 0, 0), color: "#FF0000" }, // RIGHT
+            { index: 4, axis: 'z', boundary: rightBoundary, normal: vec3.fromValues(0, 0, 1), color: "#00FF00" }, // FRONT
+            { index: 5, axis: 'z', boundary: leftBoundary, normal: vec3.fromValues(0, 0, -1), color: "#0000FF" }  // BACK
+        ];
 
-        // DOWN face
-        if (this.y === rightBoundary) {
-            // Down face
-            this.faces[1] = new Face(vec3.fromValues(0, 1, 0), "#FFFF00");
-        }
-        else {
-            this.faces[1] = new Face(vec3.fromValues(0, 1, 0), "#000000");
-        }
-
-        // RIGHT face
-        if (this.x === rightBoundary) {
-            this.faces[3] = new Face(vec3.fromValues(1, 0, 0), "#FF0000");
-        }
-        else {
-            this.faces[3] = new Face(vec3.fromValues(1, 0, 0), "#000000");
-        }
-
-        // LEFT face
-        if (this.x === leftBoundary) {
-            this.faces[2] = new Face(vec3.fromValues(-1, 0, 0), "#FF9000");
-        }
-        else {
-            this.faces[2] = new Face(vec3.fromValues(-1, 0, 0), "#000000");
-        }
-
-        // FRONT face
-        if (this.z === rightBoundary) {
-            this.faces[4] = new Face(vec3.fromValues(0, 0, 1), "#00FF00");
-        }
-        else {
-            this.faces[4] = new Face(vec3.fromValues(0, 0, 1), "#000000");
-        }
-
-        // BACK face
-        if (this.z === leftBoundary) {
-            this.faces[5] = new Face(vec3.fromValues(0, 0, -1), "#0000FF");
-        }
-        else {
-            this.faces[5] = new Face(vec3.fromValues(0, 0, -1), "#000000");
-        }
+        // Draw faces based on configs
+        faceConfigs.forEach(config => {
+            // Check if the piece is on the boundary for the given axis
+            let isOnBoundary = false;
+            switch (config.axis) {
+                case 'x':
+                    isOnBoundary = (this.x === config.boundary);
+                    break;
+                case 'y':
+                    isOnBoundary = (this.y === config.boundary);
+                    break;
+                case 'z':
+                    isOnBoundary = (this.z === config.boundary);
+                    break;
+            }
+            // If on boundary, color the face, else color it black
+            if (isOnBoundary) {
+                this.faces[config.index] = new Face(config.normal, config.color);
+            } else {
+                this.faces[config.index] = new Face(config.normal, "#000000");
+            }
+        });
     };
 
     /**
