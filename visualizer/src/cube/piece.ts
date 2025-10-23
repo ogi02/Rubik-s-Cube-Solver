@@ -1,7 +1,8 @@
 import { mat4, vec3, type mat4 as Mat4Type } from "gl-matrix";
 import type p5 from "p5";
+
 import { Face } from "./face";
-import {roundToDecimal} from "../utils/math";
+import { roundToDecimal } from "../utils/math";
 
 /**
  * Class representing a single piece of a Rubik's Cube
@@ -15,6 +16,7 @@ import {roundToDecimal} from "../utils/math";
  * @property {Mat4Type} matrix - The transformation matrix of the piece
  * @property {number} leftBoundary - The left boundary of the cube layer
  * @property {number} rightBoundary - The right boundary of the cube layer
+ * @property {boolean} isInner - Whether the piece is an inner piece
  * @property {p5} p - The p5 instance
  *
  * @example
@@ -32,6 +34,7 @@ export class Piece {
     matrix: Mat4Type;
     leftBoundary: number;
     rightBoundary: number;
+    isInner: boolean;
     p: p5;
 
     /**
@@ -56,6 +59,11 @@ export class Piece {
         // Calculate the layer boundaries
         this.leftBoundary = -roundToDecimal(this.dimensions / 2 - 0.5, 1);
         this.rightBoundary = roundToDecimal(this.dimensions / 2 - 0.5, 1);
+        this.isInner = (
+            this.x > this.leftBoundary && this.x < this.rightBoundary &&
+            this.y > this.leftBoundary && this.y < this.rightBoundary &&
+            this.z > this.leftBoundary && this.z < this.rightBoundary
+        )
         // Create initial faces
         this.faces = [
             new Face(vec3.fromValues(0,-1,0), "#000000"), // UP
@@ -137,11 +145,7 @@ export class Piece {
      */
     show() : void {
         // Don't draw inner pieces
-        if (
-            this.x > this.leftBoundary && this.x < this.rightBoundary &&
-            this.y > this.leftBoundary && this.y < this.rightBoundary &&
-            this.z > this.leftBoundary && this.z < this.rightBoundary
-        ) {
+        if (this.isInner) {
             return;
         }
 
