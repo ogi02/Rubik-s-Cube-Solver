@@ -10,7 +10,7 @@ import { Cube } from "../cube/cube";
  * new p5(cubeSketch, document.getElementById("visualizer") as HTMLElement);
  */
 export const cubeSketch = (p: p5) => {
-    const dim = 20;
+    const dim = 4;
     let cube: Cube;
     let lastTime = performance.now();
     let frameCount = 0;
@@ -87,12 +87,12 @@ export const cubeSketch = (p: p5) => {
     p.keyPressed = (key: KeyboardEvent) : void => {
         console.log(`Key pressed: ${key.key}`);
         if (key.key === 's') {
-            let scramble = "Dw";
+            let scramble = "Dw2 B' U' L' F2 B Lw U2 L' R2 F' D2 Fw' L2 Bw L2 D2 B D2 F R2";
             let splitScramble = scramble.split(" ");
             for (let i = 0; i < splitScramble.length; i++) {
                 setTimeout(() => {
                     cube.turn(splitScramble[i]);
-                }, i * 1000);
+                }, i * 100);
             }
         }
     };
