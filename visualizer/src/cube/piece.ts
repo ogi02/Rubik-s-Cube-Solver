@@ -97,6 +97,37 @@ export class Piece {
     };
 
     /**
+     * Update the faces of the piece based on rotation
+     *
+     * @param axis - The axis of rotation ('x', 'y', or 'z')
+     * @param angle - The angle of rotation (in radians)
+     * @throws Error - Will throw an error if the axis is invalid
+     *
+     * @example
+     * const piece = new Piece(1, 1, 1, p);
+     * piece.updateFaces('x', Math.PI / 2);
+     * piece.show();
+     */
+    updateFaces(axis: string, angle: number) : void {
+        // Update face orientations based on the rotation axis
+        this.faces.forEach(face => {
+            switch (axis) {
+                case 'x':
+                    face.turnX(angle);
+                    break;
+                case 'y':
+                    face.turnY(angle);
+                    break;
+                case 'z':
+                    face.turnZ(angle);
+                    break;
+                default:
+                    throw new Error(`Invalid axis: ${axis}`);
+            }
+        });
+    }
+
+    /**
      * Color the faces of the piece based on its position
      * If the piece is on the outer layer, color the corresponding face, else color it black
      *

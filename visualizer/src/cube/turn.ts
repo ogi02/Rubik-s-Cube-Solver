@@ -23,6 +23,8 @@ export const turnX = (pieces: Piece[], angle: number, layerIndexes: number[]) =>
             mat2d.translate(matrix, matrix, [piece.y, piece.z]);
             // Update piece position
             piece.update(piece.x, roundToDecimal(matrix[4], 1), roundToDecimal(matrix[5], 1));
+            // Update faces position
+            piece.updateFaces('x', angle);
         }
     });
 };
@@ -48,6 +50,8 @@ export const turnY = (pieces: Piece[], angle: number, layerIndexes: number[]) =>
             mat2d.translate(matrix, matrix, [piece.x, piece.z]);
             // Update piece position
             piece.update(roundToDecimal(matrix[4], 1), piece.y, roundToDecimal(matrix[5], 1));
+            // Update faces position
+            piece.updateFaces('y', angle);
         }
     });
 };
@@ -73,6 +77,8 @@ export const turnZ = (pieces: Piece[], angle: number, layerIndexes: number[]) =>
             mat2d.translate(matrix, matrix, [piece.x, piece.y]);
             // Update piece position
             piece.update(roundToDecimal(matrix[4], 1), roundToDecimal(matrix[5], 1), piece.z);
+            // Update faces position
+            piece.updateFaces('z', angle);
         }
     });
 };
