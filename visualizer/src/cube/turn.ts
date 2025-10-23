@@ -17,7 +17,7 @@ export const turnX = (pieces: Piece[], angle: number, layerIndexes: number[]) =>
         if (layerIndexes.includes(piece.x)) {
             // Create rotation matrix for a turn around X axis
             let matrix = mat2d.create();
-            // Rotate 90 / 180 / 270 degrees (π/2 / π / 3π/2 radians)
+            // Rotate 90 / 180 / 270 degrees (π/2 / π / -π/2 radians)
             mat2d.rotate(matrix, matrix, angle);
             // Translate
             mat2d.translate(matrix, matrix, [piece.y, piece.z]);
@@ -44,12 +44,12 @@ export const turnY = (pieces: Piece[], angle: number, layerIndexes: number[]) =>
         if (layerIndexes.includes(piece.y)) {
             // Create rotation matrix for a turn around Y axis
             let matrix = mat2d.create();
-            // Rotate 90 / 180 / 270 degrees (π/2 / π / 3π/2 radians)
+            // Rotate 90 / 180 / 270 degrees (π/2 / π / -π/2 radians)
             mat2d.rotate(matrix, matrix, angle);
             // Translate
-            mat2d.translate(matrix, matrix, [piece.x, piece.z]);
+            mat2d.translate(matrix, matrix, [piece.z, piece.x]);
             // Update piece position
-            piece.update(roundToDecimal(matrix[4], 1), piece.y, roundToDecimal(matrix[5], 1));
+            piece.update(roundToDecimal(matrix[5], 1), piece.y, roundToDecimal(matrix[4], 1));
             // Update faces position
             piece.updateFaces('y', angle);
         }
@@ -71,7 +71,7 @@ export const turnZ = (pieces: Piece[], angle: number, layerIndexes: number[]) =>
         if (layerIndexes.includes(piece.z)) {
             // Create rotation matrix for a turn around Z axis
             let matrix = mat2d.create();
-            // Rotate 90 / 180 / 270 degrees (π/2 / π / 3π/2 radians)
+            // Rotate 90 / 180 / 270 degrees (π/2 / π / -π/2 radians)
             mat2d.rotate(matrix, matrix, angle);
             // Translate
             mat2d.translate(matrix, matrix, [piece.x, piece.y]);

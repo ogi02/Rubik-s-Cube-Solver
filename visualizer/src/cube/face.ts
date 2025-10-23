@@ -72,8 +72,8 @@ export class Face {
      */
     turnY(angle: number) : void {
         // Rotate the face vector around the Y axis
-        const newX = roundToDecimal(this.vector[0] * Math.cos(angle) - this.vector[2] * Math.sin(angle), 1);
-        const newZ = roundToDecimal(this.vector[0] * Math.sin(angle) + this.vector[2] * Math.cos(angle), 1);
+        const newX = roundToDecimal(this.vector[0] * Math.cos(angle) + this.vector[2] * Math.sin(angle), 1);
+        const newZ = roundToDecimal(-this.vector[0] * Math.sin(angle) + this.vector[2] * Math.cos(angle), 1);
         this.vector = vec3.fromValues(newX, this.vector[1], newZ);
     }
 

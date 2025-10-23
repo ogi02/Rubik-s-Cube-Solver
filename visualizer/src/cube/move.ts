@@ -121,13 +121,13 @@ export class Move {
         switch (this.layer) {
             case 'U':
             case 'D':
-                return "y";
+                return 'y';
             case 'F':
             case 'B':
-                return "z";
+                return 'z';
             case 'L':
             case 'R':
-                return "x";
+                return 'x';
             default:
                 throw new Error(`Invalid layer: ${this.layer}`);
         }
@@ -156,15 +156,15 @@ export class Move {
         switch (this.direction) {
             case '':
                 // Default 90 degrees clockwise
-                // D, B, L are reversed
-                if (['D', 'B', 'L'].includes(this.layer!)) {
+                // U, B, L are reversed
+                if (['U', 'B', 'L'].includes(this.layer!)) {
                     return -Math.PI / 2;
                 }
                 return Math.PI / 2;
             case '\'':
                 // 90 degrees counter-clockwise
-                // D, B, L are reversed
-                if (['D', 'B', 'L'].includes(this.layer!)) {
+                // U, B, L are reversed
+                if (['U', 'B', 'L'].includes(this.layer!)) {
                     return Math.PI / 2;
                 }
                 return -Math.PI / 2;
