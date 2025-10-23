@@ -2,7 +2,7 @@ import type p5 from "p5";
 
 import { Move } from "./move";
 import { Piece } from "./piece";
-import { Animation } from "./animation.ts";
+import { Animation } from "./animation";
 import { turnX, turnY, turnZ } from "./turn";
 import { roundToDecimal } from "../utils/math";
 
