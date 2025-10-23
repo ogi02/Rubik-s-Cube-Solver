@@ -1,4 +1,4 @@
-import {roundToDecimal} from "../utils/math";
+import { roundToDecimal } from "../utils/math";
 
 /**
  * Class representing a single move on a Rubik's Cube.

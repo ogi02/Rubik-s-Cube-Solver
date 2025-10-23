@@ -1,6 +1,7 @@
-import { vec3 } from "gl-matrix";
 import type p5 from "p5";
-import {roundToDecimal} from "../utils/math.ts";
+import { vec3 } from "gl-matrix";
+
+import { roundToDecimal } from "../utils/math";
 
 /**
  * Class representing a face of a Rubik's Cube piece

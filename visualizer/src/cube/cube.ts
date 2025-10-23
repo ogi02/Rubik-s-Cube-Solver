@@ -1,9 +1,10 @@
+import type p5 from "p5";
+
 import { Move } from "./move";
 import { Piece } from "./piece";
+import { Animation } from "./animation.ts";
 import { turnX, turnY, turnZ } from "./turn";
 import { roundToDecimal } from "../utils/math";
-import type p5 from "p5";
-import {Animation} from "./animation.ts";
 
 /**
  * Class representing a Rubik's Cube

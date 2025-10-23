@@ -1,5 +1,5 @@
-import { mat4, vec3, type mat4 as Mat4Type } from "gl-matrix";
 import type p5 from "p5";
+import { mat4, vec3, type mat4 as Mat4Type } from "gl-matrix";
 
 import { Face } from "./face";
 import { roundToDecimal } from "../utils/math";

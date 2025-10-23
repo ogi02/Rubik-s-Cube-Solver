@@ -1,4 +1,5 @@
 import p5 from "p5";
+
 import { setBackground, setupCanvas, windowResized } from "./canvas";
 import { Cube } from "../cube/cube";
 
