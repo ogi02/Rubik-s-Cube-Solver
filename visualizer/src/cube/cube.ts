@@ -51,6 +51,12 @@ export class Cube {
      * @returns {void}
      */
     show() : void {
+        // Set no fill for the box
+        this.p.noFill();
+        // Set outline
+        this.p.stroke(0);
+        this.p.strokeWeight(2);
+        // Draw the pieces
         this.pieces.forEach(piece => piece.show());
     };
 

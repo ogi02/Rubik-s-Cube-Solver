@@ -13,6 +13,8 @@ import {roundToDecimal} from "../utils/math";
  * @property {number} dimensions - The dimension of the cube
  * @property {Face[]} faces - The faces of the piece
  * @property {Mat4Type} matrix - The transformation matrix of the piece
+ * @property {number} leftBoundary - The left boundary of the cube layer
+ * @property {number} rightBoundary - The right boundary of the cube layer
  * @property {p5} p - The p5 instance
  *
  * @example
@@ -28,6 +30,8 @@ export class Piece {
     dimensions: number;
     faces: Face[] = [];
     matrix: Mat4Type;
+    leftBoundary: number;
+    rightBoundary: number;
     p: p5;
 
     /**
@@ -49,7 +53,18 @@ export class Piece {
         this.update(x, y, z);
         // Set dimensions
         this.dimensions = dimensions;
-        // Color faces
+        // Calculate the layer boundaries
+        this.leftBoundary = -roundToDecimal(this.dimensions / 2 - 0.5, 1);
+        this.rightBoundary = roundToDecimal(this.dimensions / 2 - 0.5, 1);
+        // Create initial faces
+        this.faces = [
+            new Face(vec3.fromValues(0,-1,0), "#000000"), // UP
+            new Face(vec3.fromValues(0,1,0), "#000000"),  // DOWN
+            new Face(vec3.fromValues(-1,0,0), "#000000"), // LEFT
+            new Face(vec3.fromValues(1,0,0), "#000000"),  // RIGHT
+            new Face(vec3.fromValues(0,0,1), "#000000"),  // FRONT
+            new Face(vec3.fromValues(0,0,-1), "#000000"), // BACK
+        ];
         this.colorFaces();
         // p5 instance
         this.p = p;
@@ -82,19 +97,15 @@ export class Piece {
      * piece.colorFaces();
      */
     colorFaces() : void {
-        // Calculate the layer boundaries
-        const leftBoundary = -roundToDecimal(this.dimensions / 2 - 0.5, 1);
-        const rightBoundary = roundToDecimal(this.dimensions / 2 - 0.5, 1);
-
         // Define face configs
         const faceConfigs = [
-            // index, axis, boundary, normal, color
-            { index: 0, axis: 'y', boundary: leftBoundary, normal: vec3.fromValues(0, -1, 0), color: "#FFFFFF" }, // UP
-            { index: 1, axis: 'y', boundary: rightBoundary, normal: vec3.fromValues(0, 1, 0), color: "#FFFF00" }, // DOWN
-            { index: 2, axis: 'x', boundary: leftBoundary, normal: vec3.fromValues(-1, 0, 0), color: "#FF9000" }, // LEFT
-            { index: 3, axis: 'x', boundary: rightBoundary, normal: vec3.fromValues(1, 0, 0), color: "#FF0000" }, // RIGHT
-            { index: 4, axis: 'z', boundary: rightBoundary, normal: vec3.fromValues(0, 0, 1), color: "#00FF00" }, // FRONT
-            { index: 5, axis: 'z', boundary: leftBoundary, normal: vec3.fromValues(0, 0, -1), color: "#0000FF" }  // BACK
+            // index, axis, boundary, color
+            { index: 0, axis: 'y', boundary: this.leftBoundary, color: "#FFFFFF" }, // UP
+            { index: 1, axis: 'y', boundary: this.rightBoundary, color: "#FFFF00" }, // DOWN
+            { index: 2, axis: 'x', boundary: this.leftBoundary, color: "#FF9000" }, // LEFT
+            { index: 3, axis: 'x', boundary: this.rightBoundary, color: "#FF0000" }, // RIGHT
+            { index: 4, axis: 'z', boundary: this.rightBoundary, color: "#00FF00" }, // FRONT
+            { index: 5, axis: 'z', boundary: this.leftBoundary, color: "#0000FF" }  // BACK
         ];
 
         // Draw faces based on configs
@@ -113,11 +124,7 @@ export class Piece {
                     break;
             }
             // If on boundary, color the face, else color it black
-            if (isOnBoundary) {
-                this.faces[config.index] = new Face(config.normal, config.color);
-            } else {
-                this.faces[config.index] = new Face(config.normal, "#000000");
-            }
+            this.faces[config.index].color = isOnBoundary ? config.color : "#000000";
         });
     };
 
@@ -129,11 +136,15 @@ export class Piece {
      * piece.show();
      */
     show() : void {
-        // Set no fill for the box
-        this.p.noFill();
-        // Draw outline
-        this.p.stroke(0);
-        this.p.strokeWeight(2);
+        // Don't draw inner pieces
+        if (
+            this.x > this.leftBoundary && this.x < this.rightBoundary &&
+            this.y > this.leftBoundary && this.y < this.rightBoundary &&
+            this.z > this.leftBoundary && this.z < this.rightBoundary
+        ) {
+            return;
+        }
+
         this.p.push();
         // Apply transformation matrix
         this.p.applyMatrix(
@@ -145,6 +156,8 @@ export class Piece {
         // Draw the box
         this.p.box(1);
         // Draw faces
+        this.p.noStroke();
+        this.p.rectMode(this.p.CENTER);
         this.faces.forEach(face => face.show(this.p));
         this.p.pop();
     };
