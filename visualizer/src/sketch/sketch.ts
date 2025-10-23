@@ -10,8 +10,10 @@ import { Cube } from "../cube/cube";
  * new p5(cubeSketch, document.getElementById("visualizer") as HTMLElement);
  */
 export const cubeSketch = (p: p5) => {
-    const dim = 3;
+    const dim = 20;
     let cube: Cube;
+    let lastTime = performance.now();
+    let frameCount = 0;
 
     /**
      * Setup function for the p5 sketch
@@ -21,6 +23,12 @@ export const cubeSketch = (p: p5) => {
      */
     p.setup = () : void => {
         setupCanvas(p);
+
+        p.camera(
+            1000, -1000, 1000,   // camera position
+            0, 0, 0,      // look at origin
+            0, 1, 0       // up vector
+        );
 
         cube = new Cube(dim, p);
 
@@ -38,8 +46,19 @@ export const cubeSketch = (p: p5) => {
      * p.draw();
      */
     p.draw = () : void => {
+        // FPS
+        frameCount++;
+        const now = performance.now();
+
+        if (now - lastTime >= 1000) {
+            console.log(`FPS: ${frameCount}`);
+            frameCount = 0;
+            lastTime = now;
+        }
         // Set background and controls
         setBackground(p);
+        // Activate orbit control for 3D navigation
+        p.orbitControl();
         // Set scale for better visibility
         p.scale(50);
         // Show the cube

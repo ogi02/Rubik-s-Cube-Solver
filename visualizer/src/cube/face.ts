@@ -54,12 +54,12 @@ export class Face {
      * face.show(p);
      */
     show(p: p5) : void {
+        // Skip black faces
+        if (this.color === "#000000") {
+            return;
+        }
         // Set the color
         p.fill(this.color);
-        // No stroke
-        p.noStroke();
-        // Draw the face as a rectangle
-        p.rectMode(p.CENTER);
         p.push();
         // Translate to the face position
         p.translate(0.5 * this.vector[0], 0.5 * this.vector[1], 0.5 * this.vector[2]);
