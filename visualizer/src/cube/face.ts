@@ -2,6 +2,7 @@ import type p5 from "p5";
 import { vec3 } from "gl-matrix";
 
 import { roundToDecimal } from "../utils/math";
+import type { CubeSettings } from "../utils/cubeSettings.ts";
 
 /**
  * Class representing a face of a Rubik's Cube piece
@@ -12,7 +13,7 @@ import { roundToDecimal } from "../utils/math";
  *
  * @example
  * const face = new Face([1, 0, 0], 'red');
- * face.show(p);
+ * face.show(settings);
  */
 export class Face {
     vector: vec3;
@@ -25,7 +26,7 @@ export class Face {
      *
      * @example
      * const face = new Face([1, 0, 0], 'red');
-     * face.show(p);
+     * face.show(settings);
      */
     constructor(vector: vec3, color: string) {
         this.vector = vector;
@@ -34,17 +35,17 @@ export class Face {
 
     /**
      * Apply rotation based on the face normal vector
-     * @param p - The p5 instance
+     * @param p5Instance - The p5 instance
      *
      * @example
      * face.applyRotation(p);
      */
-    applyRotation(p: p5) : void {
+    applyRotation(p5Instance: p5) : void {
         // Apply rotation based on the face normal vector
         if (Math.abs(this.vector[0]) > 0) {
-            p.rotateY(p.HALF_PI);
+            p5Instance.rotateY(p5Instance.HALF_PI);
         } else if (Math.abs(this.vector[1]) > 0) {
-            p.rotateX(p.HALF_PI);
+            p5Instance.rotateX(p5Instance.HALF_PI);
         }
     };
 
@@ -95,25 +96,25 @@ export class Face {
 
     /**
      * Display the face
-     * @param p - The p5 instance
+     * @param settings - The cube settings
      *
      * @example
      * face.show(p);
      */
-    show(p: p5) : void {
+    show(settings: CubeSettings) : void {
         // Skip black faces
-        if (this.color === "#000000") {
+        if (!settings.drawBlackFaces && this.color === settings.colorBlack) {
             return;
         }
         // Set the color
-        p.fill(this.color);
-        p.push();
+        settings.p5Instance.fill(this.color);
+        settings.p5Instance.push();
         // Translate to the face position
-        p.translate(0.5 * this.vector[0], 0.5 * this.vector[1], 0.5 * this.vector[2]);
+        settings.p5Instance.translate(0.5 * this.vector[0], 0.5 * this.vector[1], 0.5 * this.vector[2]);
         // Apply rotation
-        this.applyRotation(p);
+        this.applyRotation(settings.p5Instance);
         // Draw the face
-        p.square(0, 0, 1);
-        p.pop();
+        settings.p5Instance.square(0, 0, 1);
+        settings.p5Instance.pop();
     };
 }
