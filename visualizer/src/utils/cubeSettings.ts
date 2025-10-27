@@ -103,7 +103,8 @@ export const Settings7x7: CubeSettings = {
  *
  * @param {number} dimensions - The dimensions of the cube (e.g., 3 for a 3x3 cube)
  * @param {p5} p5Instance - The p5 instance
- * @returns {CubeSettings} The settings for the specified cube dimensions
+ * @returns {CubeSettings} - The settings for the specified cube dimensions
+ * @throws {Error} - If the dimensions are less than 1
  *
  * @example
  * const settings = loadCubeSettings(3, p);
@@ -111,7 +112,7 @@ export const Settings7x7: CubeSettings = {
 export const loadCubeSettings = (dimensions: number, p5Instance: p5) : CubeSettings => {
     // Validate dimensions
     if (dimensions < 1) {
-        console.error(`Unsupported cube dimensions: ${dimensions}.`);
+        throw new Error(`Unsupported cube dimensions: ${dimensions}.`);
     }
     // Return settings based on dimensions
     switch (dimensions) {

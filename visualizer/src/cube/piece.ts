@@ -157,8 +157,8 @@ export class Piece {
                     isOnBoundary = (this.z === config.boundary);
                     break;
             }
-            // If on boundary, color the face, else color it gray
-            this.faces[config.index].color = isOnBoundary ? config.color : "#222222";
+            // If on boundary, color the face, else color it black
+            this.faces[config.index].color = isOnBoundary ? config.color : this.settings.colorBlack;
         });
     };
 

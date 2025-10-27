@@ -99,7 +99,7 @@ export class Face {
      * @param settings - The cube settings
      *
      * @example
-     * face.show(p);
+     * face.show(settings);
      */
     show(settings: CubeSettings) : void {
         // Skip black faces
