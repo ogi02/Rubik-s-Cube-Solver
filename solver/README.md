@@ -16,7 +16,6 @@ Clone the repository, install the requirements and the solver in editable mode:
 git clone https://github.com/ogi02/Rubik-s-Cube-Solver.git
 cd Rubik-s-Cube-Solver/solver
 pip install -e .
-pip install -r requirements.txt
 ```
 
 ## Usage Examples
@@ -129,6 +128,7 @@ R O G R W G W R B W G B
 Run all tests with coverage:
 
 ```bash
+pip install -r dev-requirements.txt
 pytest --cov=src --cov-branch --cov-report=xml
 ```
 
@@ -138,7 +138,7 @@ All code formatting, linting, and import sorting are handled with pre-commit hoo
 Install pre-commit and enable hooks:
 
 ```bash
-pip install pre-commit
+pip install -r dev-requirements.txt
 pre-commit install
 pre-commit run --all-files
 ```
