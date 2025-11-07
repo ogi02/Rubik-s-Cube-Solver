@@ -57,7 +57,7 @@ async def handle_message(message_data: dict, known_clients: dict[Role, WebSocket
 
     if sender_role == Role.SOLVER.value:
         # Route message to the visualizer
-        visualizer_ws: WebSocket = known_clients[Role.SOLVER]
+        visualizer_ws: WebSocket = known_clients[Role.VISUALIZER]
         print(f"Sending to visualizer: {message_data}")
         await visualizer_ws.send_json(message_data)
     elif sender_role == Role.VISUALIZER.value:
