@@ -1,11 +1,12 @@
+# Python imports
 from enum import Enum
+
 
 class Role(Enum):
     """
     Enum representing different user roles in the system.
     """
 
-    ADMIN = "ADMIN"
     SOLVER = "SOLVER"
     VISUALIZER = "VISUALIZER"
 
@@ -19,8 +20,6 @@ class Role(Enum):
         :raise ValueError: If the label does not correspond to any Role.
         """
         match label.upper():
-            case "ADMIN":
-                return Role.ADMIN
             case "SOLVER":
                 return Role.SOLVER
             case "VISUALIZER":

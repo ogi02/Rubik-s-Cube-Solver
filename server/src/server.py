@@ -1,17 +1,23 @@
+# Python imports
+import asyncio
+import logging
 import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Header
 
+# Project imports
+import config
 import utils
-from config import PORT
 from role import Role
 
-# --- FastAPI app ---
+# FastAPI app
 app = FastAPI()
 
-# --- Connected clients ---
+# Connected clients
 clients: dict[Role, WebSocket] = {}
+clients_lock = asyncio.Lock()
 
-# --- HTTP endpoint to get JWT using API key ---
+
+# HTTP endpoint to get JWT using API key
 @app.get("/token")
 async def get_token(x_api_key: str = Header(...)):
     """
@@ -23,7 +29,7 @@ async def get_token(x_api_key: str = Header(...)):
 
     return {"token": utils.generate_jwt(x_api_key)}
 
-# --- WebSocket endpoint ---
+# WebSocket endpoint
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket, token: str):
     """
@@ -36,13 +42,11 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
     try:
         # Verify JWT
         payload = utils.verify_jwt(token)
-        # Accept connection
-        await websocket.accept()
-        # Register client
-        clients[Role.from_str(payload.get("role"))] = websocket
-        print(f"Client connected: {payload.get("sub")} with role {payload.get("role")}")
-    except HTTPException:
-        await websocket.close(code=1008)
+        # Try to register client
+        role = Role.from_str(payload.get("role"))
+        await utils.register_client(role, websocket, clients, clients_lock)
+    except (HTTPException, ValueError) as e:
+        await websocket.close(code=1008, reason=str(e))
         return
 
     try:
@@ -50,12 +54,14 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
             # Receive message
             data = await websocket.receive_json()
             # Handle message
-            await utils.handle_message(data, clients, payload.get("role"))
+            await utils.handle_message(data, clients, role)
+    except ValueError as e:
+        logging.error(f"Error handling message from {payload.get("sub")}: {e}")
+        await websocket.close(code=1003, reason=str(e))
     except WebSocketDisconnect:
-        print(f"Client disconnected: {payload.get("sub")}")
+        logging.info(f"Client disconnected: {payload.get("sub")}")
         # Unregister client
-        if payload["role"] in clients:
-            del clients[payload["role"]]
+        await utils.unregister_client(role, clients, clients_lock)
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=int(PORT))
+    uvicorn.run(app, host="0.0.0.0", port=int(config.PORT))
