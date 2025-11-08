@@ -19,7 +19,7 @@ clients_lock = asyncio.Lock()
 
 # HTTP endpoint to get JWT using API key
 @app.get("/token")
-async def get_token(x_api_key: str = Header(...)):
+async def get_token(x_api_key: str = Header(...)) -> dict[str, str]:
     """
     Endpoint to get a JWT token using an API key.
 
@@ -31,7 +31,7 @@ async def get_token(x_api_key: str = Header(...)):
 
 # WebSocket endpoint
 @app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket, token: str):
+async def websocket_endpoint(websocket: WebSocket, token: str) -> None:
     """
     WebSocket endpoint to handle incoming messages.
 
@@ -56,10 +56,10 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
             # Handle message
             await utils.handle_message(data, clients, role)
     except ValueError as e:
-        logging.error(f"Error handling message from {payload.get("sub")}: {e}")
+        logging.error(f"Error handling message from {payload.get('sub')}: {e}")
         await websocket.close(code=1003, reason=str(e))
     except WebSocketDisconnect:
-        logging.info(f"Client disconnected: {payload.get("sub")}")
+        logging.info(f"Client disconnected: {payload.get('sub')}")
         # Unregister client
         await utils.unregister_client(role, clients, clients_lock)
 

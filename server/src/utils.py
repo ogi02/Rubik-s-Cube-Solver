@@ -16,6 +16,7 @@ def generate_jwt(api_key: str) -> str:
 
     :param api_key: The API key to validate.
     :return: A JWT token.
+    :raise HTTPException: If the API key is invalid.
     """
 
     # Generate expiration time claim
@@ -68,7 +69,7 @@ async def register_client(role: Role, websocket: WebSocket, known_clients: dict[
     :param websocket: The WebSocket connection of the client.
     :param known_clients: A dictionary mapping roles to the connected WebSocket clients.
     :param clients_lock: An asyncio lock to ensure thread-safe access to known_clients.
-    :return: True if registration was successful, False if a client with the same role is already connected.
+    :raise HTTPException: If a client with the same role is already connected.
     """
 
     async with clients_lock:
