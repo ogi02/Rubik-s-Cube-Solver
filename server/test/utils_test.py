@@ -3,7 +3,7 @@ import asyncio
 from typing import Callable
 
 import pytest
-from conftest import DummyWebSocket
+from dummy_websocket import DummyWebSocket
 from fastapi import HTTPException
 
 # Project imports

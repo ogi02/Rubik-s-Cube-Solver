@@ -57,13 +57,13 @@ async def websocket_endpoint(websocket: WebSocket, token: str) -> None:
             data = await websocket.receive_json()
             # Handle message
             await utils.handle_message(data, clients, role)
-    except ValueError as e:
-        logging.error(f"Error handling message from {payload.get('sub')}: {e}")
-        await websocket.close(code=1003, reason=str(e))
     except WebSocketDisconnect:
         logging.info(f"Client disconnected: {payload.get('sub')}")
         # Unregister client
         await utils.unregister_client(role, clients, clients_lock)
+    except Exception as e:
+        logging.error(f"Error handling message from {payload.get('sub')}: {e}")
+        await websocket.close(code=1003, reason=str(e))
 
 
 if __name__ == "__main__":

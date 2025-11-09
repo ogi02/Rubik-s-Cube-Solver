@@ -3,62 +3,10 @@ import importlib
 from typing import Callable
 
 import pytest
-from starlette.websockets import WebSocket
+from dummy_websocket import DisconnectingWebSocket, DummyWebSocket, RaisingWebSocket, RecordingWebSocket
 
 # Project imports
 from role import Role
-
-
-async def dummy_receive() -> dict:
-    """
-    A dummy receive function for the DummyWebSocket
-    """
-
-    return {"type": "websocket.connect"}
-
-
-async def dummy_send(data) -> None:
-    """
-    A dummy send function for the DummyWebSocket
-
-    :param data: The data to send
-    """
-
-    pass
-
-
-class DummyWebSocket(WebSocket):
-    """
-    A minimal websocket stub that records sent json payloads.
-    """
-
-    def __init__(self) -> None:
-        """
-        Initializes the DummyWebSocket.
-        """
-        scope = {
-            "type": "websocket",
-            "asgi": {"version": "3.0"},
-            "scheme": "ws",
-            "path": "/",
-            "headers": [],
-            "query_string": b"",
-            "client": ("testclient", 12345),
-            "server": ("testserver", 80),
-            "subprotocols": [],
-        }
-        super().__init__(scope=scope, receive=dummy_receive, send=dummy_send)
-        self.sent: list = []
-
-    async def send_json(self, data, mode: str = "test", **kwargs) -> None:
-        """
-        Records the JSON data.
-
-        :param data: The JSON data to record.
-        :param mode: The mode of sending (default is "test").
-        :param kwargs: Additional keyword arguments.
-        """
-        self.sent.append(data)
 
 
 @pytest.fixture
@@ -68,6 +16,33 @@ def websocket() -> DummyWebSocket:
     """
 
     return DummyWebSocket()
+
+
+@pytest.fixture
+def recording_websocket() -> RecordingWebSocket:
+    """
+    Provides a fresh RecordingWebSocket for tests.
+    """
+
+    return RecordingWebSocket()
+
+
+@pytest.fixture
+def disconnecting_websocket() -> DisconnectingWebSocket:
+    """
+    Provides a fresh DisconnectingWebSocket for tests.
+    """
+
+    return DisconnectingWebSocket()
+
+
+@pytest.fixture
+def raising_websocket() -> RaisingWebSocket:
+    """
+    Provides a fresh RaisingWebSocket for tests.
+    """
+
+    return RaisingWebSocket()
 
 
 @pytest.fixture
@@ -88,18 +63,50 @@ def empty_known_clients() -> dict[Role, DummyWebSocket]:
     return {}
 
 
+@pytest.fixture
+def jwt_secret() -> str:
+    """
+    Provides a test JWT secret.
+    """
+
+    return "test-jwt-secret"
+
+
+@pytest.fixture
+def solver_api_key() -> str:
+    """
+    Provides a test solver API key.
+    """
+
+    return "test-solver-api-key"
+
+
+@pytest.fixture
+def visualizer_api_key() -> str:
+    """
+    Provides a test visualizer API key.
+    """
+
+    return "test-visualizer-api-key"
+
+
 @pytest.fixture(autouse=True)
-def set_up_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+def set_up_environment(
+    monkeypatch: pytest.MonkeyPatch, jwt_secret: str, solver_api_key: str, visualizer_api_key: str
+) -> None:
     """
     Sets up required environment variables for tests.
 
     :param monkeypatch: The pytest monkeypatch fixture.
+    :param jwt_secret: The test JWT secret.
+    :param solver_api_key: The test solver API key.
+    :param visualizer_api_key: The test visualizer API key.
     """
 
     # Set required environment variables
-    monkeypatch.setenv("JWT_SECRET", "test-jwt-secret")
-    monkeypatch.setenv("SOLVER_API_KEY", "test-solver-api-key")
-    monkeypatch.setenv("VISUALIZER_API_KEY", "test-visualizer-api-key")
+    monkeypatch.setenv("JWT_SECRET", jwt_secret)
+    monkeypatch.setenv("SOLVER_API_KEY", solver_api_key)
+    monkeypatch.setenv("VISUALIZER_API_KEY", visualizer_api_key)
 
     # Reload config module to pick up the patched environment variables
     import config as _config
