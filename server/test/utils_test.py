@@ -188,14 +188,14 @@ async def test_handle_message_no_recipient(
 
     message = {"message": "test_message"}
 
-    # Remove the visualizer to simulate it not being connected
-    del known_clients[Role.VISUALIZER]
+    # Remove the recipient to simulate it not being connected
+    del known_clients[recipient_role]
 
-    # Handle the message from the solver
-    await utils.handle_message(message, known_clients, Role.SOLVER)
+    # Handle the message from the sender
+    await utils.handle_message(message, known_clients, sender_role)
 
     # Assert no messages were sent
-    assert known_clients[Role.SOLVER].sent == []
+    assert known_clients[sender_role].sent == []
 
 
 @pytest.mark.asyncio

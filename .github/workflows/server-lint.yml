@@ -12,7 +12,6 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
-    environment: testing
 
     steps:
       - name: Checkout repository
