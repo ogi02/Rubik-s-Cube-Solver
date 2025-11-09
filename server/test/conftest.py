@@ -3,7 +3,7 @@ import importlib
 from typing import Callable
 
 import pytest
-from dummy_websocket import DisconnectingWebSocket, DummyWebSocket, RaisingWebSocket, RecordingWebSocket
+from dummy_websocket import DummyWebSocket
 
 # Project imports
 from role import Role
@@ -16,33 +16,6 @@ def websocket() -> DummyWebSocket:
     """
 
     return DummyWebSocket()
-
-
-@pytest.fixture
-def recording_websocket() -> RecordingWebSocket:
-    """
-    Provides a fresh RecordingWebSocket for tests.
-    """
-
-    return RecordingWebSocket()
-
-
-@pytest.fixture
-def disconnecting_websocket() -> DisconnectingWebSocket:
-    """
-    Provides a fresh DisconnectingWebSocket for tests.
-    """
-
-    return DisconnectingWebSocket()
-
-
-@pytest.fixture
-def raising_websocket() -> RaisingWebSocket:
-    """
-    Provides a fresh RaisingWebSocket for tests.
-    """
-
-    return RaisingWebSocket()
 
 
 @pytest.fixture
@@ -115,7 +88,7 @@ def set_up_environment(
 
 
 @pytest.fixture
-def update_env_variable() -> Callable[[pytest.MonkeyPatch, str, str], None]:
+def update_env_variable() -> Callable[[pytest.MonkeyPatch, str, str | None], None]:
     """
     Returns a method to monkey patch an environmental variable in the utils module for testing.
 

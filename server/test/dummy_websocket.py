@@ -1,7 +1,7 @@
 # Python imports
 from typing import Optional
 
-from fastapi import WebSocket, WebSocketDisconnect
+from fastapi import WebSocket
 
 
 async def dummy_receive() -> dict:
@@ -45,6 +45,9 @@ class DummyWebSocket(WebSocket):
         }
         super().__init__(scope=scope, receive=dummy_receive, send=dummy_send)
         self.sent: list = []
+        self.closed: bool = False
+        self.closed_code: Optional[int] = None
+        self.closed_reason: Optional[str] = None
 
     async def send_json(self, data, mode: str = "test", **kwargs) -> None:
         """
@@ -57,95 +60,7 @@ class DummyWebSocket(WebSocket):
 
         self.sent.append(data)
 
-
-class RecordingWebSocket(DummyWebSocket):
-    """
-    A websocket stub that records sent json payloads and tracks closure state.
-    """
-
-    def __init__(self):
-        """
-        Initializes the RecordingWebSocket.
-        """
-
-        super().__init__()
-        self.closed: bool = False
-        self.closed_code: Optional[int] = None
-        self.closed_reason: Optional[str] = None
-
-    async def close(self, code: int = 1008, reason: Optional[str] = None) -> None:
-        """
-        Records the closure of the websocket.
-
-        :param code: The closure code.
-        :param reason: The reason for closure.
-        """
-
-        self.closed = True
-        self.closed_code = code
-        self.closed_reason = reason
-
-
-class DisconnectingWebSocket(DummyWebSocket):
-    """
-    A websocket stub that simulates an immediate disconnect on receive.
-    """
-
-    def __init__(self):
-        """
-        Initializes the DisconnectingWebSocket.
-        """
-
-        super().__init__()
-        self.closed = False
-
-    async def receive_json(self, *args, **kwargs):
-        """
-        Simulates an immediate disconnect by raising WebSocketDisconnect.
-
-        :param args: Positional arguments.
-        :param kwargs: Keyword arguments.
-        """
-
-        raise WebSocketDisconnect()
-
     async def close(self, code: int = 1000, reason: Optional[str] = None) -> None:
-        """
-        Records the closure of the websocket.
-
-        :param code: The closure code.
-        :param reason: The reason for closure.
-        """
-
-        self.closed = True
-
-
-class RaisingWebSocket(DummyWebSocket):
-    """
-    A websocket stub that simulates an immediate Exception on receive.
-    """
-
-    def __init__(self):
-        """
-        Initializes the RaisingWebSocket.
-        """
-
-        super().__init__()
-        self.closed = False
-        self.closed_code: Optional[int] = None
-        self.closed_reason: Optional[str] = None
-
-    async def receive_json(self, *args, **kwargs):
-        """
-        Simulates an immediate disconnect by raising ValueError.
-
-        :param args: Positional arguments.
-        :param kwargs: Keyword arguments.
-        """
-
-        raise ValueError()
-
-    async def close(self, code: int = 1003, reason: Optional[str] = None) -> None:
         """
         Records the closure of the websocket.
 
