@@ -12,6 +12,7 @@ jobs:
   test:
     name: Pytest
     runs-on: ubuntu-latest
+    environment: testing
 
     steps:
       - name: Checkout the code
