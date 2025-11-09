@@ -12,6 +12,10 @@ jobs:
   test:
     name: Pytest
     runs-on: ubuntu-latest
+    env:
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      SOLVER_API_KEY: ${{ secrets.SOLVER_API_KEY }}
+      VISUALIZER_API_KEY: ${{ secrets.VISUALIZER_API_KEY }}
 
     steps:
       - name: Checkout the code
