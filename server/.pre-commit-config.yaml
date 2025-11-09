@@ -1,0 +1,30 @@
+repos:
+- repo: https://github.com/psf/black
+  rev: 24.3.0
+  hooks:
+    - id: black
+      name: black
+      language_version: python3.12
+      types: [python]
+      files: ^server/.*\.py$
+      entry: black --config server/pyproject.toml
+
+- repo: https://github.com/PyCQA/isort
+  rev: 6.0.0
+  hooks:
+    - id: isort
+      name: isort
+      language_version: python3.12
+      types: [python]
+      files: ^server/.*\.py$
+      entry: isort --settings-path server/pyproject.toml
+
+- repo: https://github.com/pycqa/flake8
+  rev: 7.0.0
+  hooks:
+    - id: flake8
+      name: flake8
+      language_version: python3.12
+      types: [python]
+      files: ^server/.*\.py$
+      entry: flake8 --config server/.flake8

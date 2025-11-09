@@ -11,7 +11,7 @@ class Role(Enum):
     VISUALIZER = "VISUALIZER"
 
     @staticmethod
-    def from_str(label: str) -> 'Role':
+    def from_str(label: str) -> "Role":
         """
         Convert a string to a Role enum member.
 

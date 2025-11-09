@@ -1,8 +1,9 @@
 # Python imports
 import asyncio
 import logging
+
 import uvicorn
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Header
+from fastapi import FastAPI, Header, HTTPException, WebSocket, WebSocketDisconnect
 
 # Project imports
 import config
@@ -28,6 +29,7 @@ async def get_token(x_api_key: str = Header(...)) -> dict[str, str]:
     """
 
     return {"token": utils.generate_jwt(x_api_key)}
+
 
 # WebSocket endpoint
 @app.websocket("/ws")
@@ -62,6 +64,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str) -> None:
         logging.info(f"Client disconnected: {payload.get('sub')}")
         # Unregister client
         await utils.unregister_client(role, clients, clients_lock)
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=int(config.PORT))
