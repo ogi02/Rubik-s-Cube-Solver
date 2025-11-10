@@ -9,8 +9,9 @@ import websockets
 # Example client configuration
 HOST = "127.0.0.1"
 PORT = 8080
-SERVER_URL = f"http://{HOST}:{PORT}"
-WEBSOCKET_URL = f"ws://{HOST}:{PORT}/ws"
+SECURE = False  # Set to True if server uses HTTPS/WSS
+SERVER_URL = f"http{'s' if SECURE else ''}://{HOST}:{PORT}"
+WEBSOCKET_URL = f"ws{'s' if SECURE else ''}://{HOST}:{PORT}/ws"
 
 # Example client role - choose either "solver" or "visualizer"
 ROLE = "solver"
