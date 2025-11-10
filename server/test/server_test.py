@@ -206,6 +206,7 @@ async def test_exception_websocket_handle_message_any_exception(websocket: Dummy
         patch("server.utils.register_client", return_value=None) as _mock_register_client,
         patch("fastapi.WebSocket.receive_json", return_value={}) as _mock_receive_json,
         patch("server.utils.handle_message", side_effect=ValueError()) as _mock_handle_message,
+        patch("server.utils.unregister_client", return_value=None) as _mock_unregister_client,
     ):
         # Prepopulate the server's clients mapping to simulate a registered client
         server.clients[role] = websocket
@@ -219,5 +220,6 @@ async def test_exception_websocket_handle_message_any_exception(websocket: Dummy
         assert _mock_register_client.call_count == 1
         assert _mock_receive_json.call_count == 1
         assert _mock_handle_message.call_count == 1
+        assert _mock_unregister_client.call_count == 1
         assert websocket.closed is True
         assert websocket.closed_code == 1003

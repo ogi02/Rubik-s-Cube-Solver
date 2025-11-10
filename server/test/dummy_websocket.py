@@ -1,5 +1,5 @@
 # Python imports
-from typing import Optional
+from typing import Any, Optional
 
 from fastapi import WebSocket
 
@@ -12,7 +12,7 @@ async def dummy_receive() -> dict:
     return {"type": "websocket.connect"}
 
 
-async def dummy_send(data) -> None:
+async def dummy_send(data: Any) -> None:
     """
     A dummy send function for the DummyWebSocket
 
@@ -44,7 +44,7 @@ class DummyWebSocket(WebSocket):
             "subprotocols": [],
         }
         super().__init__(scope=scope, receive=dummy_receive, send=dummy_send)
-        self.sent: list = []
+        self.sent: list[dict] = []
         self.closed: bool = False
         self.closed_code: Optional[int] = None
         self.closed_reason: Optional[str] = None

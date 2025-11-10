@@ -109,7 +109,7 @@ def update_env_variable() -> Callable[[pytest.MonkeyPatch, str, str | None], Non
 
         :param monkeypatch: The pytest monkeypatch fixture.
         :param name: The name of the environment variable to set.
-        :param value: The value to set SOLVER_API_KEY to.
+        :param value: The value to set to the environment variable.
         """
 
         # Set the requested variable
