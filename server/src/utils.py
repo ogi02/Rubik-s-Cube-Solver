@@ -2,8 +2,9 @@
 import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
+
 from fastapi import HTTPException, WebSocket
-from jose import jwt, JWTError
+from jose import JWTError, jwt
 
 # Project imports
 import config
@@ -24,18 +25,14 @@ def generate_jwt(api_key: str) -> str:
 
     match api_key:
         case config.SOLVER_API_KEY:
-            claims = {
-                "sub": f"CLIENT_{Role.SOLVER.value}",
-                "role": Role.SOLVER.value,
-                "exp": int(exp.timestamp())
-            }
+            claims = {"sub": f"CLIENT_{Role.SOLVER.value}", "role": Role.SOLVER.value, "exp": int(exp.timestamp())}
             logging.info(f"Generating JWT token: {claims}")
             return jwt.encode(claims, config.JWT_SECRET, algorithm=config.ALGORITHM)
         case config.VISUALIZER_API_KEY:
             claims = {
                 "sub": f"CLIENT_{Role.VISUALIZER.value}",
                 "role": Role.VISUALIZER.value,
-                "exp": int(exp.timestamp())
+                "exp": int(exp.timestamp()),
             }
             logging.info(f"Generating JWT token: {claims}")
             return jwt.encode(claims, config.JWT_SECRET, algorithm=config.ALGORITHM)
@@ -61,7 +58,9 @@ def verify_jwt(token: str) -> dict:
         raise HTTPException(status_code=401, detail="Invalid token")
 
 
-async def register_client(role: Role, websocket: WebSocket, known_clients: dict[Role, WebSocket], clients_lock: asyncio.Lock) -> None:
+async def register_client(
+    role: Role, websocket: WebSocket, known_clients: dict[Role, WebSocket], clients_lock: asyncio.Lock
+) -> None:
     """
     Register a connected client.
 

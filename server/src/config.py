@@ -1,6 +1,7 @@
 # Python imports
 import logging
 import os
+
 from dotenv import load_dotenv
 
 # Load environment variables from a .env file
@@ -21,11 +22,12 @@ if not VISUALIZER_API_KEY:
 
 # Load other configurations
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
+HOST = os.getenv("HOST", "127.0.0.1")
 PORT = os.getenv("PORT", "8080")
 
 # Create logging configuration
 logging.basicConfig(
     level=logging.INFO,  # or INFO, WARNING, etc.
-    format=f"[Server] %(asctime)s [%(levelname)s] %(filename)s:%(lineno)d — %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
+    format="[Server] %(asctime)s [%(levelname)s] %(filename)s:%(lineno)d — %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
