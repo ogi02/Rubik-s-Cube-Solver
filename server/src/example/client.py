@@ -44,8 +44,17 @@ async def main():
     """
 
     # Get JWT token from the server
-    response = requests.get(f"{SERVER_URL}/token", headers={"x-api-key": API_KEY}, timeout=5)
-    token = response.json()["token"]
+    try:
+        response = requests.get(f"{SERVER_URL}/token", headers={"x-api-key": API_KEY}, timeout=5)
+        response.raise_for_status()
+        response_json = response.json()
+        token = response_json["token"]
+    except requests.RequestException as e:
+        logging.error(f"Failed to get token from server: {e}")
+        sys.exit(1)
+    except (ValueError, KeyError) as e:
+        logging.error(f"Invalid response from server when requesting token: {e}")
+        sys.exit(1)
 
     # Connect to WebSocket
     async with websockets.connect(f"{WEBSOCKET_URL}?token={token}") as ws:
@@ -60,12 +69,15 @@ async def main():
             while True:
                 try:
                     msg = await ws.recv()
-                    data = json.loads(msg)
-                    logging.info(f"Received: {data}")
-                    print_prompt()
+                    try:
+                        data = json.loads(msg)
+                        logging.info(f"Received: {data}")
+                        print_prompt()
+                    except json.JSONDecodeError as e:
+                        logging.error(f"Failed to decode JSON message: {msg!r} — {e}")
                 except websockets.ConnectionClosed:
                     logging.info("Connection closed")
-                    exit(1)
+                    break
 
         async def sender():
             """
