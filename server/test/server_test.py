@@ -175,7 +175,8 @@ async def test_exception_websocket_receive_json_any_exception(websocket: DummyWe
         # Prepopulate the server's clients mapping to simulate a registered client
         server.clients[role] = websocket
 
-        # Run the websocket endpoint - it should register then unregister on disconnect
+        # Run the websocket endpoint
+        # It should handle the exception and close the websocket without unregistering the client
         await server.websocket_endpoint(websocket, token)
 
         # Assert mocks called
@@ -209,7 +210,8 @@ async def test_exception_websocket_handle_message_any_exception(websocket: Dummy
         # Prepopulate the server's clients mapping to simulate a registered client
         server.clients[role] = websocket
 
-        # Run the websocket endpoint - it should register then unregister on disconnect
+        # Run the websocket endpoint
+        # It should handle exceptions during message processing and close the websocket appropriately
         await server.websocket_endpoint(websocket, token)
 
         # Assert mocks called

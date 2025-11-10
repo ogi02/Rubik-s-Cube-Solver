@@ -1,6 +1,6 @@
 # Python imports
 import importlib
-from typing import Callable
+from typing import Callable, Generator
 
 import pytest
 from dummy_websocket import DummyWebSocket
@@ -66,7 +66,7 @@ def visualizer_api_key() -> str:
 @pytest.fixture(autouse=True)
 def set_up_environment(
     monkeypatch: pytest.MonkeyPatch, jwt_secret: str, solver_api_key: str, visualizer_api_key: str
-) -> None:
+) -> Generator[None, None, None]:
     """
     Sets up required environment variables for tests.
 
@@ -85,6 +85,14 @@ def set_up_environment(
     import config as _config
 
     importlib.reload(_config)
+
+    # Execute the test
+    yield
+
+    # Cleanup known clients mapping after each test
+    import server as _server
+
+    importlib.reload(_server)
 
 
 @pytest.fixture

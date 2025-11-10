@@ -22,6 +22,7 @@ if not VISUALIZER_API_KEY:
 
 # Load other configurations
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
+HOST = os.getenv("HOST", "127.0.0.1")
 PORT = os.getenv("PORT", "8080")
 
 # Create logging configuration
