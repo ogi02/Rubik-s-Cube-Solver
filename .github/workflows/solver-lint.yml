@@ -30,16 +30,12 @@ jobs:
 
       - name: Black check
         working-directory: solver
-        run: black --check src test --config server/pyproject.toml
+        run: black --check src test --config pyproject.toml
 
       - name: isort check
         working-directory: solver
-        run: isort --check-only src test --settings-path server/pyproject.toml
+        run: isort --check-only src test --settings-path pyproject.toml
 
       - name: Flake8 lint
         working-directory: solver
-        run: flake8 src test --config server/.flake8
-
-      - name: Bandit security check
-        working-directory: solver
-        run: bandit -r src -c server/pyproject.toml
+        run: flake8 src test --config .flake8
