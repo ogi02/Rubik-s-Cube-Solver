@@ -29,7 +29,7 @@ It supports "ping/pong" messages to keep the connections alive.
 
 ## Authorization
 
-Clients must first obtain an authorization token by sending a POST request to the `/token` endpoint with an API key in the request headers.
+Clients must first obtain an authorization token by sending a GET request to the `/token` endpoint with an API key in the request headers.
 There are two API keys: one for the visualizer client and one for the solver client.
 Based on the provided API key, the server issues a token that identifies the client type.
 
@@ -40,9 +40,14 @@ When connecting to the WebSocket endpoint, clients must provide the obtained tok
 Clients connect to the WebSocket endpoint at `/ws` using the token obtained from the authorization step.
 The server maintains the connection and forwards messages between the visualizer and solver clients.
 
+The server supports ping/pong messages to keep the connection alive.
+Every client should periodically send a ping message to the server:
+```py
+await websocket.ping()
+```
+
 The server supports the following message types:
 
-- `ping`: Sent by either client to keep the connection alive. The server responds with a `pong` message.
 - `cube_state`: Sent by the machine client to update the visualizer with the current state of the Rubik's Cube.
 - `apply_moves`: Sent by the machine client to instruct the visualizer to display a series of moves on the Rubik's Cube.
 
