@@ -1,15 +1,16 @@
 import type { CubeSettings } from "./cubeSettings.ts";
 
 /**
- * Map single-character color codes to actual color values
+ * Map single-character color codes to actual color values.
  *
- * @param val - The color code
- * @param settings - The cube settings containing color definitions
- * @returns The mapped color value
+ * @param val - The color code (W, Y, G, B, O, or R). If the code is not recognized, colorBlack is returned.
+ * @param settings - The cube settings containing color definitions.
+ * @returns The mapped color value, or colorBlack if the code is not recognized.
  *
  * @example
  * mapColor('R', settings); // returns settings.colorRed
  * mapColor('G', settings); // returns settings.colorGreen
+ * mapColor('X', settings); // returns settings.colorBlack (unrecognized code)
  */
 export const mapColor = (val: string, settings: CubeSettings) : string => {
     const trimmed = val.trim();

@@ -196,19 +196,19 @@ export class Cube {
      */
     getStickerIndex(cubeSize: number, pieceRow: number, pieceCol: number, rowAxisStartingPoint: number, colAxisStartingPoint: number) : number {
         // Determine grid coordinate range
-        const minCoordinate = -(cubeSize - 1) / 2;
+        const minCoordinate: number = -(cubeSize - 1) / 2;
 
         // Convert coordinates to zero-based indexes
-        const pieceRowIndex = pieceRow - minCoordinate
-        const pieceColIndex = pieceCol - minCoordinate
+        const pieceRowIndex: number = pieceRow - minCoordinate;
+        const pieceColIndex: number = pieceCol - minCoordinate;
 
         // Determine direction multipliers based on axis starting points
-        const rowDirection = -rowAxisStartingPoint;
-        const colDirection = -colAxisStartingPoint;
+        const rowDirection: number = -rowAxisStartingPoint;
+        const colDirection: number = -colAxisStartingPoint;
 
         // Calculate row and column indexes
-        const gridRowIndex = rowDirection === 1 ? pieceRowIndex : cubeSize - 1 - pieceRowIndex;
-        const gridColIndex = colDirection === 1 ? pieceColIndex : cubeSize - 1 - pieceColIndex;
+        const gridRowIndex: number = rowDirection === 1 ? pieceRowIndex : cubeSize - 1 - pieceRowIndex;
+        const gridColIndex: number = colDirection === 1 ? pieceColIndex : cubeSize - 1 - pieceColIndex;
 
         // Calculate and return the sticker index
         return gridRowIndex * cubeSize + gridColIndex;
@@ -301,9 +301,9 @@ export class Cube {
         }
 
         // Get cube dimensions and boundaries
-        const cubeSize = this.settings.cubeDimensions;
-        const leftBoundary = -roundToDecimal(this.settings.cubeDimensions / 2 - 0.5, 1);
-        const rightBoundary = roundToDecimal(this.settings.cubeDimensions / 2 - 0.5, 1);
+        const cubeSize: number = this.settings.cubeDimensions;
+        const leftBoundary: number = -roundToDecimal(this.settings.cubeDimensions / 2 - 0.5, 1);
+        const rightBoundary: number = roundToDecimal(this.settings.cubeDimensions / 2 - 0.5, 1);
 
         // UP face (y = leftBoundary, z = row, x = col, rowStartingPoint = -1, colStartingPoint = -1)
         this.setUpSide(cubeSize, sides.get('UP')!, 'y', leftBoundary, new Map([['z', -1], ['x', -1]]), 0);
