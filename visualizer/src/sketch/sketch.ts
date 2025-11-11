@@ -1,8 +1,9 @@
 import p5 from "p5";
 
 import { Cube } from "../cube/cube";
+import { authenticate } from "../client/authenticate";
 import { setBackground, setupCanvas, windowResized } from "./canvas";
-import { loadCubeSettings, type CubeSettings } from "../utils/cubeSettings.ts";
+import { loadCubeSettings, type CubeSettings } from "../utils/cubeSettings";
 
 /**
  * Cube sketch for p5 visualization
@@ -12,7 +13,6 @@ import { loadCubeSettings, type CubeSettings } from "../utils/cubeSettings.ts";
  * new p5(cubeSketch, document.getElementById("visualizer") as HTMLElement);
  */
 export const cubeSketch = (p: p5) => {
-    const dimensions = 3;
     let settings: CubeSettings;
     let cube: Cube;
 
@@ -22,19 +22,24 @@ export const cubeSketch = (p: p5) => {
      * @example
      * p.setup();
      */
-    p.setup = () : void => {
+    p.setup = async () : Promise<void> => {
         // Set up the canvas
         setupCanvas(p);
-        // Load settings based on cube dimensions
-        settings = loadCubeSettings(dimensions, p);
-        // Initialize the cube
-        cube = new Cube(settings);
         // Set initial camera position
         p.camera(
             1000, -1000, 1000,   // camera position
             0, 0, 0,      // look at origin
             0, 1, 0       // up vector
         );
+
+        // Set up server connection if needed
+        if (import.meta.env.VITE_CONNECT_TO_SERVER === "true") {
+            await setUpServer();
+        }
+        // Default to creating a 3x3 cube
+        else {
+            createCube(3);
+        }
     };
 
     /**
@@ -65,6 +70,57 @@ export const cubeSketch = (p: p5) => {
             windowResized(p);
         }
     })
+
+    /**
+     * Create a cube with given dimensions
+     *
+     * @param dimensions - The dimensions of the cube
+     *
+     * @example
+     * createCube(3);
+     */
+    const createCube = (dimensions: number) : void => {
+        settings = loadCubeSettings(dimensions, p);
+        cube = new Cube(settings);
+    }
+
+    /**
+     * Set up server connection and WebSocket
+     *
+     * @example
+     * await setUpServer();
+     */
+    const setUpServer = async () : Promise<void> => {
+        // Authenticate and get token
+        const token: string = await authenticate();
+
+        // Create socket connection with token
+        const socket = new WebSocket(`${import.meta.env.VITE_WEBSOCKET_URL}?token=${token}`);
+
+        // WebSocket open event handler
+        socket.onopen = () : void => {
+            console.log("Connected to server");
+        }
+
+        // WebSocket close event handler
+        socket.onclose = (event: CloseEvent) : void => {
+            console.log("Connection closed:", event.reason);
+        }
+
+        // WebSocket message event handler
+        socket.onmessage = (event: MessageEvent) : void => {
+            // Parse incoming data
+            const data = JSON.parse(event.data);
+            console.log(data);
+        };
+
+        // Graceful disconnect on page close or reload
+        window.addEventListener("beforeunload", () => {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.close(1000, "Page unloading");
+            }
+        });
+    }
 
     /**
      * Key pressed event handler for the p5 sketch
