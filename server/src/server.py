@@ -1,6 +1,5 @@
 # Python imports
 import asyncio
-import json
 import logging
 
 import uvicorn
@@ -65,7 +64,6 @@ async def websocket_endpoint(websocket: WebSocket, token: str) -> None:
         while True:
             # Receive message
             data = await websocket.receive_json()
-            data = json.loads(data)
             # Check for disconnect message
             if data.get("type") == "disconnect":
                 logging.info(f"Client requested disconnect: {payload.get('sub')}")
