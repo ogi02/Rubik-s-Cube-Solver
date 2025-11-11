@@ -12,7 +12,7 @@ import { loadCubeSettings, type CubeSettings } from "../utils/cubeSettings.ts";
  * new p5(cubeSketch, document.getElementById("visualizer") as HTMLElement);
  */
 export const cubeSketch = (p: p5) => {
-    const dimensions = 4;
+    const dimensions = 3;
     let settings: CubeSettings;
     let cube: Cube;
 

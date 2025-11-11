@@ -4,6 +4,7 @@ import { Animation } from "./animation";
 import { turnX, turnY, turnZ } from "./turn";
 import { roundToDecimal } from "../utils/math";
 import type { CubeSettings } from "../utils/cubeSettings.ts";
+import { mapColor } from "../utils/color.ts";
 
 /**
  * Class representing a Rubik's Cube
@@ -78,42 +79,6 @@ export class Cube {
     };
 
     /**
-     * Animate a piece based on the current animation
-     *
-     * @param piece - The piece to animate
-     *
-     * @example
-     * cube.animate(piece);
-     */
-    animate(piece: Piece) : void {
-        // Animate the current animation if it exists
-        if (this.currentAnimation) {
-            switch (this.currentAnimation.move.getAxis()) {
-                case 'x':
-                    // Rotate around X axis if the piece is in the moving layer
-                    if (this.currentAnimation.move.getLayerIndexes(this.settings.cubeDimensions).includes(piece.x)) {
-                        this.settings.p5Instance.rotateX(this.currentAnimation.angle);
-                    }
-                    break;
-                case 'y':
-                    // Rotate around Y axis if the piece is in the moving layer
-                    if (this.currentAnimation.move.getLayerIndexes(this.settings.cubeDimensions).includes(piece.y)) {
-                        this.settings.p5Instance.rotateY(this.currentAnimation.angle);
-                    }
-                    break;
-                case 'z':
-                    // Rotate around Z axis if the piece is in the moving layer
-                    if (this.currentAnimation.move.getLayerIndexes(this.settings.cubeDimensions).includes(piece.z)) {
-                        this.settings.p5Instance.rotateZ(this.currentAnimation.angle);
-                    }
-                    break;
-                default:
-                    throw new Error(`Invalid axis: ${this.currentAnimation.move.getAxis()}`);
-            }
-        }
-    }
-
-    /**
      * Perform a turn on the cube based on the move text
      *
      * @method turn
@@ -151,6 +116,42 @@ export class Cube {
     }
 
     /**
+     * Animate a piece based on the current animation
+     *
+     * @param piece - The piece to animate
+     *
+     * @example
+     * cube.animate(piece);
+     */
+    animate(piece: Piece) : void {
+        // Animate the current animation if it exists
+        if (this.currentAnimation) {
+            switch (this.currentAnimation.move.getAxis()) {
+                case 'x':
+                    // Rotate around X axis if the piece is in the moving layer
+                    if (this.currentAnimation.move.getLayerIndexes(this.settings.cubeDimensions).includes(piece.x)) {
+                        this.settings.p5Instance.rotateX(this.currentAnimation.angle);
+                    }
+                    break;
+                case 'y':
+                    // Rotate around Y axis if the piece is in the moving layer
+                    if (this.currentAnimation.move.getLayerIndexes(this.settings.cubeDimensions).includes(piece.y)) {
+                        this.settings.p5Instance.rotateY(this.currentAnimation.angle);
+                    }
+                    break;
+                case 'z':
+                    // Rotate around Z axis if the piece is in the moving layer
+                    if (this.currentAnimation.move.getLayerIndexes(this.settings.cubeDimensions).includes(piece.z)) {
+                        this.settings.p5Instance.rotateZ(this.currentAnimation.angle);
+                    }
+                    break;
+                default:
+                    throw new Error(`Invalid axis: ${this.currentAnimation.move.getAxis()}`);
+            }
+        }
+    }
+
+    /**
      * Complete the current turn if the animation is finished
      *
      * @example
@@ -179,5 +180,142 @@ export class Cube {
             // Clear the current animation
             this.currentAnimation = null;
         }
+    }
+
+    /**
+     * Get the sticker index for a piece based on its row and column
+     * Calculates the index in a flattened array of stickers for a given piece position
+     * based on the cube size and axis starting points.
+     *
+     * @param cubeSize - The size of the cube (number of stickers per side)
+     * @param pieceRow - The row position of the piece
+     * @param pieceCol - The column position of the piece
+     * @param rowAxisStartingPoint - The starting point of the row axis (leftBoundary or rightBoundary)
+     * @param colAxisStartingPoint - The starting point of the column axis (leftBoundary or rightBoundary)
+     * @returns The index of the sticker in the flattened array
+     */
+    getStickerIndex(cubeSize: number, pieceRow: number, pieceCol: number, rowAxisStartingPoint: number, colAxisStartingPoint: number) : number {
+        // Determine grid coordinate range
+        const minCoordinate = -(cubeSize - 1) / 2;
+
+        // Convert coordinates to zero-based indexes
+        const pieceRowIndex = pieceRow - minCoordinate
+        const pieceColIndex = pieceCol - minCoordinate
+
+        // Determine direction multipliers based on axis starting points
+        const rowDirection = -rowAxisStartingPoint;
+        const colDirection = -colAxisStartingPoint;
+
+        // Calculate row and column indexes
+        const gridRowIndex = rowDirection === 1 ? pieceRowIndex : cubeSize - 1 - pieceRowIndex;
+        const gridColIndex = colDirection === 1 ? pieceColIndex : cubeSize - 1 - pieceColIndex;
+
+        // Calculate and return the sticker index
+        return gridRowIndex * cubeSize + gridColIndex;
+    }
+
+    /**
+     * Set up a side of the cube with the given stickers
+     * For each piece on the specified boundary of the given axis, set the face color based on the stickers array.
+     *
+     * UP/DOWN - axis: 'y', rowAxis: 'z', colAxis: 'x'
+     * LEFT/RIGHT - axis: 'x', rowAxis: 'y', colAxis: 'z'
+     * FRONT/BACK - axis: 'z', rowAxis: 'y', colAxis: 'x'
+     *
+     * @param cubeSize - The size of the cube (number of stickers per side)
+     * @param stickers - An array of sticker colors for the side
+     * @param axis - The axis of the side ('x', 'y', or 'z')
+     * @param axisBoundary - The boundary value for the axis (e.g., leftBoundary or rightBoundary)
+     * @param otherAxesStartingPoints - A map of starting points for the other two axes
+     * @param faceIndex - The index of the face to set (0: UP, 1: DOWN, 2: LEFT, 3: RIGHT, 4: FRONT, 5: BACK)
+     */
+    setUpSide(cubeSize: number, stickers: string[], axis: string, axisBoundary: number, otherAxesStartingPoints: Map<string, number>, faceIndex: number) : void {
+        if (stickers.length !== cubeSize * cubeSize) {
+            throw new Error(`Invalid number of stickers for side. Expected ${cubeSize * cubeSize}, got ${stickers.length}.`);
+        }
+
+        this.pieces.forEach(piece => {
+            let pieceRow: number | undefined = undefined;
+            let pieceCol: number | undefined = undefined;
+            let rowStartingPoint: number | undefined = undefined;
+            let colStartingPoint: number | undefined = undefined;
+            let pieceOnBoundary: boolean = false;
+
+            switch (axis) {
+                case 'x':
+                    if (piece.x === axisBoundary) {
+                        pieceOnBoundary = true;
+                        // Calculate the piece row and column
+                        pieceRow = piece.y;
+                        pieceCol = piece.z;
+                        // Determine starting points for row and column axes
+                        rowStartingPoint = otherAxesStartingPoints.get('y')!;
+                        colStartingPoint = otherAxesStartingPoints.get('z')!;
+                    }
+                    break;
+                case 'y':
+                    if (piece.y === axisBoundary) {
+                        pieceOnBoundary = true;
+                        // Calculate the piece row and column
+                        pieceRow = piece.z;
+                        pieceCol = piece.x;
+                        // Determine starting points for row and column axes
+                        rowStartingPoint = otherAxesStartingPoints.get('z')!;
+                        colStartingPoint = otherAxesStartingPoints.get('x')!;
+                    }
+                    break;
+                case 'z':
+                    if (piece.z === axisBoundary) {
+                        pieceOnBoundary = true;
+                        // Calculate the piece row and column
+                        pieceRow = piece.y;
+                        pieceCol = piece.x;
+                        // Determine starting points for row and column axes
+                        rowStartingPoint = otherAxesStartingPoints.get('y')!;
+                        colStartingPoint = otherAxesStartingPoints.get('x')!;
+                    }
+                    break;
+            }
+
+            // Set the face color only if the piece is on the boundary
+            if (pieceOnBoundary) {
+                // Get the sticker index for this piece
+                const stickerIndex = this.getStickerIndex(
+                    cubeSize, pieceRow!, pieceCol!, rowStartingPoint!, colStartingPoint!
+                );
+                // Map and set the face color
+                piece.faces[faceIndex].color = mapColor(stickers[stickerIndex], this.settings);
+            }
+        });
+    }
+
+    /**
+     * Set up the cube from a map of sides
+     *
+     * @param sides - A map where keys are side names ('UP', 'DOWN', 'LEFT', 'RIGHT', 'FRONT', 'BACK')
+     * and values are arrays of sticker colors
+     */
+    setUpFromSides(sides: Map<string, string[]>) : void {
+        if (!sides || sides.size !== 6) {
+            throw new Error("setUpFromSides requires a map of 6 sides.");
+        }
+
+        // Get cube dimensions and boundaries
+        const cubeSize = this.settings.cubeDimensions;
+        const leftBoundary = -roundToDecimal(this.settings.cubeDimensions / 2 - 0.5, 1);
+        const rightBoundary = roundToDecimal(this.settings.cubeDimensions / 2 - 0.5, 1);
+
+        // UP face (y = leftBoundary, z = row, x = col, rowStartingPoint = -1, colStartingPoint = -1)
+        this.setUpSide(cubeSize, sides.get('UP')!, 'y', leftBoundary, new Map([['z', -1], ['x', -1]]), 0);
+        // DOWN face (y = rightBoundary, z = row, x = col, rowStartingPoint = 1, colStartingPoint = -1)
+        this.setUpSide(cubeSize, sides.get('DOWN')!, 'y', rightBoundary, new Map([['z', 1], ['x', -1]]), 1);
+        // LEFT face (x = leftBoundary, y = row, z = col, rowStartingPoint = -1, colStartingPoint = -1)
+        this.setUpSide(cubeSize, sides.get('LEFT')!, 'x', leftBoundary, new Map([['y', -1], ['z', -1]]), 2);
+        // RIGHT face (x = rightBoundary, y = row, z = col, rowStartingPoint = -1, colStartingPoint = 1)
+        this.setUpSide(cubeSize, sides.get('RIGHT')!, 'x', rightBoundary, new Map([['y', -1], ['z', 1]]), 3);
+        // FRONT face (z = rightBoundary, y = row, x = col, rowStartingPoint = -1, colStartingPoint = -1)
+        this.setUpSide(cubeSize, sides.get('FRONT')!, 'z', rightBoundary, new Map([['y', -1], ['x', -1]]), 4);
+        // BACK face (z = leftBoundary, y = row, x = col, rowStartingPoint = -1, colStartingPoint = 1)
+        this.setUpSide(cubeSize, sides.get('BACK')!, 'z', leftBoundary, new Map([['y', -1], ['x', 1]]), 5);
     }
 }
