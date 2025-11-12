@@ -3,8 +3,8 @@ import { Piece } from "./piece";
 import { Animation } from "./animation";
 import { turnX, turnY, turnZ } from "./turn";
 import { roundToDecimal } from "../utils/math";
-import type { CubeSettings } from "../utils/cubeSettings.ts";
-import { mapColor } from "../utils/color.ts";
+import type { CubeSettings } from "../utils/cubeSettings";
+import { mapColor } from "../utils/color";
 
 /**
  * Class representing a Rubik's Cube
@@ -294,10 +294,19 @@ export class Cube {
      *
      * @param sides - A map where keys are side names ('UP', 'DOWN', 'LEFT', 'RIGHT', 'FRONT', 'BACK')
      * and values are arrays of sticker colors
+     * @example
+     * const sides = new Map<string, string[]>();
+     * sides.set('UP', ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W']);
+     * sides.set('DOWN', ['Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y']);
+     * sides.set('LEFT', ['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O']);
+     * sides.set('RIGHT', ['R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R']);
+     * sides.set('FRONT', ['G', 'G', 'G', 'G', 'G', 'G', 'G', 'G', 'G']);
+     * sides.set('BACK', ['B', 'B', 'B', 'B', 'B', 'B', 'B', 'B', 'B']);
+     * cube.setUpFromState(sides);
      */
-    setUpFromSides(sides: Map<string, string[]>) : void {
+    setUpFromState(sides: Map<string, string[]>) : void {
         if (!sides || sides.size !== 6) {
-            throw new Error("setUpFromSides requires a map of 6 sides.");
+            throw new Error("setUpFromState requires a map of 6 sides.");
         }
 
         // Get cube dimensions and boundaries

@@ -1,4 +1,4 @@
-# Rubik's Cube Solver
+# Rubik's Cube WebSocket Server
 
 [![Lint](https://img.shields.io/github/actions/workflow/status/ogi02/Rubik-s-Cube-Solver/server-lint.yml?branch=main&label=Lint)](https://github.com/ogi02/Rubik-s-Cube-Solver/actions)
 [![Pytest](https://img.shields.io/github/actions/workflow/status/ogi02/Rubik-s-Cube-Solver/server-test.yml?branch=main&label=Pytest)](https://github.com/ogi02/Rubik-s-Cube-Solver/actions)
@@ -12,13 +12,21 @@ The server supports 1 visualizer client and 1 solver client simultaneously.
 
 ## Installation
 
-Clone the repository, install the requirements and the server in editable mode:
+Clone the repository, install the requirements:
 
 ```bash
 git clone https://github.com/ogi02/Rubik-s-Cube-Solver.git
 cd Rubik-s-Cube-Solver/server
-pip install -e .
 pip install -r requirements.txt
+```
+
+## Run the Server
+
+To start the server, run:
+
+```bash
+cd src
+python server.py
 ```
 
 ## Server Setup
@@ -50,6 +58,7 @@ The server supports the following message types:
 
 - `cube_state`: Sent by the machine client to update the visualizer with the current state of the Rubik's Cube.
 - `apply_moves`: Sent by the machine client to instruct the visualizer to display a series of moves on the Rubik's Cube.
+- `disconnect`: Sent by either client to notify the server of disconnection.
 
 Required message format:
 

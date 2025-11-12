@@ -67,8 +67,8 @@ async def main():
             Handles incoming messages and logs them. Handles connection closure.
             """
 
-            while True:
-                try:
+            try:
+                while True:
                     msg = await ws.recv()
                     try:
                         data = json.loads(msg)
@@ -76,9 +76,10 @@ async def main():
                         print_prompt()
                     except json.JSONDecodeError as e:
                         logging.error(f"Failed to decode JSON message: {msg!r} — {e}")
-                except websockets.ConnectionClosed:
-                    logging.info("Connection closed")
-                    break
+            except websockets.ConnectionClosed:
+                logging.info("Connection closed during receive")
+            except asyncio.CancelledError:
+                logging.info("Receiver task cancelled")
 
         async def sender():
             """
@@ -86,11 +87,16 @@ async def main():
             Handles 'exit' command to terminate the connection.
             """
 
-            while True:
-                msg = await asyncio.to_thread(input, PROMPT)
-                if msg.lower() == "exit":
-                    break
-                await ws.send(json.dumps(msg))
+            try:
+                while True:
+                    msg = await asyncio.to_thread(input, PROMPT)
+                    if msg.lower() == "exit":
+                        break
+                    await ws.send(json.dumps(msg))
+            except websockets.ConnectionClosed:
+                logging.info("Connection closed during send")
+            except asyncio.CancelledError:
+                logging.info("Sender task cancelled")
 
         async def pinger():
             """
@@ -98,30 +104,38 @@ async def main():
             Logs the success of each ping.
             """
 
-            while True:
-                await asyncio.sleep(30)
-                try:
+            try:
+                while True:
+                    await asyncio.sleep(30)
                     pong = await ws.ping()
                     await pong
                     logging.info("Ping successful")
                     print_prompt()
-                except websockets.ConnectionClosed:
-                    logging.info("Connection closed during ping")
-                    break
+            except websockets.ConnectionClosed:
+                logging.info("Connection closed during ping")
+            except asyncio.CancelledError:
+                logging.info("Ping task cancelled")
 
         # Start receiver, sender, and pinger tasks
         receiver_task = asyncio.create_task(receiver())
         sender_task = asyncio.create_task(sender())
         pinger_task = asyncio.create_task(pinger())
+        tasks = {receiver_task, sender_task, pinger_task}
 
-        # Wait for sender to finish
-        await sender_task
+        # Wait until any task completes
+        done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
 
-        # Cancel other tasks and close connection
-        receiver_task.cancel()
-        pinger_task.cancel()
+        # Cancel all remaining tasks
+        for task in pending:
+            task.cancel()
+
+        # Wait for cancellation to finish
+        await asyncio.gather(*pending, return_exceptions=True)
+
+        # Close WebSocket connection
         await ws.close()
-        logging.info("Disconnected")
+
+    logging.info("Disconnected")
 
 
 if __name__ == "__main__":

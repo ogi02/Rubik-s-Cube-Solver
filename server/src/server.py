@@ -1,9 +1,12 @@
 # Python imports
 import asyncio
+import json
 import logging
+from typing import Any
 
 import uvicorn
 from fastapi import FastAPI, Header, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
 
 # Project imports
 import config
@@ -12,6 +15,14 @@ from role import Role
 
 # FastAPI app
 app = FastAPI()
+
+# Allow Vite dev server origin
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Connected clients
 clients: dict[Role, WebSocket] = {}
@@ -51,12 +62,23 @@ async def websocket_endpoint(websocket: WebSocket, token: str) -> None:
         await websocket.close(code=1008, reason=str(e))
         return
 
+    data: Any = ""
     try:
         while True:
             # Receive message
             data = await websocket.receive_json()
+            data = json.loads(data)
+            # Check for disconnect message
+            if data.get("type") == "disconnect":
+                logging.info(f"Client requested disconnect: {payload.get('sub')}")
+                await websocket.close(code=1000, reason="Client requested disconnect")
+                # Unregister client
+                await utils.unregister_client(role, clients, clients_lock)
+                return
             # Handle message
             await utils.handle_message(data, clients, role)
+    except json.JSONDecodeError as e:
+        logging.error(f"Failed to decode JSON message from {payload.get('sub')}: {data!r} — {e}")
     except WebSocketDisconnect:
         logging.info(f"Client disconnected: {payload.get('sub')}")
         # Unregister client
