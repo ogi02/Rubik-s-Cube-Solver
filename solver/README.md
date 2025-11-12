@@ -10,12 +10,10 @@ A Python library for solving Rubik’s Cubes of various sizes (2×2 → N×N), w
 
 ## Installation
 
-Clone the repository, install the requirements and the solver in editable mode:
+The package is located in the [Test PyPI repository](https://test.pypi.org/project/rubiks-cube-solver/). You can install it using pip:
 
 ```bash
-git clone https://github.com/ogi02/Rubik-s-Cube-Solver.git
-cd Rubik-s-Cube-Solver/solver
-pip install -e .
+pip install -i https://test.pypi.org/simple/ rubik-cube-solver
 ```
 
 ## Usage Examples
@@ -23,8 +21,8 @@ pip install -e .
 1. Generating a `Cube` and `Rotator`
 
 ```python
-from cube import Cube
-from cube_rotation.rotator import Rotator
+from rubik_cube_solver.cube import Cube
+from rubik_cube_solver.cube_rotation.rotator import Rotator
 
 # Initialize a 3x3 cube
 cube = Cube(size=3)
@@ -36,11 +34,11 @@ rotator = Rotator(cube)
 2. Turning a `Layer` Using a `Move`
 
 ```python
-from cube import Cube
-from cube_rotation.move import Move
-from cube_rotation.rotator import Rotator
-from enums.Direction import Direction
-from enums.Layer import Layer
+from rubik_cube_solver.cube import Cube
+from rubik_cube_solver.cube_rotation.move import Move
+from rubik_cube_solver.cube_rotation.rotator import Rotator
+from rubik_cube_solver.enums.Direction import Direction
+from rubik_cube_solver.enums.Layer import Layer
 
 # Initialize cube and rotator
 cube = Cube(size=3)
@@ -56,7 +54,7 @@ rotator.turn(move)
 3. Generating a Scramble
 
 ```python
-from scramble.scrambler import Scrambler
+from rubik_cube_solver.scramble.scrambler import Scrambler
 
 # Initialize scrambler
 scrambler = Scrambler()
@@ -71,9 +69,9 @@ for move in scramble_moves:
 4. Apply a Scramble to a 3×3 Cube
 
 ```python
-from cube import Cube
-from cube_rotation.rotator import Rotator
-from scramble.scrambler import Scrambler
+from rubik_cube_solver.cube import Cube
+from rubik_cube_solver.cube_rotation.rotator import Rotator
+from rubik_cube_solver.scramble.scrambler import Scrambler
 
 # Initialize cube, rotator, and scrambler
 cube = Cube(size=3)
@@ -122,25 +120,6 @@ R O G R W G W R B W G B
       Y O R
       Y Y W
       W Y O
-```
-
-## Testing
-Run all tests with coverage:
-
-```bash
-pip install -r dev-requirements.txt
-pytest --cov=src --cov-branch --cov-report=xml
-```
-
-## Code Quality
-All code formatting, linting, and import sorting are handled with pre-commit hooks.
-
-Install pre-commit and enable hooks:
-
-```bash
-pip install -r dev-requirements.txt
-pre-commit install
-pre-commit run --all-files
 ```
 
 ## Contact
