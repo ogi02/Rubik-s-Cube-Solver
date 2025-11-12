@@ -1,3 +1,4 @@
+# Python imports
 import asyncio
 from typing import Awaitable, Callable
 from unittest.mock import AsyncMock, MagicMock, call, patch
@@ -5,6 +6,8 @@ from unittest.mock import AsyncMock, MagicMock, call, patch
 import pytest
 import websockets
 from requests import HTTPError
+
+# Project imports
 from rubik_cube_websocket_client.client import WebSocketClient
 
 

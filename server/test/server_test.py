@@ -138,7 +138,7 @@ async def test_websocket_handle_message_success(websocket: DummyWebSocket, role:
         patch("server.utils.verify_jwt", return_value={"role": role.value}) as _mock_verify_jwt,
         patch("server.utils.register_client", return_value=None) as _mock_register_client,
         patch(
-            "fastapi.WebSocket.receive_json", side_effect=[{"type":"test"}, {"type":"disconnect"}]
+            "fastapi.WebSocket.receive_json", side_effect=[{"type": "test"}, {"type": "disconnect"}]
         ) as _mock_receive_json,
         patch("server.utils.handle_message", return_value=None) as _mock_handle_message,
         patch("server.utils.unregister_client", return_value=None) as _mock_unregister_client,

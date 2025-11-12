@@ -3,6 +3,8 @@ import logging
 from typing import Awaitable, Callable
 
 import pytest
+
+# Project imports
 from rubik_cube_websocket_client.client import WebSocketClient
 
 
@@ -12,7 +14,7 @@ def client():
     Fixture that provides a WebSocketClient instance for testing.
     """
 
-    return WebSocketClient(host="localhost", port=8000, secure=False, role="solver", api_key="test-key")
+    return WebSocketClient(host="localhost", port=8000, secure=False, api_key="test-key")
 
 
 @pytest.fixture
