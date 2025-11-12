@@ -1,3 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rubik-cube-solver"
+version = "0.0.3"
+authors = [
+    { name = "Ognian Baruh", email = "ognian@baruh.net" }
+]
+description = "A Rubik's Cube solver and scrambler."
+readme = "README.md"
+requires-python = ">=3.12"
+classifiers = [
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Games/Entertainment :: Puzzle Games"
+]
+
+[project.urls]
+Homepage = "https://github.com/ogi02/Rubik-s-Cube-Solver"
+Issues = "https://github.com/ogi02/Rubik-s-Cube-Solver"
+
 [tool.black]
 line-length = 120
 target-version = ["py312"]
