@@ -1,12 +1,10 @@
 import asyncio
+from typing import Awaitable, Callable
+from unittest.mock import AsyncMock, MagicMock, call, patch
+
 import pytest
-from unittest.mock import call, patch, AsyncMock, MagicMock
-
-from typing import Callable, Awaitable
-
 import websockets
 from requests import HTTPError
-
 from rubik_cube_websocket_client.client import WebSocketClient
 
 
@@ -143,15 +141,14 @@ async def test_receiver_no_message_handler_success(client: WebSocketClient) -> N
 
         # Assert
         assert mock_log_info.call_count == 3
-        mock_log_info.assert_has_calls([
-            call("Received: {}"), call("Received message: {}"), call("Receiver task cancelled")
-        ])
+        mock_log_info.assert_has_calls(
+            [call("Received: {}"), call("Received message: {}"), call("Receiver task cancelled")]
+        )
 
 
 @pytest.mark.asyncio
 async def test_receiver_with_message_handler_success(
-    client: WebSocketClient,
-    message_handler: Callable[[dict], None]
+    client: WebSocketClient, message_handler: Callable[[dict], None]
 ) -> None:
     """
     Tests the _receiver method for handling incoming messages with a dedicated handler method.
@@ -172,15 +169,14 @@ async def test_receiver_with_message_handler_success(
 
         # Assert
         assert mock_log_info.call_count == 3
-        mock_log_info.assert_has_calls([
-            call("Received: {}"), call("Message handler called with: {}"), call("Receiver task cancelled")
-        ])
+        mock_log_info.assert_has_calls(
+            [call("Received: {}"), call("Message handler called with: {}"), call("Receiver task cancelled")]
+        )
 
 
 @pytest.mark.asyncio
 async def test_receiver_with_async_message_handler_success(
-    client: WebSocketClient,
-    async_message_handler: Callable[[dict], Awaitable[None]]
+    client: WebSocketClient, async_message_handler: Callable[[dict], Awaitable[None]]
 ) -> None:
     """
     Tests the _receiver method for handling incoming messages with an asynchronous handler method.
@@ -201,9 +197,9 @@ async def test_receiver_with_async_message_handler_success(
 
         # Assert
         assert mock_log_info.call_count == 3
-        mock_log_info.assert_has_calls([
-            call("Received: {}"), call("Async message handler called with: {}"), call("Receiver task cancelled")
-        ])
+        mock_log_info.assert_has_calls(
+            [call("Received: {}"), call("Async message handler called with: {}"), call("Receiver task cancelled")]
+        )
 
 
 @pytest.mark.asyncio
@@ -224,11 +220,13 @@ async def test_receiver_with_non_json_message_success(client: WebSocketClient) -
 
         # Assert
         assert mock_log_info.call_count == 3
-        mock_log_info.assert_has_calls([
-            call("Non-JSON message received: Non-JSON message"),
-            call("Received message: Non-JSON message"),
-            call("Receiver task cancelled")
-        ])
+        mock_log_info.assert_has_calls(
+            [
+                call("Non-JSON message received: Non-JSON message"),
+                call("Received message: Non-JSON message"),
+                call("Receiver task cancelled"),
+            ]
+        )
 
 
 @pytest.mark.asyncio
@@ -350,10 +348,7 @@ async def test_pinger_success(client: WebSocketClient) -> None:
     :param client: The WebSocketClient instance
     """
 
-    with (
-        patch("logging.info") as mock_log_info,
-        patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep
-    ):
+    with patch("logging.info") as mock_log_info, patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
         # Mock WebSocket
         client.ws = AsyncMock()
         future = asyncio.Future()
@@ -368,9 +363,7 @@ async def test_pinger_success(client: WebSocketClient) -> None:
 
         # Assert
         assert mock_log_info.call_count == 2
-        mock_log_info.assert_has_calls([
-            call("Ping successful"), call("Ping task cancelled")
-        ])
+        mock_log_info.assert_has_calls([call("Ping successful"), call("Ping task cancelled")])
 
 
 @pytest.mark.asyncio
@@ -381,10 +374,7 @@ async def test_pinger_connection_closed_success(client: WebSocketClient) -> None
     :param client: The WebSocketClient instance
     """
 
-    with (
-        patch("logging.info") as mock_log_info,
-        patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep
-    ):
+    with patch("logging.info") as mock_log_info, patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
         # Mock WebSocket to raise ConnectionClosed
         client.ws = AsyncMock()
         client.ws.ping = AsyncMock(side_effect=websockets.exceptions.ConnectionClosed(None, None))
@@ -407,10 +397,7 @@ async def test_pinger_asyncio_cancelled_success(client: WebSocketClient) -> None
     :param client: The WebSocketClient instance
     """
 
-    with (
-        patch("logging.info") as mock_log_info,
-        patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep
-    ):
+    with patch("logging.info") as mock_log_info, patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
         # Mock WebSocket to raise ConnectionClosed
         client.ws = AsyncMock()
         client.ws.ping = AsyncMock(side_effect=asyncio.CancelledError())
@@ -438,7 +425,7 @@ async def test_run_success(client: WebSocketClient) -> None:
         patch.object(client, "_receiver", new_callable=AsyncMock) as mock_receiver,
         patch.object(client, "_sender", new_callable=AsyncMock) as mock_sender,
         patch.object(client, "_pinger", new_callable=AsyncMock) as mock_pinger,
-        patch("logging.info") as mock_log_info
+        patch("logging.info") as mock_log_info,
     ):
         # Mock WebSocket
         client.ws = AsyncMock()

@@ -1,11 +1,9 @@
 # Python imports
 import logging
-from typing import Callable, Awaitable
+from typing import Awaitable, Callable
 
 import pytest
-
 from rubik_cube_websocket_client.client import WebSocketClient
-
 
 
 @pytest.fixture
@@ -14,13 +12,8 @@ def client():
     Fixture that provides a WebSocketClient instance for testing.
     """
 
-    return WebSocketClient(
-        host="localhost",
-        port=8000,
-        secure=False,
-        role="solver",
-        api_key="test-key"
-    )
+    return WebSocketClient(host="localhost", port=8000, secure=False, role="solver", api_key="test-key")
+
 
 @pytest.fixture
 def message_handler() -> Callable[[dict], None]:
