@@ -3,11 +3,11 @@ from unittest.mock import patch
 
 import pytest
 
-from cube import Cube
-from cube_rotation.move import Move
-from cube_rotation.rotator import Rotator
-from enums.Direction import Direction
-from enums.Layer import Layer
+from rubik_cube_solver.cube import Cube
+from rubik_cube_solver.cube_rotation.move import Move
+from rubik_cube_solver.cube_rotation.rotator import Rotator
+from rubik_cube_solver.enums.Direction import Direction
+from rubik_cube_solver.enums.Layer import Layer
 
 
 # fmt: off
@@ -49,8 +49,8 @@ def test_success_turn(
     move = generate_move(layer, direction, layer_amount)
 
     with (
-        patch("cube_rotation.rotator.rotate_face") as mocked_rotate_face,
-        patch("cube_rotation.rotator.rotate_sides") as mocked_rotate_sides,
+        patch("rubik_cube_solver.cube_rotation.rotator.rotate_face") as mocked_rotate_face,
+        patch("rubik_cube_solver.cube_rotation.rotator.rotate_sides") as mocked_rotate_sides,
     ):
 
         # Perform the turn

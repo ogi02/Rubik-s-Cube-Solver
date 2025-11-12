@@ -1,10 +1,10 @@
 from collections import defaultdict
 
-from cube import Cube
-from enums.Color import Color
-from enums.Direction import Direction
-from enums.EdgePosition import EdgePosition
-from enums.Layer import Layer
+from rubik_cube_solver.cube import Cube
+from rubik_cube_solver.enums.Color import Color
+from rubik_cube_solver.enums.Direction import Direction
+from rubik_cube_solver.enums.EdgePosition import EdgePosition
+from rubik_cube_solver.enums.Layer import Layer
 
 # Maps for adjacent faces for each face rotation and the edge location
 ADJACENT_FACES = {

@@ -1,7 +1,7 @@
-from cube import Cube
-from cube_rotation.face_stickers_rotation import rotate_face
-from cube_rotation.move import Move
-from cube_rotation.side_stickers_rotation import rotate_sides
+from rubik_cube_solver.cube import Cube
+from rubik_cube_solver.cube_rotation.face_stickers_rotation import rotate_face
+from rubik_cube_solver.cube_rotation.move import Move
+from rubik_cube_solver.cube_rotation.side_stickers_rotation import rotate_sides
 
 
 class Rotator:

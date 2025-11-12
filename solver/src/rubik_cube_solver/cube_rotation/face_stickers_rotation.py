@@ -1,7 +1,7 @@
-from cube import Cube
-from enums.Color import Color
-from enums.Direction import Direction
-from enums.Layer import Layer
+from rubik_cube_solver.cube import Cube
+from rubik_cube_solver.enums.Color import Color
+from rubik_cube_solver.enums.Direction import Direction
+from rubik_cube_solver.enums.Layer import Layer
 
 
 def generate_clockwise_rotation_map(cube_size: int):

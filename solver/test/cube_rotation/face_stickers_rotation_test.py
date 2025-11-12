@@ -3,11 +3,11 @@ from unittest.mock import patch
 
 import pytest
 
-import cube_rotation.face_stickers_rotation as fsr
-from cube import Cube
-from enums.Color import Color
-from enums.Direction import Direction
-from enums.Layer import Layer
+import rubik_cube_solver.cube_rotation.face_stickers_rotation as fsr
+from rubik_cube_solver.cube import Cube
+from rubik_cube_solver.enums.Color import Color
+from rubik_cube_solver.enums.Direction import Direction
+from rubik_cube_solver.enums.Layer import Layer
 
 
 # fmt: off
@@ -248,7 +248,7 @@ def test_success_rotate_face(
         Layer.UP: generate_face(cube_size),
     }
 
-    with patch("cube_rotation.face_stickers_rotation.generate_rotation_map") as mocked_method:
+    with patch("rubik_cube_solver.cube_rotation.face_stickers_rotation.generate_rotation_map") as mocked_method:
         # Mock the generate_rotation_map() method
         mocked_method.return_value = rotation_map
 

@@ -3,10 +3,10 @@ from unittest.mock import patch
 
 import pytest
 
-from cube_rotation.move import Move
-from enums.Direction import Direction
-from enums.Layer import Layer
-from scramble.scrambler import Scrambler
+from rubik_cube_solver.cube_rotation.move import Move
+from rubik_cube_solver.enums.Direction import Direction
+from rubik_cube_solver.enums.Layer import Layer
+from rubik_cube_solver.scramble.scrambler import Scrambler
 
 
 # fmt: off
@@ -211,8 +211,8 @@ def test_generate_random_move_parametrized(
     """
 
     with (
-        patch("scramble.scrambler.random.choice") as mock_choice,
-        patch("scramble.scrambler.random.randint") as mock_randint,
+        patch("rubik_cube_solver.scramble.scrambler.random.choice") as mock_choice,
+        patch("rubik_cube_solver.scramble.scrambler.random.randint") as mock_randint,
     ):
 
         # Mock the random choices
