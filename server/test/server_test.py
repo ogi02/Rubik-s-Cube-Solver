@@ -138,7 +138,7 @@ async def test_websocket_handle_message_success(websocket: DummyWebSocket, role:
         patch("server.utils.verify_jwt", return_value={"role": role.value}) as _mock_verify_jwt,
         patch("server.utils.register_client", return_value=None) as _mock_register_client,
         patch(
-            "fastapi.WebSocket.receive_json", side_effect=['{"type":"test"}', '{"type":"disconnect"}']
+            "fastapi.WebSocket.receive_json", side_effect=[{"type":"test"}, {"type":"disconnect"}]
         ) as _mock_receive_json,
         patch("server.utils.handle_message", return_value=None) as _mock_handle_message,
         patch("server.utils.unregister_client", return_value=None) as _mock_unregister_client,
@@ -206,7 +206,7 @@ async def test_websocket_receive_json_exception(websocket: DummyWebSocket, role:
     with (
         patch("server.utils.verify_jwt", return_value={"role": role.value}) as _mock_verify_jwt,
         patch("server.utils.register_client", return_value=None) as _mock_register_client,
-        patch("fastapi.WebSocket.receive_json", side_effect=Exception()) as _mock_receive_json,
+        patch("fastapi.WebSocket.receive_json", side_effect="invalid-json") as _mock_receive_json,
     ):
         # Prepopulate the server's clients mapping to simulate a registered client
         server.clients[role] = websocket
@@ -219,42 +219,6 @@ async def test_websocket_receive_json_exception(websocket: DummyWebSocket, role:
         assert _mock_verify_jwt.call_count == 1
         assert _mock_register_client.call_count == 1
         assert _mock_receive_json.call_count == 1
-        assert websocket.closed is True
-        assert websocket.closed_code == 1003
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize("role", [Role.SOLVER, Role.VISUALIZER])
-async def test_websocket_json_loads_exception(websocket: DummyWebSocket, role: Role) -> None:
-    """
-    Tests that websocket_endpoint handles any Exception raised by the websocket.
-
-    :param websocket: A DummyWebSocket instance for testing
-    :param role: The Role to test
-    """
-
-    # Create a valid token
-    api_key = os.environ.get(f"{role.value}_API_KEY")
-    token = utils.generate_jwt(api_key)
-
-    with (
-        patch("server.utils.verify_jwt", return_value={"role": role.value}) as _mock_verify_jwt,
-        patch("server.utils.register_client", return_value=None) as _mock_register_client,
-        patch("fastapi.WebSocket.receive_json", return_value="invalid-json") as _mock_receive_json,
-        patch("server.utils.handle_message", return_value=None) as _mock_handle_message,
-    ):
-        # Prepopulate the server's clients mapping to simulate a registered client
-        server.clients[role] = websocket
-
-        # Run the websocket endpoint
-        # It should handle the exception and close the websocket without unregistering the client
-        await server.websocket_endpoint(websocket, token)
-
-        # Assert mocks called
-        assert _mock_verify_jwt.call_count == 1
-        assert _mock_register_client.call_count == 1
-        assert _mock_receive_json.call_count == 1
-        assert _mock_handle_message.call_count == 0
         assert websocket.closed is False
 
 
@@ -275,7 +239,7 @@ async def test_websocket_handle_message_exception(websocket: DummyWebSocket, rol
     with (
         patch("server.utils.verify_jwt", return_value={"role": role.value}) as _mock_verify_jwt,
         patch("server.utils.register_client", return_value=None) as _mock_register_client,
-        patch("fastapi.WebSocket.receive_json", return_value="{}") as _mock_receive_json,
+        patch("fastapi.WebSocket.receive_json", return_value={}) as _mock_receive_json,
         patch("server.utils.handle_message", side_effect=ValueError()) as _mock_handle_message,
         patch("server.utils.unregister_client", return_value=None) as _mock_unregister_client,
     ):

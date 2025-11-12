@@ -67,7 +67,8 @@ async def websocket_endpoint(websocket: WebSocket, token: str) -> None:
         while True:
             # Receive message
             data = await websocket.receive_json()
-            data = json.loads(data)
+            if not isinstance(data, dict):
+                raise json.JSONDecodeError("Message is not a JSON object", doc=str(data), pos=0)
             # Check for disconnect message
             if data.get("type") == "disconnect":
                 logging.info(f"Client requested disconnect: {payload.get('sub')}")
