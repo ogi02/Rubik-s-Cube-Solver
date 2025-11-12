@@ -19,7 +19,7 @@ from role import Role
     ]
 )
 # fmt: on
-def test_success_generate_and_verify_jwt_token(
+def test_generate_and_verify_jwt_token_success(
     update_env_variable: Callable[[pytest.MonkeyPatch, str, str], None],
     api_key_name: str,
     api_key_value: str,
@@ -51,7 +51,7 @@ def test_success_generate_and_verify_jwt_token(
     assert isinstance(payload["exp"], int)
 
 
-def test_exception_generate_jwt_invalid_key() -> None:
+def test_generate_jwt_invalid_key_exception() -> None:
     """
     Tests that generate_jwt raises HTTPException for invalid API keys.
     """
@@ -60,7 +60,7 @@ def test_exception_generate_jwt_invalid_key() -> None:
         utils.generate_jwt("bad-key")
 
 
-def test_exception_verify_jwt_invalid_token() -> None:
+def test_verify_jwt_invalid_token_exception() -> None:
     """
     Tests that verify_jwt raises HTTPException for invalid tokens.
     """
@@ -71,7 +71,7 @@ def test_exception_verify_jwt_invalid_token() -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("role", [Role.SOLVER, Role.VISUALIZER])
-async def test_success_register_client(
+async def test_register_client_success(
     empty_known_clients: dict[Role, DummyWebSocket], websocket: DummyWebSocket, role: Role
 ) -> None:
     """
@@ -95,7 +95,7 @@ async def test_success_register_client(
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("role", [Role.SOLVER, Role.VISUALIZER])
-async def test_exception_register_client_already_registered(
+async def test_register_client_already_registered_exception(
     known_clients: dict[Role, DummyWebSocket], websocket: DummyWebSocket, role: Role
 ) -> None:
     """
@@ -116,7 +116,7 @@ async def test_exception_register_client_already_registered(
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("role", [Role.SOLVER, Role.VISUALIZER])
-async def test_success_unregister_client(known_clients: dict[Role, DummyWebSocket], role: Role) -> None:
+async def test_unregister_client_success(known_clients: dict[Role, DummyWebSocket], role: Role) -> None:
     """
     Tests that unregister_client removes the websocket from known_clients.
 
@@ -143,7 +143,7 @@ async def test_success_unregister_client(known_clients: dict[Role, DummyWebSocke
 )
 # fmt: on
 @pytest.mark.asyncio
-async def test_success_handle_message(
+async def test_handle_message_success(
         sender_role: Role, recipient_role: Role, known_clients: dict[Role, DummyWebSocket]
 ) -> None:
     """
@@ -175,7 +175,7 @@ async def test_success_handle_message(
 )
 # fmt: on
 @pytest.mark.asyncio
-async def test_handle_message_no_recipient(
+async def test_handle_message_no_recipient_success(
         sender_role: Role, recipient_role: Role, known_clients: dict[Role, DummyWebSocket]
 ) -> None:
     """
@@ -199,7 +199,7 @@ async def test_handle_message_no_recipient(
 
 
 @pytest.mark.asyncio
-async def test_invalid_role_handle_message(known_clients: dict[Role, DummyWebSocket]) -> None:
+async def test_handle_message_invalid_role_success(known_clients: dict[Role, DummyWebSocket]) -> None:
     """
     Tests that handle_message does not route the message for an invalid role.
 

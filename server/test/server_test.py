@@ -16,7 +16,7 @@ client = TestClient(server.app)
 
 
 @pytest.mark.parametrize("role", [Role.SOLVER, Role.VISUALIZER])
-def test_success_get_token(role: Role) -> None:
+def test_get_token_success(role: Role) -> None:
     """
     Tests the /token endpoint returns a valid JWT when provided a valid API key.
 
@@ -38,7 +38,7 @@ def test_success_get_token(role: Role) -> None:
     assert payload["sub"] == f"CLIENT_{role.value}"
 
 
-def test_exception_get_token_invalid_api_key() -> None:
+def test_get_token_invalid_api_key_exception() -> None:
     """
     Tests the /token endpoint returns 401 when provided an invalid API key.
     """
@@ -52,7 +52,7 @@ def test_exception_get_token_invalid_api_key() -> None:
 
 
 @pytest.mark.asyncio
-async def test_exception_websocket_invalid_token(websocket: DummyWebSocket) -> None:
+async def test_websocket_invalid_token_exception(websocket: DummyWebSocket) -> None:
     """
     Tests websocket endpoint closes with 1008 when an invalid token is presented.
 
@@ -73,7 +73,7 @@ async def test_exception_websocket_invalid_token(websocket: DummyWebSocket) -> N
 
 
 @pytest.mark.asyncio
-async def test_exception_websocket_invalid_role(websocket: DummyWebSocket) -> None:
+async def test_websocket_invalid_role_exception(websocket: DummyWebSocket) -> None:
     """
     Tests websocket endpoint closes with 1008 when an invalid role is provided.
 
@@ -96,7 +96,7 @@ async def test_exception_websocket_invalid_role(websocket: DummyWebSocket) -> No
 
 
 @pytest.mark.asyncio
-async def test_exception_websocket_invalid_registration(websocket: DummyWebSocket) -> None:
+async def test_websocket_invalid_registration_exception(websocket: DummyWebSocket) -> None:
     """
     Tests websocket endpoint closes with 1008 when an invalid registration occurs.
 
@@ -122,7 +122,7 @@ async def test_exception_websocket_invalid_registration(websocket: DummyWebSocke
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("role", [Role.SOLVER, Role.VISUALIZER])
-async def test_success_websocket_handle_message(websocket: DummyWebSocket, role: Role) -> None:
+async def test_websocket_handle_message_success(websocket: DummyWebSocket, role: Role) -> None:
     """
     Tests that websocket_endpoint successfully handles a message.
 
@@ -158,7 +158,7 @@ async def test_success_websocket_handle_message(websocket: DummyWebSocket, role:
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("role", [Role.SOLVER, Role.VISUALIZER])
-async def test_exception_websocket_disconnect(websocket: DummyWebSocket, role: Role) -> None:
+async def test_websocket_disconnect_exception(websocket: DummyWebSocket, role: Role) -> None:
     """
     Tests that websocket_endpoint handles a disconnect of the websocket.
 
@@ -191,7 +191,7 @@ async def test_exception_websocket_disconnect(websocket: DummyWebSocket, role: R
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("role", [Role.SOLVER, Role.VISUALIZER])
-async def test_exception_websocket_receive_json_any_exception(websocket: DummyWebSocket, role: Role) -> None:
+async def test_websocket_receive_json_exception(websocket: DummyWebSocket, role: Role) -> None:
     """
     Tests that websocket_endpoint handles any Exception raised by the websocket.
 
@@ -225,7 +225,7 @@ async def test_exception_websocket_receive_json_any_exception(websocket: DummyWe
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("role", [Role.SOLVER, Role.VISUALIZER])
-async def test_exception_websocket_json_loads_any_exception(websocket: DummyWebSocket, role: Role) -> None:
+async def test_websocket_json_loads_exception(websocket: DummyWebSocket, role: Role) -> None:
     """
     Tests that websocket_endpoint handles any Exception raised by the websocket.
 
@@ -260,7 +260,7 @@ async def test_exception_websocket_json_loads_any_exception(websocket: DummyWebS
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("role", [Role.SOLVER, Role.VISUALIZER])
-async def test_exception_websocket_handle_message_any_exception(websocket: DummyWebSocket, role: Role) -> None:
+async def test_websocket_handle_message_exception(websocket: DummyWebSocket, role: Role) -> None:
     """
     Tests that websocket_endpoint handles any Exception raised by the websocket.
 
