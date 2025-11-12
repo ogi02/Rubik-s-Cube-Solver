@@ -1,9 +1,10 @@
 import asyncio
 import json
 import logging
+from typing import Any, Awaitable, Callable, Union
+
 import requests
 import websockets
-from typing import Callable, Awaitable, Union, Any
 
 logging.basicConfig(
     level=logging.INFO,
@@ -15,14 +16,13 @@ MessageHandler = Union[Callable[[dict], Any], Callable[[dict], Awaitable[Any]]]
 
 
 class WebSocketClient:
-    def __init__(self, host: str, port: int, secure: bool, role: str, api_key: str, message_handler: MessageHandler=None):
+    def __init__(self, host: str, port: int, secure: bool, api_key: str, message_handler: MessageHandler = None):
         """
         Initialize the WebSocket client.
 
         :param host: The server host.
         :param port: The server port.
         :param secure: Whether to use secure connection (https/wss).
-        :param role: The role of the client (e.g., "solver" or "visualizer").
         :param api_key: The API key for authentication.
         :param message_handler: Optional callable to handle incoming messages.
         """
@@ -33,7 +33,6 @@ class WebSocketClient:
         self.secure = secure
         self.http_url = f"http{'s' if secure else ''}://{host}:{port}"
         self.ws_url = f"ws{'s' if secure else ''}://{host}:{port}/ws"
-        self.role = role
 
         # Authentication
         self.api_key = api_key
@@ -69,7 +68,7 @@ class WebSocketClient:
             raise ValueError("Token is required before connecting")
 
         self.ws = await websockets.connect(f"{self.ws_url}?token={self.token}")
-        logging.info(f"Connected as {self.role}")
+        logging.info("Connected")
 
     async def _receiver(self):
         """
