@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rubik-cube-websocket-client"
+version = "0.0.3"
+authors = [
+    { name = "Ognian Baruh", email = "ognian@baruh.net" }
+]
+description = "A Websocket client for supporting communication with a Rubik's Cube solver server."
+readme = "README.md"
+requires-python = ">=3.12"
+classifiers = [
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/ogi02/Rubik-s-Cube-Solver"
+Issues = "https://github.com/ogi02/Rubik-s-Cube-Solver"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 120
+target-version = ["py312"]
+include = '\.py$'
+
+[tool.isort]
+profile = "black"
+line_length = 120
+multi_line_output = 3
+include_trailing_comma = true
