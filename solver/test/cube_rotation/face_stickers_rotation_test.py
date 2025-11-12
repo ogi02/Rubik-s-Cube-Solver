@@ -248,7 +248,7 @@ def test_success_rotate_face(
         Layer.UP: generate_face(cube_size),
     }
 
-    with patch("cube_rotation.face_stickers_rotation.generate_rotation_map") as mocked_method:
+    with patch("rubik_cube_solver.cube_rotation.face_stickers_rotation.generate_rotation_map") as mocked_method:
         # Mock the generate_rotation_map() method
         mocked_method.return_value = rotation_map
 

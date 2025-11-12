@@ -474,9 +474,9 @@ def test_success_rotate_sides(
 
     # Patch
     with (
-        patch("cube_rotation.side_stickers_rotation.get_edge") as mock_get_edge,
-        patch("cube_rotation.side_stickers_rotation.should_flip_edge") as mock_should_flip_edge,
-        patch("cube_rotation.side_stickers_rotation.set_edge") as mock_set_edge,
+        patch("rubik_cube_solver.cube_rotation.side_stickers_rotation.get_edge") as mock_get_edge,
+        patch("rubik_cube_solver.cube_rotation.side_stickers_rotation.should_flip_edge") as mock_should_flip_edge,
+        patch("rubik_cube_solver.cube_rotation.side_stickers_rotation.set_edge") as mock_set_edge,
     ):
 
         # Mock get_edge() return values for all calls
@@ -529,7 +529,7 @@ def test_exception_rotate_sides(
     """
 
     # Patch the get_edge() method to avoid unnecessary calls
-    with patch("cube_rotation.side_stickers_rotation.get_edge"):
+    with patch("rubik_cube_solver.cube_rotation.side_stickers_rotation.get_edge"):
 
         # Mock the cube
         cube = generate_cube(cube_size)

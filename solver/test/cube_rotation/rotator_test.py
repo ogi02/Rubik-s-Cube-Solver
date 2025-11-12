@@ -49,8 +49,8 @@ def test_success_turn(
     move = generate_move(layer, direction, layer_amount)
 
     with (
-        patch("cube_rotation.rotator.rotate_face") as mocked_rotate_face,
-        patch("cube_rotation.rotator.rotate_sides") as mocked_rotate_sides,
+        patch("rubik_cube_solver.cube_rotation.rotator.rotate_face") as mocked_rotate_face,
+        patch("rubik_cube_solver.cube_rotation.rotator.rotate_sides") as mocked_rotate_sides,
     ):
 
         # Perform the turn

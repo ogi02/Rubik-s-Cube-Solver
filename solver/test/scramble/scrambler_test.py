@@ -211,8 +211,8 @@ def test_generate_random_move_parametrized(
     """
 
     with (
-        patch("scramble.scrambler.random.choice") as mock_choice,
-        patch("scramble.scrambler.random.randint") as mock_randint,
+        patch("rubik_cube_solver.scramble.scrambler.random.choice") as mock_choice,
+        patch("rubik_cube_solver.scramble.scrambler.random.randint") as mock_randint,
     ):
 
         # Mock the random choices
