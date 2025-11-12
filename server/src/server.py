@@ -1,6 +1,8 @@
 # Python imports
 import asyncio
+import json
 import logging
+from typing import Any
 
 import uvicorn
 from fastapi import FastAPI, Header, HTTPException, WebSocket, WebSocketDisconnect
@@ -60,10 +62,12 @@ async def websocket_endpoint(websocket: WebSocket, token: str) -> None:
         await websocket.close(code=1008, reason=str(e))
         return
 
+    data: Any = ""
     try:
         while True:
             # Receive message
             data = await websocket.receive_json()
+            data = json.loads(data)
             # Check for disconnect message
             if data.get("type") == "disconnect":
                 logging.info(f"Client requested disconnect: {payload.get('sub')}")
@@ -73,6 +77,8 @@ async def websocket_endpoint(websocket: WebSocket, token: str) -> None:
                 return
             # Handle message
             await utils.handle_message(data, clients, role)
+    except json.JSONDecodeError as e:
+        logging.error(f"Failed to decode JSON message from {payload.get('sub')}: {data!r} — {e}")
     except WebSocketDisconnect:
         logging.info(f"Client disconnected: {payload.get('sub')}")
         # Unregister client

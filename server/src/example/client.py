@@ -127,7 +127,6 @@ async def main():
 
         # Cancel all remaining tasks
         for task in pending:
-            print(task.get_name())
             task.cancel()
 
         # Wait for cancellation to finish

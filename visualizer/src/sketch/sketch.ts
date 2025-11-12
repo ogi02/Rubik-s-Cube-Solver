@@ -15,6 +15,7 @@ import { loadCubeSettings, type CubeSettings } from "../utils/cubeSettings";
 export const cubeSketch = (p: p5) => {
     let settings: CubeSettings;
     let cube: Cube;
+    let socket: WebSocket;
 
     /**
      * Setup function for the p5 sketch
@@ -32,13 +33,12 @@ export const cubeSketch = (p: p5) => {
             0, 1, 0       // up vector
         );
 
+        // Create a default 3x3 cube
+        createCube(3);
+
         // Set up server connection if needed
         if (import.meta.env.VITE_CONNECT_TO_SERVER === "true") {
             await setUpServer();
-        }
-        // Default to creating a 3x3 cube
-        else {
-            createCube(3);
         }
     };
 
@@ -95,31 +95,43 @@ export const cubeSketch = (p: p5) => {
         const token: string = await authenticate();
 
         // Create socket connection with token
-        const socket = new WebSocket(`${import.meta.env.VITE_WEBSOCKET_URL}?token=${token}`);
+        socket = new WebSocket(`${import.meta.env.VITE_WEBSOCKET_URL}?token=${token}`);
 
         // WebSocket open event handler
         socket.onopen = () : void => {
             console.log("Connected to server");
         }
 
-        // WebSocket close event handler
-        socket.onclose = (event: CloseEvent) : void => {
-            console.log("Connection closed:", event.reason);
-        }
-
         // WebSocket message event handler
         socket.onmessage = (event: MessageEvent) : void => {
             // Parse incoming data
-            const data = JSON.parse(event.data);
-            console.log(data);
+            try {
+                const data = JSON.parse(event.data);
+                console.log(data);
+            } catch (error) {
+                console.error("Error parsing message:", error);
+            }
+
         };
 
-        // Graceful disconnect on page close or reload
-        window.addEventListener("beforeunload", () => {
+        // WebSocket error event handler
+        socket.onerror = (error: Event) : void => {
+            console.error("WebSocket error:", error);
+        }
+
+        // Handle graceful disconnect before unload
+        const beforeUnloadHandler = () : void => {
             if (socket && socket.readyState === WebSocket.OPEN) {
-                socket.close(1000, "Page unloading");
+                socket.send(JSON.stringify({ type: "disconnect" }));
             }
-        });
+        }
+        window.addEventListener("beforeunload", beforeUnloadHandler);
+
+        // WebSocket close event handler
+        socket.onclose = (event: CloseEvent) : void => {
+            window.removeEventListener("beforeunload", beforeUnloadHandler);
+            console.log("Connection closed:", event.reason);
+        }
     }
 
     /**
