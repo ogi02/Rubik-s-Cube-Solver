@@ -43,7 +43,7 @@ from rubik_cube_solver.enums.Layer import Layer
     ]
 )
 # fmt: on
-def test_success_generate_clockwise_rotation_map(cube_size: int, expected_rotation_map: list[int]) -> None:
+def test_generate_clockwise_rotation_map_success(cube_size: int, expected_rotation_map: list[int]) -> None:
     """
     Tests the generation of the map for a clockwise rotation.
 
@@ -88,7 +88,7 @@ def test_success_generate_clockwise_rotation_map(cube_size: int, expected_rotati
     ]
 )
 # fmt: on
-def test_success_generate_counter_clockwise_rotation_map(cube_size: int, expected_rotation_map: list[int]) -> None:
+def test_generate_counter_clockwise_rotation_map_success(cube_size: int, expected_rotation_map: list[int]) -> None:
     """
     Tests the generation of the map for a counter-clockwise rotation.
 
@@ -133,7 +133,7 @@ def test_success_generate_counter_clockwise_rotation_map(cube_size: int, expecte
     ]
 )
 # fmt: on
-def test_success_generate_double_rotation_map(cube_size: int, expected_rotation_map: list[int]) -> None:
+def test_generate_double_rotation_map_success(cube_size: int, expected_rotation_map: list[int]) -> None:
     """
     Tests the generation of the map for a double rotation.
 
@@ -154,7 +154,7 @@ def test_success_generate_double_rotation_map(cube_size: int, expected_rotation_
     ]
 )
 # fmt: on
-def test_success_generate_rotation_map(
+def test_generate_rotation_map_success(
     direction: Direction, cube_size: int, expected_method: Callable[[int], list[int]]
 ) -> None:
     """
@@ -178,7 +178,7 @@ def test_success_generate_rotation_map(
 
 
 @pytest.mark.parametrize("direction, cube_size", [(None, 3)])
-def test_exception_generate_rotation_map(direction: Direction | None, cube_size: int) -> None:
+def test_generate_rotation_map_exception(direction: Direction | None, cube_size: int) -> None:
     """
     Tests that generate_rotation_map() raises an exception when the direction is not valid.
 
@@ -222,7 +222,7 @@ def test_exception_generate_rotation_map(direction: Direction | None, cube_size:
     ]
 )
 # fmt: on
-def test_success_rotate_face(
+def test_rotate_face_success(
     generate_cube: Callable[[int], Cube],
     generate_face: Callable[[int], list[Color]],
     direction: Direction,

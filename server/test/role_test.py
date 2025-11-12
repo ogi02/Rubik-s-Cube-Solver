@@ -12,7 +12,7 @@ from role import Role
         ("VISUALIZER", Role.VISUALIZER)
     ])
 # fmt: on
-def test_success_role_from_str(role_str: str, expected_role: Role) -> None:
+def test_role_from_str_success(role_str: str, expected_role: Role) -> None:
     """
     Tests that Role.from_str correctly converts strings to Role enums.
 
@@ -23,7 +23,7 @@ def test_success_role_from_str(role_str: str, expected_role: Role) -> None:
     assert Role.from_str(role_str) == expected_role
 
 
-def test_exception_role_from_str_invalid() -> None:
+def test_role_from_str_exception() -> None:
     """
     Tests that Role.from_str raises ValueError for invalid role strings.
     """

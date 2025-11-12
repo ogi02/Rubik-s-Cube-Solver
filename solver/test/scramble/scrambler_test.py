@@ -21,7 +21,7 @@ from rubik_cube_solver.scramble.scrambler import Scrambler
     ]
 )
 # fmt: on
-def test_success_generate_scramble(scrambler: Scrambler, cube_size: int, scramble_length: int) -> None:
+def test_generate_scramble_success(scrambler: Scrambler, cube_size: int, scramble_length: int) -> None:
     """
     Tests generating a scramble for a cube of valid size.
 
@@ -65,7 +65,7 @@ def test_success_generate_scramble(scrambler: Scrambler, cube_size: int, scrambl
     ]
 )
 # fmt: on
-def test_success_generate_scramble_invalid_random_move(
+def test_generate_scramble_invalid_random_move_success(
     scrambler: Scrambler, cube_size: int, scramble_length: int
 ) -> None:
     """
@@ -109,7 +109,7 @@ def test_success_generate_scramble_invalid_random_move(
     ]
 )
 # fmt: on
-def test_exception_generate_scramble(
+def test_generate_scramble_exception(
     scrambler: Scrambler, expected_exception_type: type[BaseException], expected_exception: str
 ) -> None:
     """
@@ -137,7 +137,7 @@ def test_exception_generate_scramble(
     ]
 )
 # fmt: on
-def test_success_get_scramble_length(scrambler: Scrambler, cube_size: int, expected_length: int):
+def test_get_scramble_length_success(scrambler: Scrambler, cube_size: int, expected_length: int):
     """
     Tests getting the scramble length for different cube sizes.
 
@@ -161,7 +161,7 @@ def test_success_get_scramble_length(scrambler: Scrambler, cube_size: int, expec
     ]
 )
 # fmt: on
-def test_exception_get_scramble_length(
+def test_get_scramble_length_exception(
     scrambler: Scrambler, expected_exception_type: type[BaseException], expected_exception: str
 ) -> None:
     """
@@ -190,7 +190,7 @@ def test_exception_get_scramble_length(
     ],
 )
 # fmt: on
-def test_generate_random_move_parametrized(
+def test_generate_random_move_success(
     scrambler: Scrambler,
     cube_size: int,
     layer: Layer,
@@ -240,7 +240,7 @@ def test_generate_random_move_parametrized(
     ]
 )
 # fmt: on
-def test_exception_generate_random_move(
+def test_generate_random_move_exception(
     scrambler: Scrambler, expected_exception_type: type[BaseException], expected_exception: str
 ) -> None:
     """
@@ -274,7 +274,7 @@ def test_exception_generate_random_move(
     ]
 )
 # fmt: on
-def test_success_is_valid_random_move(
+def test_is_valid_random_move_success(
     scrambler: Scrambler,
     generate_move: Callable[[Layer, Direction, int], Move],
     previous_moves: list[Move],
@@ -310,7 +310,7 @@ def test_success_is_valid_random_move(
     ]
 )
 # fmt: on
-def test_success_is_valid_random_move_no_previous_moves(
+def test_is_valid_random_move_no_previous_moves_success(
     scrambler: Scrambler,
     generate_move: Callable[[Layer, Direction, int], Move],
     layer: Layer,
@@ -347,7 +347,7 @@ def test_success_is_valid_random_move_no_previous_moves(
     ]
 )
 # fmt: on
-def test_success_should_append_to_previous_moves(
+def test_should_append_to_previous_moves_success(
     scrambler: Scrambler,
     generate_move: Callable[[Layer, Direction, int], Move],
     previous_moves: list[Move],
@@ -383,7 +383,7 @@ def test_success_should_append_to_previous_moves(
     ]
 )
 # fmt: on
-def test_success_should_append_to_previous_moves_no_previous_moves(
+def test_should_append_to_previous_moves_no_previous_moves_success(
     scrambler: Scrambler,
     generate_move: Callable[[Layer, Direction, int], Move],
     layer: Layer,

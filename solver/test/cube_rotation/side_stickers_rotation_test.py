@@ -33,7 +33,7 @@ from rubik_cube_solver.enums.Layer import Layer
     ]
 )
 # fmt: on
-def test_success_get_edge(
+def test_get_edge_success(
     generate_face: Callable[[int], list[Color]],
     layer_amount: int,
     position: EdgePosition,
@@ -63,7 +63,7 @@ def test_success_get_edge(
     ]
 )
 # fmt: on
-def test_exception_get_edge(
+def test_get_edge_exception(
     generate_face: Callable[[int], list[Color]],
     layer_amount: int,
     position: EdgePosition,
@@ -153,7 +153,7 @@ def test_exception_get_edge(
     ]
 )
 # fmt: on
-def test_success_set_edge(
+def test_set_edge_success(
     generate_one_color_only_face: Callable[[int, Color], list[Color]],
     generate_edge: Callable[[int], list[Color]],
     layer_amount: int,
@@ -191,7 +191,7 @@ def test_success_set_edge(
     ]
 )
 # fmt: on
-def test_exception_set_edge(
+def test_set_edge_exception(
     generate_one_color_only_face: Callable[[int, Color], list[Color]],
     generate_edge: Callable[[int], list[Color]],
     layer_amount: int,
@@ -296,7 +296,7 @@ def test_exception_set_edge(
     ]
 )
 # fmt: on
-def test_success_should_flip_edge(
+def test_should_flip_edge_success(
     turned_layer: Layer, direction: Direction, adj_layer: Layer, should_flip_edge: bool
 ) -> None:
     """
@@ -390,7 +390,7 @@ def test_success_should_flip_edge(
     ]
 )
 # fmt: on
-def test_success_rotate_sides(
+def test_rotate_sides_success(
     generate_cube: Callable[[int], Cube],
     generate_one_color_only_edge: Callable[[int, Color], list[Color]],
     generate_one_color_only_face: Callable[[int, Color], list[Color]],
@@ -506,7 +506,7 @@ def test_success_rotate_sides(
     ],
 )
 # fmt: on
-def test_exception_rotate_sides(
+def test_rotate_sides_exception(
     generate_cube: Callable[[int], Cube],
     cube_size: int,
     turned_layer: Layer,

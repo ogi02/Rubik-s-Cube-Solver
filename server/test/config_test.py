@@ -5,7 +5,7 @@ import pytest
 
 
 @pytest.mark.parametrize("constant_name", ["JWT_SECRET", "SOLVER_API_KEY", "VISUALIZER_API_KEY"])
-def test_exception_missing_constant(
+def test_missing_constant_exception(
     update_env_variable: Callable[[pytest.MonkeyPatch, str, str | None], None], constant_name: str
 ):
     """

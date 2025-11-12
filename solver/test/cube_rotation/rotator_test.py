@@ -19,7 +19,7 @@ from rubik_cube_solver.enums.Layer import Layer
     ]
 )
 # fmt: on
-def test_success_turn(
+def test_turn_success(
     generate_cube: Callable[[int], Cube],
     generate_rotator: Callable[[Cube], Rotator],
     generate_move: Callable[[Layer, Direction, int], Move],
