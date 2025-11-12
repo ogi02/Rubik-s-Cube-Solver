@@ -10,7 +10,7 @@ A Python library for solving Rubik’s Cubes of various sizes (2×2 → N×N), w
 
 ## Installation
 
-The package is located in the [Test PyPI repository](https://test.pypi.org/project/rubiks-cube-solver/). You can install it using pip:
+The package is located in the [Test PyPI repository](https://test.pypi.org/project/rubik-cube-solver/). You can install it using pip:
 
 ```bash
 pip install -i https://test.pypi.org/simple/ rubik-cube-solver

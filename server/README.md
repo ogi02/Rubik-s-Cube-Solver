@@ -12,12 +12,18 @@ The server supports 1 visualizer client and 1 solver client simultaneously.
 
 ## Installation
 
-Clone the repository, install the requirements:
+Clone the repository and install the requirements:
 
 ```bash
 git clone https://github.com/ogi02/Rubik-s-Cube-Solver.git
 cd Rubik-s-Cube-Solver/server
 pip install -r requirements.txt
+```
+
+Optionally, install the server as an editable package:
+
+```bash
+pip install -e .
 ```
 
 ## Run the Server
