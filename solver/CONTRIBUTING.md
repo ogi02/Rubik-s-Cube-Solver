@@ -21,7 +21,7 @@ pip install -r dev-requirements.txt
 
 The development requirements include tools for testing, linting, code formatting and building.
 
-Optionally, install the server as an editable package:
+Optionally, install the solver as an editable package:
 
 ```bash
 pip install -e .
