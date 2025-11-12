@@ -122,6 +122,42 @@ async def test_exception_websocket_invalid_registration(websocket: DummyWebSocke
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("role", [Role.SOLVER, Role.VISUALIZER])
+async def test_success_websocket_handle_message(websocket: DummyWebSocket, role: Role) -> None:
+    """
+    Tests that websocket_endpoint successfully handles a message.
+
+    :param websocket: A DummyWebSocket instance for testing
+    :param role: The Role to test
+    """
+
+    # Create a valid token
+    api_key = os.environ.get(f"{role.value}_API_KEY")
+    token = utils.generate_jwt(api_key)
+
+    with (
+        patch("server.utils.verify_jwt", return_value={"role": role.value}) as _mock_verify_jwt,
+        patch("server.utils.register_client", return_value=None) as _mock_register_client,
+        patch(
+            "fastapi.WebSocket.receive_json", side_effect=['{"type":"test"}', '{"type":"disconnect"}']
+        ) as _mock_receive_json,
+        patch("server.utils.handle_message", return_value=None) as _mock_handle_message,
+        patch("server.utils.unregister_client", return_value=None) as _mock_unregister_client,
+    ):
+        # Prepopulate the server's clients mapping to simulate a registered client
+        server.clients[Role.SOLVER] = websocket
+
+        await server.websocket_endpoint(websocket, token)
+
+        # Assert mocks called
+        assert _mock_verify_jwt.call_count == 1
+        assert _mock_register_client.call_count == 1
+        assert _mock_receive_json.call_count == 2
+        assert _mock_handle_message.call_count == 1
+        assert _mock_unregister_client.call_count == 1
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("role", [Role.SOLVER, Role.VISUALIZER])
 async def test_exception_websocket_disconnect(websocket: DummyWebSocket, role: Role) -> None:
     """
     Tests that websocket_endpoint handles a disconnect of the websocket.
@@ -189,6 +225,41 @@ async def test_exception_websocket_receive_json_any_exception(websocket: DummyWe
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("role", [Role.SOLVER, Role.VISUALIZER])
+async def test_exception_websocket_json_loads_any_exception(websocket: DummyWebSocket, role: Role) -> None:
+    """
+    Tests that websocket_endpoint handles any Exception raised by the websocket.
+
+    :param websocket: A DummyWebSocket instance for testing
+    :param role: The Role to test
+    """
+
+    # Create a valid token
+    api_key = os.environ.get(f"{role.value}_API_KEY")
+    token = utils.generate_jwt(api_key)
+
+    with (
+        patch("server.utils.verify_jwt", return_value={"role": role.value}) as _mock_verify_jwt,
+        patch("server.utils.register_client", return_value=None) as _mock_register_client,
+        patch("fastapi.WebSocket.receive_json", return_value="invalid-json") as _mock_receive_json,
+        patch("server.utils.handle_message", return_value=None) as _mock_handle_message,
+    ):
+        # Prepopulate the server's clients mapping to simulate a registered client
+        server.clients[role] = websocket
+
+        # Run the websocket endpoint
+        # It should handle the exception and close the websocket without unregistering the client
+        await server.websocket_endpoint(websocket, token)
+
+        # Assert mocks called
+        assert _mock_verify_jwt.call_count == 1
+        assert _mock_register_client.call_count == 1
+        assert _mock_receive_json.call_count == 1
+        assert _mock_handle_message.call_count == 0
+        assert websocket.closed is False
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("role", [Role.SOLVER, Role.VISUALIZER])
 async def test_exception_websocket_handle_message_any_exception(websocket: DummyWebSocket, role: Role) -> None:
     """
     Tests that websocket_endpoint handles any Exception raised by the websocket.
@@ -204,7 +275,7 @@ async def test_exception_websocket_handle_message_any_exception(websocket: Dummy
     with (
         patch("server.utils.verify_jwt", return_value={"role": role.value}) as _mock_verify_jwt,
         patch("server.utils.register_client", return_value=None) as _mock_register_client,
-        patch("fastapi.WebSocket.receive_json", return_value={}) as _mock_receive_json,
+        patch("fastapi.WebSocket.receive_json", return_value="{}") as _mock_receive_json,
         patch("server.utils.handle_message", side_effect=ValueError()) as _mock_handle_message,
         patch("server.utils.unregister_client", return_value=None) as _mock_unregister_client,
     ):
