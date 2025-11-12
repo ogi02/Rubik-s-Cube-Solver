@@ -55,7 +55,7 @@ Publish to Test PyPI:
 
 ```bash
 pip install --upgrade twine
-twine upload --repository testpypi dist/*
+python -m twine upload --repository testpypi dist/*
 ```
 
 ## Submitting Changes
