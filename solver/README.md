@@ -1,5 +1,6 @@
 # Rubik's Cube Solver
 
+[![TestPyPI version](https://img.shields.io/pypi/v/rubik-cube-solver?label=testpypi&color=blue&logo=pypi)](https://test.pypi.org/project/rubik-cube-solver/)
 [![Lint](https://img.shields.io/github/actions/workflow/status/ogi02/Rubik-s-Cube-Solver/solver-lint.yml?branch=main&label=Lint)](https://github.com/ogi02/Rubik-s-Cube-Solver/actions)
 [![Pytest](https://img.shields.io/github/actions/workflow/status/ogi02/Rubik-s-Cube-Solver/solver-test.yml?branch=main&label=Pytest)](https://github.com/ogi02/Rubik-s-Cube-Solver/actions)
 [![Coverage](https://codecov.io/gh/ogi02/Rubik-s-Cube-Solver/branch/main/graph/badge.svg)](https://codecov.io/gh/ogi02/Rubik-s-Cube-Solver)
