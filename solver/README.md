@@ -1,6 +1,5 @@
 # Rubik's Cube Solver
 
-[![TestPyPI version](https://img.shields.io/pypi/v/rubik-cube-solver?label=testpypi&color=blue&logo=pypi)](https://test.pypi.org/project/rubik-cube-solver/)
 [![Lint](https://img.shields.io/github/actions/workflow/status/ogi02/Rubik-s-Cube-Solver/solver-lint.yml?branch=main&label=Lint)](https://github.com/ogi02/Rubik-s-Cube-Solver/actions)
 [![Pytest](https://img.shields.io/github/actions/workflow/status/ogi02/Rubik-s-Cube-Solver/solver-test.yml?branch=main&label=Pytest)](https://github.com/ogi02/Rubik-s-Cube-Solver/actions)
 [![Coverage](https://codecov.io/gh/ogi02/Rubik-s-Cube-Solver/branch/main/graph/badge.svg)](https://codecov.io/gh/ogi02/Rubik-s-Cube-Solver)
@@ -11,7 +10,7 @@ A Python library for solving Rubik’s Cubes of various sizes (2×2 → N×N), w
 
 ## Installation
 
-The package is located in the [Test PyPI repository](https://test.pypi.org/project/rubiks-cube-solver/). You can install it using pip:
+The package is located in the [Test PyPI repository](https://test.pypi.org/project/rubik-cube-solver/). You can install it using pip:
 
 ```bash
 pip install -i https://test.pypi.org/simple/ rubik-cube-solver
