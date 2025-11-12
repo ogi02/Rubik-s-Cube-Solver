@@ -40,7 +40,7 @@ async def main():
     client.authenticate()
 
     # Start the WebSocket connection
-    asyncio.create_task(client.run())
+    task = asyncio.create_task(client.run())
 
     # Send a message to the server
     await client.send_message({"message": "Hello, Server!"})
@@ -48,6 +48,9 @@ async def main():
     # Close the connection after some time
     await asyncio.sleep(5)
     await client.close()
+    
+    # Wait for the run task to finish
+    await task
 
 asyncio.run(main())
 ```
@@ -75,11 +78,16 @@ async def main():
     client.authenticate()
 
     # Start the WebSocket connection
-    asyncio.create_task(client.run())
+    task = asyncio.create_task(client.run())
 
     # Close the connection after some time
     await asyncio.sleep(5)
     await client.close()
+
+    # Wait for the run task to finish
+    await task
+
+asyncio.run(main())
 ```
 
 Create a simple client with asynchronous message handling:
@@ -108,11 +116,16 @@ async def main():
     client.authenticate()
 
     # Start the WebSocket connection
-    asyncio.create_task(client.run())
+    task = asyncio.create_task(client.run())
 
     # Close the connection after some time
     await asyncio.sleep(5)
     await client.close()
+
+    # Wait for the run task to finish
+    await task
+
+asyncio.run(main())
 ```
 
 ## Testing
