@@ -57,10 +57,8 @@ class WebSocketClient:
             self.token = response_json["token"]
         except requests.RequestException as e:
             logging.error(f"Failed to get token from server: {e}")
-            exit(1)
         except (ValueError, KeyError) as e:
             logging.error(f"Invalid response from server when requesting token: {e}")
-            exit(1)
 
     async def _connect(self):
         """
@@ -89,7 +87,7 @@ class WebSocketClient:
                     logging.info(f"Received: {data}")
                 except json.JSONDecodeError:
                     data = msg
-                    logging.info(f"Non-JSON message received: {data!r}")
+                    logging.info(f"Non-JSON message received: {data}")
                 # Call the message handler if provided
                 if asyncio.iscoroutinefunction(self.message_handler):
                     await self.message_handler(data)
@@ -106,6 +104,7 @@ class WebSocketClient:
         Handles connection closure.
         Handles asyncio task cancellation.
         """
+
         try:
             while True:
                 msg = await self.send_queue.get()
