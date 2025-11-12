@@ -3,12 +3,12 @@ from unittest.mock import call, patch
 
 import pytest
 
-import cube_rotation.side_stickers_rotation as ssr
-from cube import Cube
-from enums.Color import Color
-from enums.Direction import Direction
-from enums.EdgePosition import EdgePosition
-from enums.Layer import Layer
+import rubik_cube_solver.cube_rotation.side_stickers_rotation as ssr
+from rubik_cube_solver.cube import Cube
+from rubik_cube_solver.enums.Color import Color
+from rubik_cube_solver.enums.Direction import Direction
+from rubik_cube_solver.enums.EdgePosition import EdgePosition
+from rubik_cube_solver.enums.Layer import Layer
 
 
 # fmt: off

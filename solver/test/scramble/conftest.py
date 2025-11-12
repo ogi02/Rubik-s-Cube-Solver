@@ -2,10 +2,10 @@ from typing import Callable
 
 import pytest
 
-from cube_rotation.move import Move
-from enums.Direction import Direction
-from enums.Layer import Layer
-from scramble.scrambler import Scrambler
+from rubik_cube_solver.cube_rotation.move import Move
+from rubik_cube_solver.enums.Direction import Direction
+from rubik_cube_solver.enums.Layer import Layer
+from rubik_cube_solver.scramble.scrambler import Scrambler
 
 
 @pytest.fixture

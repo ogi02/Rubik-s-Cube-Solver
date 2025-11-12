@@ -1,5 +1,5 @@
-from enums.Color import Color
-from enums.Layer import Layer
+from rubik_cube_solver.enums.Color import Color
+from rubik_cube_solver.enums.Layer import Layer
 
 
 class Cube:

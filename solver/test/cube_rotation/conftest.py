@@ -2,13 +2,13 @@ from typing import Callable
 
 import pytest
 
-from cube import Cube
-from cube_rotation.move import Move
-from cube_rotation.rotator import Rotator
-from enums.Color import Color
-from enums.Direction import Direction
-from enums.EdgePosition import EdgePosition
-from enums.Layer import Layer
+from rubik_cube_solver.cube import Cube
+from rubik_cube_solver.cube_rotation.move import Move
+from rubik_cube_solver.cube_rotation.rotator import Rotator
+from rubik_cube_solver.enums.Color import Color
+from rubik_cube_solver.enums.Direction import Direction
+from rubik_cube_solver.enums.EdgePosition import EdgePosition
+from rubik_cube_solver.enums.Layer import Layer
 
 RUBIKS_CUBE_COLORS: list[Color] = [Color.WHITE, Color.YELLOW, Color.ORANGE, Color.RED, Color.GREEN, Color.BLUE]
 

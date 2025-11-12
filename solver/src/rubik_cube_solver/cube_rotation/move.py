@@ -1,5 +1,5 @@
-from enums.Direction import Direction
-from enums.Layer import Layer
+from rubik_cube_solver.enums.Direction import Direction
+from rubik_cube_solver.enums.Layer import Layer
 
 
 class Move:
