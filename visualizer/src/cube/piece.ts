@@ -1,7 +1,7 @@
 import { mat4, vec3, type mat4 as Mat4Type } from "gl-matrix";
 
-import { Face } from "./face";
-import { roundToDecimal } from "../utils/math";
+import { Face } from "./face.ts";
+import { roundToDecimal } from "../utils/mathUtils.ts";
 import type { CubeSettings } from "../utils/cubeSettings.ts";
 
 /**

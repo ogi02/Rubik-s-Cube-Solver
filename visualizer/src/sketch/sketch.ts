@@ -1,9 +1,9 @@
 import p5 from "p5";
 
-import { Cube } from "../cube/cube";
-import { authenticate } from "../client/authenticate";
-import { setBackground, setupCanvas, windowResized } from "./canvas";
-import { loadCubeSettings, type CubeSettings } from "../utils/cubeSettings";
+import { Cube } from "../cube/cube.ts";
+import { authenticate } from "../client/authenticate.ts";
+import { setBackground, setupCanvas, windowResized } from "./canvas.ts";
+import { loadCubeSettings, type CubeSettings } from "../utils/cubeSettings.ts";
 
 /**
  * Cube sketch for p5 visualization

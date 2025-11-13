@@ -1,7 +1,7 @@
 import { mat2d } from "gl-matrix";
 
-import type { Piece } from "./piece";
-import { roundToDecimal } from "../utils/math";
+import type { Piece } from "./piece.ts";
+import { roundToDecimal } from "../utils/mathUtils.ts";
 
 /**
  * Turn pieces around X axis
