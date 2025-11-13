@@ -118,8 +118,26 @@ export const cubeSketch = (p: p5) => {
 
                     // Initialize cube with given dimensions
                     createCube(data.data.dimensions);
+
+                    // Validate the state
+                    const expectedSides = ['UP', 'DOWN', 'LEFT', 'RIGHT', 'FRONT', 'BACK'];
+                    const state = data.data.state;
+                    if (
+                        // State must be an object with exactly 6 sides
+                        state === null ||
+                        typeof state !== 'object' ||
+                        Object.keys(state).length !== 6 ||
+                        // Each side must be one of the expected sides and an array of strings
+                        !Object.entries(state).every(([side, stickers]: [string, unknown]) : boolean =>
+                            expectedSides.includes(side) && Array.isArray(stickers) && stickers.every(s => typeof s === 'string')
+                        )
+                    ) {
+                        console.error("Invalid cube_state: state must be an object with exactly 6 sides ('UP', 'DOWN', 'LEFT', 'RIGHT', 'FRONT', 'BACK'), each an array of strings.", state);
+                        return;
+                    }
+
                     // Apply the state to the cube
-                    const sides = new Map<string, Array<string>>(Object.entries(data.data.state));
+                    const sides = new Map<string, Array<string>>(Object.entries(state));
                     cube.setUpFromState(sides);
                 }
             } catch (error) {
