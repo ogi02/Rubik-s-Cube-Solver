@@ -108,12 +108,18 @@ export const cubeSketch = (p: p5) => {
             try {
                 const data = JSON.parse(event.data);
 
-                // Handle from cube state message
+                // Handle cube state message
                 if (data.type === "cube_state") {
+                    // Validate
+                    if (!data.data || data.data.dimensions === undefined || !data.data.state) {
+                        console.error("Invalid cube_state message: missing required fields", data);
+                        return;
+                    }
+
                     // Initialize cube with given dimensions
-                    createCube(data.data?.dimensions);
+                    createCube(data.data.dimensions);
                     // Apply the state to the cube
-                    const sides = new Map<string, Array<string>>(Object.entries(data.data?.state))
+                    const sides = new Map<string, Array<string>>(Object.entries(data.data.state));
                     cube.setUpFromState(sides);
                 }
             } catch (error) {
