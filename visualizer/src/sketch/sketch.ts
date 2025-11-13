@@ -107,7 +107,15 @@ export const cubeSketch = (p: p5) => {
             // Parse incoming data
             try {
                 const data = JSON.parse(event.data);
-                console.log(data);
+
+                // Handle from cube state message
+                if (data.type === "cube_state") {
+                    // Initialize cube with given dimensions
+                    createCube(data.data?.dimensions);
+                    // Apply the state to the cube
+                    const sides = new Map<string, Array<string>>(Object.entries(data.data?.state))
+                    cube.setUpFromState(sides);
+                }
             } catch (error) {
                 console.error("Error parsing message:", error);
             }
