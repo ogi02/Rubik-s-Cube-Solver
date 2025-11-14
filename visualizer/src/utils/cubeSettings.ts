@@ -44,8 +44,8 @@ export interface CubeSettings {
 // Default settings for a 3x3 cube
 export const DefaultSettings: CubeSettings = {
     cubeDimensions: 3,
-    animationSpeed: 8,
-    moveDelay: 125,
+    animationSpeed: 50,
+    moveDelay: 20,
     cameraScale: 200,
     drawBlackFaces: true,
     colorWhite: "#FFFFFF",

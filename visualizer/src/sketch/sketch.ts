@@ -100,6 +100,7 @@ export const cubeSketch = (p: p5) => {
                 // Handle cube state message
                 if (data.type === "cube_state") {
                     cube = handleCubeStateMessage(data, p);
+                    settings = cube.settings;
                 }
 
                 // Handle apply moves message
