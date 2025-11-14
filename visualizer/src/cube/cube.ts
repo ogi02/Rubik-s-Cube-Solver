@@ -1,10 +1,10 @@
-import { Move } from "./move";
-import { Piece } from "./piece";
-import { Animation } from "./animation";
-import { turnX, turnY, turnZ } from "./turn";
-import { roundToDecimal } from "../utils/math";
-import type { CubeSettings } from "../utils/cubeSettings";
-import { mapColor } from "../utils/color";
+import { Move } from "./move.ts";
+import { Piece } from "./piece.ts";
+import { Animation } from "./animation.ts";
+import { turnX, turnY, turnZ } from "./turn.ts";
+import { roundToDecimal } from "../utils/mathUtils.ts";
+import type { CubeSettings } from "../utils/cubeSettings.ts";
+import { mapColor } from "../utils/colorUtils.ts";
 
 /**
  * Class representing a Rubik's Cube

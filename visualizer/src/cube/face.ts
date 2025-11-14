@@ -1,7 +1,7 @@
 import type p5 from "p5";
 import { vec3 } from "gl-matrix";
 
-import { roundToDecimal } from "../utils/math";
+import { roundToDecimal } from "../utils/mathUtils.ts";
 import type { CubeSettings } from "../utils/cubeSettings.ts";
 
 /**

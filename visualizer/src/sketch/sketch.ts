@@ -1,9 +1,9 @@
 import p5 from "p5";
 
-import { Cube } from "../cube/cube";
-import { authenticate } from "../client/authenticate";
-import { setBackground, setupCanvas, windowResized } from "./canvas";
-import { loadCubeSettings, type CubeSettings } from "../utils/cubeSettings";
+import { Cube } from "../cube/cube.ts";
+import { authenticate } from "../client/authenticate.ts";
+import { setBackground, setupCanvas, windowResized } from "./canvas.ts";
+import { loadCubeSettings, type CubeSettings } from "../utils/cubeSettings.ts";
 
 /**
  * Cube sketch for p5 visualization
@@ -107,7 +107,39 @@ export const cubeSketch = (p: p5) => {
             // Parse incoming data
             try {
                 const data = JSON.parse(event.data);
-                console.log(data);
+
+                // Handle cube state message
+                if (data.type === "cube_state") {
+                    // Validate
+                    if (!data.data || data.data.dimensions === undefined || !data.data.state) {
+                        console.error("Invalid cube_state message: missing required fields", data);
+                        return;
+                    }
+
+                    // Initialize cube with given dimensions
+                    createCube(data.data.dimensions);
+
+                    // Validate the state
+                    const expectedSides = ['UP', 'DOWN', 'LEFT', 'RIGHT', 'FRONT', 'BACK'];
+                    const state = data.data.state;
+                    if (
+                        // State must be an object with exactly 6 sides
+                        state === null ||
+                        typeof state !== 'object' ||
+                        Object.keys(state).length !== 6 ||
+                        // Each side must be one of the expected sides and an array of strings
+                        !Object.entries(state).every(([side, stickers]: [string, unknown]) : boolean =>
+                            expectedSides.includes(side) && Array.isArray(stickers) && stickers.every(s => typeof s === 'string')
+                        )
+                    ) {
+                        console.error("Invalid cube_state: state must be an object with exactly 6 sides ('UP', 'DOWN', 'LEFT', 'RIGHT', 'FRONT', 'BACK'), each an array of strings.", state);
+                        return;
+                    }
+
+                    // Apply the state to the cube
+                    const sides = new Map<string, Array<string>>(Object.entries(state));
+                    cube.setUpFromState(sides);
+                }
             } catch (error) {
                 console.error("Error parsing message:", error);
             }

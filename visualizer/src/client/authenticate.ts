@@ -19,4 +19,4 @@ export const authenticate = async () : Promise<string> => {
     } catch (error) {
         throw new Error(`Network or authentication error: ${error instanceof Error ? error.message : String(error)}`);
     }
-}
+};

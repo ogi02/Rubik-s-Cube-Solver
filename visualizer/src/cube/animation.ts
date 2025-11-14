@@ -1,4 +1,4 @@
-import type { Move } from "./move";
+import type { Move } from "./move.ts";
 
 /**
  * Class to handle animation of a cube in 3D space.
