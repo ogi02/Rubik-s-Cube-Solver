@@ -183,7 +183,7 @@ Output:
 ### Changing Move Speed and Delay
 
 The visualizer can be configured to apply moves with different speeds and styles.
-Speed is percentage of the move for a single frame - 100 means the move is applied in a single frame, 50 means the move is applied in two frames, etc.
+Speed is the percentage of the move for a single frame - 100 means the move is applied in a single frame, 50 means the move is applied in two frames, etc.
 Move delay is the time in milliseconds to wait between moves. The formula `moveDelay = 1000 / moveSpeed` provides a visually appealing speed for the different speeds.
 
 #### 3x3x3 Cube with Normal Speed and Delay
