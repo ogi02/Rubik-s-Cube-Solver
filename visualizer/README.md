@@ -71,6 +71,7 @@ Message:
 ```
 
 Output:
+
 ![3x3x3 Cube State](./videos/3x3-cube-state.gif)
 
 #### 5x5x5 Cube
@@ -130,6 +131,7 @@ Message:
 ```
 
 Output:
+
 ![5x5x5 Cube State](./videos/5x5-cube-state.gif)
 
 ### Applying Moves
@@ -152,6 +154,7 @@ Message:
 ```
 
 Output:
+
 ![3x3x3 Apply Moves](./videos/3x3-apply-moves.gif)
 
 #### 5x5x5 Cube
@@ -174,6 +177,7 @@ Message:
 ```
 
 Output:
+
 ![5x5x5 Apply Moves](./videos/5x5-apply-moves.gif)
 
 ### Changing Move Speed and Delay
@@ -190,6 +194,7 @@ Move Delay: 125
 ```
 
 Output:
+
 ![3x3x3 Cube Normal Speed](./videos/3x3-apply-moves.gif)
 
 #### 3x3x3 Cube with Fast Speed and Small Delay
@@ -200,6 +205,7 @@ Move Delay: 20
 ```
 
 Output:
+
 ![3x3x3 Cube Fast Speed](./videos/3x3-apply-moves-fast.gif)
 
 ## Testing
