@@ -21,7 +21,7 @@ export const handleCubeStateMessage = (data: any, p: p5) : Cube => {
     }
 
     // Initialize cube with given dimensions
-    const settings : CubeSettings = loadCubeSettings(data.data.dimentions, p);
+    const settings : CubeSettings = loadCubeSettings(data.data.dimensions, p);
     const cube : Cube = new Cube(settings);
 
     // Validate the state
@@ -60,8 +60,8 @@ export const handleCubeStateMessage = (data: any, p: p5) : Cube => {
 export const handleApplyMovesMessage = (data: any, cube: Cube) : void => {
     // Validate
     if (!data.data || !data.data.moves) {
-        console.error("Invalid cube_state message: missing required fields", data);
-        throw new Error("Invalid cube_state message: missing required fields");
+        console.error("Invalid apply_moves message: missing required fields", data);
+        throw new Error("Invalid apply_moves message: missing required fields");
     }
 
     // Validate the moves
