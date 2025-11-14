@@ -13,11 +13,15 @@ import { mapColor } from "../utils/colorUtils.ts";
  * @property {CubeSettings} settings - The settings for the cube
  * @property {Piece[]} pieces - The pieces of the cube
  * @property {Animation | null} currentAnimation - The current animation being performed on the cube
+ * @property {string[]} moveQueue - Queue of moves to be performed
+ * @property {boolean} isPerformingMoves - Flag indicating if the cube is currently performing moves
  */
 export class Cube {
     settings: CubeSettings;
     pieces: Piece[];
     currentAnimation: Animation | null = null;
+    moveQueue: string[] = [];
+    isPerformingMoves: boolean = false;
 
     /**
      * Constructor for the Cube class
@@ -97,25 +101,6 @@ export class Cube {
     };
 
     /**
-     * Apply a sequence of moves to the cube
-     *
-     * @param movesString - The string of moves to apply (e.g., "R U R' U'")
-     *
-     * @example
-     * cube.applyMoves("R U R' U'");
-     */
-    applyMoves(movesString: string) : void {
-        // Split the moves string into individual move texts
-        const moveTexts: string[] = movesString.split(" ");
-
-        // Apply each move sequentially
-        const timeoutInterval = 5000 / this.settings.animationSpeed;
-        for (let i = 0; i < moveTexts.length; i++) {
-            setTimeout(() => this.turn(moveTexts[i]), i * timeoutInterval);
-        }
-    }
-
-    /**
      * Animate a piece based on the current animation
      *
      * @param piece - The piece to animate
@@ -180,6 +165,68 @@ export class Cube {
             // Clear the current animation
             this.currentAnimation = null;
         }
+    }
+
+    /**
+     * Add moves from an array to the move queue and start performing them
+     *
+     * @param movesArray - An array of move strings to add to the queue
+     *
+     * @example
+     * cube.addMovesFromArray(["R", "U", "R'", "U'"]);
+     */
+    addMovesFromArray(movesArray: string[]) : void {
+        // Add each move to the move queue
+        this.moveQueue.push(...movesArray);
+        if (!this.isPerformingMoves) {
+            this.applyMoves();
+        }
+    }
+
+    /**
+     * Add moves from a string to the move queue and start performing them
+     *
+     * @param movesString - A string of moves separated by spaces (e.g., "R U R' U'")
+     *
+     * @example
+     * cube.addMovesFromString("R U R' U'");
+     */
+    addMovesFromString(movesString: string) : void {
+        // Split the moves string into individual move texts
+        const moveTexts: string[] = movesString.split(" ");
+        this.addMovesFromArray(moveTexts);
+    }
+
+    /**
+     * Apply the moves in the queue one by one with animation
+     *
+     * @example
+     * cube.applyMoves();
+     */
+    async applyMoves() : Promise<void> {
+        this.isPerformingMoves = true;
+        while (this.moveQueue.length > 0) {
+            // Get the next move from the queue
+            const nextMove = this.moveQueue.shift()!;
+            // Perform the turn
+            this.turn(nextMove);
+            // Wait until the current animation is finished
+            await new Promise<void>((resolve) => {
+                const checkAnimation = () => {
+                    if (!this.currentAnimation) {
+                        resolve();
+                    } else {
+                        requestAnimationFrame(checkAnimation);
+                    }
+                };
+                checkAnimation();
+            });
+            // Optional delay between moves
+            if (this.settings.moveDelay > 0) {
+                await new Promise((resolve) => setTimeout(resolve, this.settings.moveDelay));
+            }
+        }
+        this.isPerformingMoves = false;
     }
 
     /**
