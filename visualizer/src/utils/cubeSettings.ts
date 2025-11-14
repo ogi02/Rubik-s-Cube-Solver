@@ -6,6 +6,7 @@ import p5 from "p5";
  * @interface CubeSettings
  * @property {number} cubeDimensions - The dimensions of the cube (e.g., 3 for a 3x3 cube)
  * @property {number} animationSpeed - The speed of the cube's animations (in percentage of the angle)
+ * @property {number} moveDelay - The delay between moves in milliseconds
  * @property {number} cameraScale - The scale of the camera
  * @property {boolean} drawBlackFaces - Whether to draw black faces (for rendering optimization)
  * @property {string} colorWhite - Color for the white face
@@ -22,6 +23,8 @@ export interface CubeSettings {
     cubeDimensions: number;
     // The speed of the cube's animations (in percentage of the angle)
     animationSpeed: number;
+    // The delay between moves in milliseconds
+    moveDelay: number;
     // The scale of the camera
     cameraScale: number;
     // Whether to draw black faces (for rendering optimization)
@@ -41,7 +44,8 @@ export interface CubeSettings {
 // Default settings for a 3x3 cube
 export const DefaultSettings: CubeSettings = {
     cubeDimensions: 3,
-    animationSpeed: 10,
+    animationSpeed: 8,
+    moveDelay: 125,
     cameraScale: 200,
     drawBlackFaces: true,
     colorWhite: "#FFFFFF",
