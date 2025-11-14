@@ -4,6 +4,7 @@ import { Cube } from "../cube/cube.ts";
 import { authenticate } from "../client/authenticate.ts";
 import { setBackground, setupCanvas, windowResized } from "./canvas.ts";
 import { loadCubeSettings, type CubeSettings } from "../utils/cubeSettings.ts";
+import { handleApplyMovesMessage, handleCubeStateMessage } from "../client/messageHandlers.ts";
 
 /**
  * Cube sketch for p5 visualization
@@ -34,7 +35,8 @@ export const cubeSketch = (p: p5) => {
         );
 
         // Create a default 3x3 cube
-        createCube(3);
+        settings = loadCubeSettings(3, p);
+        cube = new Cube(settings);
 
         // Set up server connection if needed
         if (import.meta.env.VITE_CONNECT_TO_SERVER === "true") {
@@ -72,19 +74,6 @@ export const cubeSketch = (p: p5) => {
     })
 
     /**
-     * Create a cube with given dimensions
-     *
-     * @param dimensions - The dimensions of the cube
-     *
-     * @example
-     * createCube(3);
-     */
-    const createCube = (dimensions: number) : void => {
-        settings = loadCubeSettings(dimensions, p);
-        cube = new Cube(settings);
-    }
-
-    /**
      * Set up server connection and WebSocket
      *
      * @example
@@ -110,38 +99,15 @@ export const cubeSketch = (p: p5) => {
 
                 // Handle cube state message
                 if (data.type === "cube_state") {
-                    // Validate
-                    if (!data.data || data.data.dimensions === undefined || !data.data.state) {
-                        console.error("Invalid cube_state message: missing required fields", data);
-                        return;
-                    }
+                    cube = handleCubeStateMessage(data, p);
+                }
 
-                    // Initialize cube with given dimensions
-                    createCube(data.data.dimensions);
-
-                    // Validate the state
-                    const expectedSides = ['UP', 'DOWN', 'LEFT', 'RIGHT', 'FRONT', 'BACK'];
-                    const state = data.data.state;
-                    if (
-                        // State must be an object with exactly 6 sides
-                        state === null ||
-                        typeof state !== 'object' ||
-                        Object.keys(state).length !== 6 ||
-                        // Each side must be one of the expected sides and an array of strings
-                        !Object.entries(state).every(([side, stickers]: [string, unknown]) : boolean =>
-                            expectedSides.includes(side) && Array.isArray(stickers) && stickers.every(s => typeof s === 'string')
-                        )
-                    ) {
-                        console.error("Invalid cube_state: state must be an object with exactly 6 sides ('UP', 'DOWN', 'LEFT', 'RIGHT', 'FRONT', 'BACK'), each an array of strings.", state);
-                        return;
-                    }
-
-                    // Apply the state to the cube
-                    const sides = new Map<string, Array<string>>(Object.entries(state));
-                    cube.setUpFromState(sides);
+                // Handle apply moves message
+                if (data.type === "apply_moves") {
+                    handleApplyMovesMessage(data, cube);
                 }
             } catch (error) {
-                console.error("Error parsing message:", error);
+                console.error("Error handling message:", error);
             }
 
         };
@@ -184,7 +150,7 @@ export const cubeSketch = (p: p5) => {
             // let scramble5 = "3Uw2 3Bw 3Uw2 L2 R' U Uw 3Dw' F2 3Uw' B R2 D2 Uw 3Dw2 L' 3Fw2 3Rw2 Bw Dw Rw2 B' L' R'"
             // let scramble = "3Lw' Dw2 Rw2 3Rw2 3Uw2 L' Fw' Uw2 3Rw2 3Lw2 R Dw Fw F2 3Dw' Lw2 Bw2 3Rw2 Dw' 3Rw F' 3Bw2 Bw' U Bw Uw' 3Rw2 Dw' 3Dw2 U' 3Rw 3Fw2 Bw Lw 3Fw 3Lw' Fw Rw Lw2 R U Lw U D2 3Rw2 Uw U' B' L2 3Fw 3Bw D Bw2 D' L R2 3Rw' B Bw 3Uw Dw2 B' L 3Lw' D' Lw' 3Fw' 3Uw Fw2 Bw2 U2 Rw Fw B' 3Rw2 3Bw2 L2 3Bw 3Uw2 B2 L 3Uw2 U2 Bw2 Rw2 3Rw' 3Lw2 3Uw 3Rw Bw D' B' L' 3Fw R U 3Dw 3Bw2 U' Dw'"
             // let scramble7 = "U D'";
-            cube.applyMoves(scramble);
+            cube.addMovesFromString(scramble);
         }
     };
 }
