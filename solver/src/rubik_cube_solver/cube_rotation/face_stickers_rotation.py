@@ -1,3 +1,4 @@
+# Project imports
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.enums.Color import Color
 from rubik_cube_solver.enums.Direction import Direction

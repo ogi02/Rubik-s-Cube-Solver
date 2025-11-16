@@ -1,8 +1,10 @@
+# Python imports
 from typing import Callable
 from unittest.mock import patch
 
 import pytest
 
+# Project imports
 import rubik_cube_solver.cube_rotation.face_stickers_rotation as fsr
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.enums.Color import Color
