@@ -1,8 +1,8 @@
 # Python imports
-import pytest
 import textwrap
-
 from typing import Any
+
+import pytest
 
 # Project imports
 from rubik_cube_solver.cube import Cube
@@ -303,7 +303,7 @@ def test_cube_str_success(cube_generator: str, expected_string: str, request: py
 )
 # fmt: on
 def test_cube_state_success(
-        cube_generator: str, expected_dimensions: int, expected_state: dict[str, list[str]], request: pytest.FixtureRequest
+    cube_generator: str, expected_dimensions: int, expected_state: dict[str, list[str]], request: pytest.FixtureRequest
 ) -> None:
     """
     Test the state representation of the Cube class.

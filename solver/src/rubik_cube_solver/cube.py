@@ -139,18 +139,5 @@ class Cube:
                 "RIGHT": [color.value for color in self.layers[Layer.RIGHT]],
                 "FRONT": [color.value for color in self.layers[Layer.FRONT]],
                 "BACK": [color.value for color in self.layers[Layer.BACK]],
-            }
+            },
         }
-
-    def scramble(self):
-        # Implement scramble logic
-        pass
-
-    def solve(self):
-        # Implement solve logic using CFOP
-        pass
-
-
-if __name__ == "__main__":
-    cube = Cube(size=3)
-    print(cube)
