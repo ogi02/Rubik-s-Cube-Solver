@@ -7,6 +7,10 @@ from rubik_cube_solver.enums.Layer import Layer
 
 
 class Cube:
+    """
+    Class representing a Rubik's Cube.
+    """
+
     def __init__(self, size: int, layers: dict[Layer, list[Color]] | None = None) -> None:
         """
         Initialize a Cube instance.
