@@ -1,11 +1,21 @@
+# Python imports
+from typing import Any
+
+# Project imports
 from rubik_cube_solver.enums.Color import Color
 from rubik_cube_solver.enums.Layer import Layer
 
 
 class Cube:
-    def __init__(self, size: int):
-        # Initialize the cube with a solved state
-        self.__layers = {
+    def __init__(self, size: int, layers: dict[Layer, list[Color]] | None = None) -> None:
+        """
+        Initialize a Cube instance.
+
+        :param size: The size of the cube (e.g., 3 for a 3x3 cube)
+        :param layers: Optional dictionary representing the layers of the cube
+        """
+
+        self.__layers = layers or {
             Layer.UP: [Color.WHITE] * size * size,
             Layer.DOWN: [Color.YELLOW] * size * size,
             Layer.LEFT: [Color.ORANGE] * size * size,
@@ -22,6 +32,7 @@ class Cube:
 
         :return: The cube size
         """
+
         return self.__size
 
     @size.setter
@@ -31,6 +42,7 @@ class Cube:
 
         :param cube_size: The cube size
         """
+
         self.__size = cube_size
 
     @property
@@ -40,6 +52,7 @@ class Cube:
 
         :return: The layers of the cube
         """
+
         return self.__layers
 
     @layers.setter
@@ -49,21 +62,22 @@ class Cube:
 
         :param layers: The layers of the cube
         """
+
         self.__layers = layers
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Return a string representation of the Cube in the following format:
 
-               U U U
-               U U U
-               U U U
-        L L L  F F F  R R R  B B B
-        L L L  F F F  R R R  B B B
-        L L L  F F F  R R R  B B B
-               D D D
-               D D D
-               D D D
+              U U U
+              U U U
+              U U U
+        L L L F F F R R R B B B
+        L L L F F F R R R B B B
+        L L L F F F R R R B B B
+              D D D
+              D D D
+              D D D
 
         :return: The string representation of the Cube
         """
@@ -102,10 +116,33 @@ class Cube:
 
         return string_representation
 
-    def scramble(self):
-        # Implement scramble logic
-        pass
+    def state(self) -> dict[str, Any]:
+        """
+        Returns the current state of the cube in the following format:
 
-    def solve(self):
-        # Implement solve logic using CFOP
-        pass
+        {
+            "dimensions": size,
+            "state": {
+                "UP": [...],
+                "DOWN": [...],
+                "LEFT": [...],
+                "RIGHT": [...],
+                "FRONT": [...],
+                "BACK": [...]
+            }
+        }
+
+        :return: The current state of the cube
+        """
+
+        return {
+            "dimensions": self.size,
+            "state": {
+                "UP": [color.value for color in self.layers[Layer.UP]],
+                "DOWN": [color.value for color in self.layers[Layer.DOWN]],
+                "LEFT": [color.value for color in self.layers[Layer.LEFT]],
+                "RIGHT": [color.value for color in self.layers[Layer.RIGHT]],
+                "FRONT": [color.value for color in self.layers[Layer.FRONT]],
+                "BACK": [color.value for color in self.layers[Layer.BACK]],
+            },
+        }
