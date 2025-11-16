@@ -14,6 +14,7 @@ class Cube:
         :param size: The size of the cube (e.g., 3 for a 3x3 cube)
         :param layers: Optional dictionary representing the layers of the cube
         """
+
         self.__layers = layers or {
             Layer.UP: [Color.WHITE] * size * size,
             Layer.DOWN: [Color.YELLOW] * size * size,
@@ -31,6 +32,7 @@ class Cube:
 
         :return: The cube size
         """
+
         return self.__size
 
     @size.setter
@@ -40,6 +42,7 @@ class Cube:
 
         :param cube_size: The cube size
         """
+
         self.__size = cube_size
 
     @property
@@ -49,6 +52,7 @@ class Cube:
 
         :return: The layers of the cube
         """
+
         return self.__layers
 
     @layers.setter
@@ -58,6 +62,7 @@ class Cube:
 
         :param layers: The layers of the cube
         """
+
         self.__layers = layers
 
     def __str__(self) -> str:

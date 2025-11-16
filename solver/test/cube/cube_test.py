@@ -120,7 +120,9 @@ def test_cube_str_success(cube_generator: str, expected_string: str, request: py
     """
     Test the string representation of the Cube class.
 
+    :param cube_generator: The name of the cube fixture to generate
     :param expected_string: The expected string representation of the Cube
+    :param request: The pytest fixture request object
     """
 
     # Generate the cube
@@ -311,6 +313,7 @@ def test_cube_state_success(
     :param cube_generator: The name of the cube fixture to generate
     :param expected_dimensions: The expected dimensions of the Cube
     :param expected_state: The expected state representation of the Cube
+    :param request: The pytest fixture request object
     """
 
     # Generate the cube
