@@ -1,3 +1,4 @@
+# Project imports
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.cube_rotation.face_stickers_rotation import rotate_face
 from rubik_cube_solver.cube_rotation.move import Move

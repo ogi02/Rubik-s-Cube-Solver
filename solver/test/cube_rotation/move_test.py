@@ -1,7 +1,9 @@
+# Python imports
 from typing import Callable
 
 import pytest
 
+# Project imports
 from rubik_cube_solver.cube_rotation.move import Move
 from rubik_cube_solver.enums.Direction import Direction
 from rubik_cube_solver.enums.Layer import Layer
