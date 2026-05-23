@@ -1,89 +1,66 @@
-from cube import Cube
-from cube_rotation.rotator import Rotator
-from enums.Direction import Direction
-from enums.Layer import Layer
+import json
 
-def main():
-    # Create a Rubik's Cube
-    cube = Cube(3)
+from rubik_cube_solver.cube import Cube
+from rubik_cube_solver.cube_rotation.rotator import Rotator
+from rubik_cube_solver.scramble.scrambler import Scrambler
+
+from rubik_cube_websocket_client.client import WebSocketClient
+
+async def main():
+    # Initialize cube, rotator, and scrambler
+    cube_size = 3
+    cube = Cube(size=cube_size)
     rotator = Rotator(cube)
+    scrambler = Scrambler()
 
-    # U R' L2 F U2 B' D L' R2 F' U B2 D' L R' F2 U' B D2 L'
+    # Generate a scramble
+    scramble_moves = scrambler.generate_scramble(cube_size=cube_size)
 
-    # Sequence of 20 moves
-    moves = [
-        (Layer.UP, 1, Direction.CW),
-        (Layer.RIGHT, 1, Direction.CCW),
-        (Layer.LEFT, 1, Direction.DOUBLE),
-        (Layer.FRONT, 1, Direction.CW),
-        (Layer.UP, 1, Direction.DOUBLE),
-        (Layer.BACK, 1, Direction.CCW),
-        (Layer.DOWN, 1, Direction.CW),
-        (Layer.LEFT, 1, Direction.CCW),
-        (Layer.RIGHT, 1, Direction.DOUBLE),
-        (Layer.FRONT, 1, Direction.CCW),
-        (Layer.UP, 1, Direction.CW),
-        (Layer.BACK, 1, Direction.DOUBLE),
-        (Layer.DOWN, 1, Direction.CCW),
-        (Layer.LEFT, 1, Direction.CW),
-        (Layer.RIGHT, 1, Direction.CCW),
-        (Layer.FRONT, 1, Direction.DOUBLE),
-        (Layer.UP, 1, Direction.CCW),
-        (Layer.BACK, 1, Direction.CW),
-        (Layer.DOWN, 1, Direction.DOUBLE),
-        (Layer.LEFT, 1, Direction.CCW),
-    ]
+    # Print the scramble
+    print(f"Scramble: {" ".join(str(move) for move in scramble_moves)}")
 
-    # Apply the moves
-    for i, (layer, slice_index, direction) in enumerate(moves, 1):
-        print(f"Move {i}: {layer}, {direction}")
-        rotator.turn(layer, slice_index, direction)
+    # Apply each move to the cube
+    for move in scramble_moves:
+        rotator.turn(move)
 
-    # Print final cube state
-    print("Final cube state:")
-    print(cube)
+    # Print the cube state
+    print(f"\nScrambled cube state: \n{cube}\n")
 
+    # Connect to the server via WebSocket
+    client = WebSocketClient(
+        host="127.0.0.1", port=8080, secure=False,
+        api_key="2ba79446-5754-4123-858c-ed863efae315"
+    )
 
-def main2():
-    # Create a Rubik's Cube
-    cube = Cube(4)
-    rotator = Rotator(cube)
+    client.authenticate()
 
-    # U Rw' F2 Lw2 D' B U2 L' Fw R' D2 Lw' B2 U' R2 Fw' D Lw2 Bw'
-    # U2 R F2 Rw D' L B2 Uw' F' R2 Lw D2 B R' Fw U2 Lw Bw' D
+    task = asyncio.create_task(client.run())
 
-    # Example mapping function
-    face_map = {
-        "U": Layer.UP, "D": Layer.DOWN, "L": Layer.LEFT, "R": Layer.RIGHT,
-        "F": Layer.FRONT, "B": Layer.BACK
+    state = {}
+    for layer, stickers in cube.layers.items():
+        state[str(layer.name)] = [sticker.value for sticker in stickers]
+
+    message = {
+        "type": "cube_state",
+        "data": {
+            "dimensions": cube.size,
+            "state": state
+        }
     }
 
-    direction_map = {
-        "": Direction.CW,  # normal
-        "'": Direction.CCW,
-        "2": Direction.DOUBLE
+    message2 = {
+        "type": "apply_moves",
+        "data": {
+            "moves": [str(move) for move in scramble_moves]
+        }
     }
 
-    # Manual mapping of scramble moves
-    scramble_moves = [
-        ("U", 1, ""), ("R", 2, "'"), ("F", 1, "2"), ("L", 2, "2"), ("D", 1, "'"),
-        ("B", 1, ""), ("U", 1, "2"), ("L", 1, "'"), ("F", 2, ""), ("R", 1, "'"),
-        ("D", 1, "2"), ("L", 2, "'"), ("B", 1, "2"), ("U", 1, "'"), ("R", 1, "2"),
-        ("F", 2, "'"), ("D", 1, ""), ("L", 2, ""), ("B", 2, "'"), ("U", 1, "2"),
-        ("R", 1, ""), ("F", 1, "2"), ("R", 2, ""), ("D", 1, "'"), ("L", 1, ""),
-        ("B", 1, "2"), ("U", 2, "'"), ("F", 1, "'"), ("R", 1, "2"), ("L", 2, ""),
-        ("D", 1, "2"), ("B", 1, ""), ("R", 1, "'"), ("F", 2, ""), ("U", 1, "2"),
-        ("L", 2, ""), ("B", 2, "'"), ("D", 1, "")
-    ]
+    print(json.dumps(message2, indent = 4))
 
-    # Apply the scramble
-    for face, layers, suffix in scramble_moves:
-        rotator.turn(face_map[face], layers, direction_map[suffix])
+    await client.send_message(message2)
 
-    # Print final cube state
-    print("Final cube state:")
-    print(cube)
-
+    await asyncio.gather(task)
 
 if __name__ == "__main__":
-    main2()
+    import asyncio
+    asyncio.run(main())

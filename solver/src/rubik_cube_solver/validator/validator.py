@@ -2,7 +2,7 @@
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.enums.Color import Color
 from rubik_cube_solver.enums.Layer import Layer
-from rubik_cube_solver.validator.corner_validation import get_corner_colors, get_corner_positions
+from rubik_cube_solver.validator.corner_utils import get_corner_colors, get_corner_positions
 
 
 class Validator:
