@@ -208,3 +208,8 @@ __marimo__/
 # Node modules
 **/node_modules/
 **/package-lock.json
+
+# Claude
+.claude/
+CLAUDE.md
+.mcp.json
