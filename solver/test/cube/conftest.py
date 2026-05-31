@@ -8,6 +8,47 @@ from rubik_cube_solver.enums.Layer import Layer
 
 
 @pytest.fixture
+def solved_2x2_cube() -> Cube:
+    """
+    Fixture that returns a solved 2x2 Rubik's Cube.
+
+    :return: A solved Cube instance of size 2
+    """
+
+    return Cube(size=2)
+
+
+@pytest.fixture
+def scrambled_2x2_cube() -> Cube:
+    """
+    Fixture that returns a scrambled 2x2 Rubik's Cube.
+
+    :return: A scrambled Cube instance of size 2
+    """
+
+    # fmt: off
+    cube = Cube(
+        size=2,
+        layers={
+            Layer.UP:    [Color.WHITE,  Color.BLUE,
+                          Color.RED,    Color.YELLOW],
+            Layer.DOWN:  [Color.ORANGE, Color.WHITE,
+                          Color.YELLOW, Color.GREEN],
+            Layer.LEFT:  [Color.GREEN,  Color.BLUE,
+                          Color.ORANGE, Color.BLUE],
+            Layer.RIGHT: [Color.ORANGE, Color.RED,
+                          Color.GREEN,  Color.RED],
+            Layer.FRONT: [Color.WHITE,  Color.GREEN,
+                          Color.WHITE,  Color.RED],
+            Layer.BACK:  [Color.YELLOW, Color.ORANGE,
+                          Color.YELLOW, Color.BLUE],
+        }
+    )
+    # fmt: on
+    return cube
+
+
+@pytest.fixture
 def solved_3x3_cube() -> Cube:
     """
     Fixture that returns a solved 3x3 Rubik's Cube.
