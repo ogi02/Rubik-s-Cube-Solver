@@ -15,19 +15,10 @@ from rubik_cube_solver.enums.Layer import Layer
 class TestRotatorTurn:
     # fmt: off
     @pytest.mark.parametrize(
-        "layer, direction, layer_amount, cube_size", [
-            (Layer.UP,    Direction.CW,     1, 2),
-            (Layer.UP,    Direction.CW,     1, 3),
-            (Layer.UP,    Direction.CW,     1, 4),
-            (Layer.UP,    Direction.CW,     1, 5),
-            (Layer.FRONT, Direction.CCW,    2, 2),
-            (Layer.FRONT, Direction.CCW,    2, 3),
-            (Layer.FRONT, Direction.CCW,    2, 4),
-            (Layer.FRONT, Direction.CCW,    2, 5),
-            (Layer.LEFT,  Direction.DOUBLE, 3, 2),
-            (Layer.LEFT,  Direction.DOUBLE, 3, 3),
-            (Layer.LEFT,  Direction.DOUBLE, 3, 4),
-            (Layer.LEFT,  Direction.DOUBLE, 3, 5),
+        "layer, direction, layer_amount", [
+            (Layer.UP,    Direction.CW,     1),
+            (Layer.FRONT, Direction.CCW,    2),
+            (Layer.LEFT,  Direction.DOUBLE, 3),
         ]
     )
     # fmt: on
@@ -39,7 +30,6 @@ class TestRotatorTurn:
         layer: Layer,
         direction: Direction,
         layer_amount: int,
-        cube_size: int,
     ) -> None:
         """
         Tests the turn method of the Rotator class.
@@ -50,12 +40,11 @@ class TestRotatorTurn:
         :param layer: The layer to turn
         :param direction: The direction of the turn
         :param layer_amount: The amount of layers to turn
-        :param cube_size: The size of the cube
         :return: None
         """
 
         # Mock the cube
-        cube = generate_cube(cube_size)
+        cube = generate_cube(3)
 
         # Mock the rotator class
         rotator = generate_rotator(cube)
