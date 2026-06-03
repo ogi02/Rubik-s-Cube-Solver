@@ -5,6 +5,7 @@ import pytest
 
 # Project imports
 from rubik_cube_solver.cube import Cube
+from rubik_cube_solver.enums.Color import Color
 from rubik_cube_solver.validator.validator import Validator
 
 
@@ -36,5 +37,27 @@ def generate_cube() -> Callable[[int], Cube]:
         """
 
         return Cube(size=size)
+
+    return _generate
+
+
+@pytest.fixture
+def generate_corners() -> Callable[..., list[tuple[Color, Color, Color]]]:
+    """
+    Returns a factory for building a list of 8 corner tuples directly,
+    used to patch _get_corners in isolation tests.
+
+    :return: The callable method
+    """
+
+    def _generate(*corners: tuple[Color, Color, Color]) -> list[tuple[Color, Color, Color]]:
+        """
+        Generates a list of corner tuples.
+
+        :param corners: The corner tuples to include
+        :return: The list of corner tuples
+        """
+
+        return list(corners)
 
     return _generate

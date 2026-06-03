@@ -36,11 +36,17 @@ class TestValidatorValidate:
         with (
             patch.object(validator, "_check_size") as mock_check_size,
             patch.object(validator, "_check_color_count") as mock_check_color_count,
+            patch.object(validator, "_check_corner_validity") as mock_check_corner_validity,
+            patch.object(validator, "_check_corner_orientation") as mock_check_corner_orientation,
+            patch.object(validator, "_check_corner_chirality") as mock_check_corner_chirality,
         ):
             result = validator.validate(cube)
             assert result is None
             mock_check_size.assert_called_once_with(cube)
             mock_check_color_count.assert_called_once_with(cube)
+            mock_check_corner_validity.assert_called_once_with(cube)
+            mock_check_corner_orientation.assert_called_once_with(cube)
+            mock_check_corner_chirality.assert_called_once_with(cube)
 
     def test_check_size_exception(self, validator: Validator, generate_cube: Callable[[int], Cube]) -> None:
         """
@@ -85,6 +91,86 @@ class TestValidatorValidate:
                 validator.validate(cube)
             mock_check_size.assert_called_once_with(cube)
             mock_check_color_count.assert_called_once_with(cube)
+
+    def test_check_corner_validity_exception(self, validator: Validator, generate_cube: Callable[[int], Cube]) -> None:
+        """
+        Test that validate propagates ValueError from _check_corner_validity.
+
+        :param validator: Fixture of a Validator instance
+        :param generate_cube: Fixture that creates a Cube of given size
+        :return: None
+        """
+
+        cube = generate_cube(2)
+        with (
+            patch.object(validator, "_check_size"),
+            patch.object(validator, "_check_color_count"),
+            patch.object(
+                validator,
+                "_check_corner_validity",
+                side_effect=ValueError("Invalid corner piece."),
+            ) as mock_check_corner_validity,
+            patch.object(validator, "_check_corner_orientation") as mock_check_corner_orientation,
+            patch.object(validator, "_check_corner_chirality") as mock_check_corner_chirality,
+        ):
+            with pytest.raises(ValueError, match="Invalid corner piece"):
+                validator.validate(cube)
+            mock_check_corner_validity.assert_called_once_with(cube)
+            mock_check_corner_orientation.assert_not_called()
+            mock_check_corner_chirality.assert_not_called()
+
+    def test_check_corner_orientation_exception(
+        self, validator: Validator, generate_cube: Callable[[int], Cube]
+    ) -> None:
+        """
+        Test that validate propagates ValueError from _check_corner_orientation.
+
+        :param validator: Fixture of a Validator instance
+        :param generate_cube: Fixture that creates a Cube of given size
+        :return: None
+        """
+
+        cube = generate_cube(2)
+        with (
+            patch.object(validator, "_check_size"),
+            patch.object(validator, "_check_color_count"),
+            patch.object(validator, "_check_corner_validity"),
+            patch.object(
+                validator,
+                "_check_corner_orientation",
+                side_effect=ValueError("Invalid corner orientation parity."),
+            ) as mock_check_corner_orientation,
+            patch.object(validator, "_check_corner_chirality") as mock_check_corner_chirality,
+        ):
+            with pytest.raises(ValueError, match="Invalid corner orientation parity"):
+                validator.validate(cube)
+            mock_check_corner_orientation.assert_called_once_with(cube)
+            mock_check_corner_chirality.assert_not_called()
+
+    def test_check_corner_chirality_exception(self, validator: Validator, generate_cube: Callable[[int], Cube]) -> None:
+        """
+        Test that validate propagates ValueError from _check_corner_chirality.
+
+        :param validator: Fixture of a Validator instance
+        :param generate_cube: Fixture that creates a Cube of given size
+        :return: None
+        """
+
+        cube = generate_cube(2)
+        with (
+            patch.object(validator, "_check_size"),
+            patch.object(validator, "_check_color_count"),
+            patch.object(validator, "_check_corner_validity"),
+            patch.object(validator, "_check_corner_orientation"),
+            patch.object(
+                validator,
+                "_check_corner_chirality",
+                side_effect=ValueError("Invalid corner chirality."),
+            ) as mock_check_corner_chirality,
+        ):
+            with pytest.raises(ValueError, match="Invalid corner chirality"):
+                validator.validate(cube)
+            mock_check_corner_chirality.assert_called_once_with(cube)
 
 
 class TestValidatorCheckSize:
@@ -197,3 +283,243 @@ class TestValidatorCheckColorCount:
         # fmt: on
         with pytest.raises(ValueError, match=r"Invalid color count for GREEN: expected 9, got 18\."):
             validator._check_color_count(cube)
+
+
+class TestValidatorCheckCornerValidity:
+    # fmt: off
+    @pytest.mark.parametrize(
+        "cube_size", [2, 3, 4, 5]
+    )
+    # fmt: on
+    def test_success(
+        self,
+        validator: Validator,
+        generate_cube: Callable[[int], Cube],
+        generate_corners: Callable[..., list[tuple[Color, Color, Color]]],
+        cube_size: int,
+    ) -> None:
+        """
+        Test that _check_corner_validity does not raise when all 8 corners are valid and distinct.
+
+        :param validator: Fixture of a Validator instance
+        :param generate_cube: Fixture that creates a Cube of given size
+        :param generate_corners: Fixture that builds a list of corner tuples
+        :param cube_size: The size of the cube to check
+        :return: None
+        """
+
+        cube = generate_cube(cube_size)
+        corners = generate_corners(
+            (Color.WHITE, Color.GREEN, Color.ORANGE),  # UFL
+            (Color.WHITE, Color.RED, Color.GREEN),  # UFR
+            (Color.WHITE, Color.ORANGE, Color.BLUE),  # UBL  (canonical: WHITE, ORANGE, BLUE)
+            (Color.WHITE, Color.BLUE, Color.RED),  # UBR
+            (Color.YELLOW, Color.ORANGE, Color.GREEN),  # DFL
+            (Color.YELLOW, Color.GREEN, Color.RED),  # DFR
+            (Color.YELLOW, Color.BLUE, Color.ORANGE),  # DBL
+            (Color.YELLOW, Color.RED, Color.BLUE),  # DBR
+        )
+        with patch.object(Validator, "_get_corners", return_value=corners):
+            validator._check_corner_validity(cube)
+
+    def test_exception_invalid_corner(
+        self,
+        validator: Validator,
+        generate_cube: Callable[[int], Cube],
+        generate_corners: Callable[..., list[tuple[Color, Color, Color]]],
+    ) -> None:
+        """
+        Test that _check_corner_validity raises ValueError when one corner has an impossible color combination.
+
+        :param validator: Fixture of a Validator instance
+        :param generate_cube: Fixture that creates a Cube of given size
+        :param generate_corners: Fixture that builds a list of corner tuples
+        :return: None
+        """
+
+        cube = generate_cube(2)
+        # UBL has {WHITE, WHITE, BLUE} — two of the same color, invalid corner
+        corners = generate_corners(
+            (Color.WHITE, Color.GREEN, Color.ORANGE),
+            (Color.WHITE, Color.RED, Color.GREEN),
+            (Color.WHITE, Color.WHITE, Color.BLUE),  # invalid: frozenset has only 2 distinct colors
+            (Color.WHITE, Color.BLUE, Color.RED),
+            (Color.YELLOW, Color.ORANGE, Color.GREEN),
+            (Color.YELLOW, Color.GREEN, Color.RED),
+            (Color.YELLOW, Color.BLUE, Color.ORANGE),
+            (Color.YELLOW, Color.RED, Color.BLUE),
+        )
+        with patch.object(Validator, "_get_corners", return_value=corners):
+            with pytest.raises(ValueError, match="Invalid corner piece"):
+                validator._check_corner_validity(cube)
+
+    def test_exception_duplicate_corner(
+        self,
+        validator: Validator,
+        generate_cube: Callable[[int], Cube],
+        generate_corners: Callable[..., list[tuple[Color, Color, Color]]],
+    ) -> None:
+        """
+        Test that _check_corner_validity raises ValueError when two corners have the same color set.
+
+        :param validator: Fixture of a Validator instance
+        :param generate_cube: Fixture that creates a Cube of given size
+        :param generate_corners: Fixture that builds a list of corner tuples
+        :return: None
+        """
+
+        cube = generate_cube(2)
+        # UBL is a duplicate of UFL — both have {WHITE, GREEN, ORANGE}
+        corners = generate_corners(
+            (Color.WHITE, Color.GREEN, Color.ORANGE),  # UFL
+            (Color.WHITE, Color.RED, Color.GREEN),
+            (Color.WHITE, Color.GREEN, Color.ORANGE),  # duplicate of UFL
+            (Color.WHITE, Color.BLUE, Color.RED),
+            (Color.YELLOW, Color.ORANGE, Color.GREEN),
+            (Color.YELLOW, Color.GREEN, Color.RED),
+            (Color.YELLOW, Color.BLUE, Color.ORANGE),
+            (Color.YELLOW, Color.RED, Color.BLUE),
+        )
+        with patch.object(Validator, "_get_corners", return_value=corners):
+            with pytest.raises(ValueError, match="Duplicate corner piece"):
+                validator._check_corner_validity(cube)
+
+
+class TestValidatorCheckCornerOrientation:
+    # fmt: off
+    @pytest.mark.parametrize(
+        "cube_size", [2, 3, 4, 5]
+    )
+    # fmt: on
+    def test_success(
+        self,
+        validator: Validator,
+        generate_cube: Callable[[int], Cube],
+        generate_corners: Callable[..., list[tuple[Color, Color, Color]]],
+        cube_size: int,
+    ) -> None:
+        """
+        Test that _check_corner_orientation does not raise when all corners have orientation 0 (total = 0).
+
+        :param validator: Fixture of a Validator instance
+        :param generate_cube: Fixture that creates a Cube of given size
+        :param generate_corners: Fixture that builds a list of corner tuples
+        :param cube_size: The size of the cube to check
+        :return: None
+        """
+
+        cube = generate_cube(cube_size)
+        # All UP/DOWN colors in position 0 → all orientations 0 → total = 0
+        corners = generate_corners(
+            (Color.WHITE, Color.GREEN, Color.ORANGE),
+            (Color.WHITE, Color.RED, Color.GREEN),
+            (Color.WHITE, Color.ORANGE, Color.BLUE),
+            (Color.WHITE, Color.BLUE, Color.RED),
+            (Color.YELLOW, Color.ORANGE, Color.GREEN),
+            (Color.YELLOW, Color.GREEN, Color.RED),
+            (Color.YELLOW, Color.BLUE, Color.ORANGE),
+            (Color.YELLOW, Color.RED, Color.BLUE),
+        )
+        with patch.object(Validator, "_get_corners", return_value=corners):
+            validator._check_corner_orientation(cube)
+
+    def test_exception(
+        self,
+        validator: Validator,
+        generate_cube: Callable[[int], Cube],
+        generate_corners: Callable[..., list[tuple[Color, Color, Color]]],
+    ) -> None:
+        """
+        Test that _check_corner_orientation raises ValueError when orientation parity is broken.
+
+        :param validator: Fixture of a Validator instance
+        :param generate_cube: Fixture that creates a Cube of given size
+        :param generate_corners: Fixture that builds a list of corner tuples
+        :return: None
+        """
+
+        cube = generate_cube(2)
+        # UFL has WHITE at position 1 (orientation 1); all others orientation 0 → total = 1, not divisible by 3
+        corners = generate_corners(
+            (Color.GREEN, Color.WHITE, Color.ORANGE),  # UFL twisted: WHITE at position 1, orientation 1
+            (Color.WHITE, Color.RED, Color.GREEN),
+            (Color.WHITE, Color.ORANGE, Color.BLUE),
+            (Color.WHITE, Color.BLUE, Color.RED),
+            (Color.YELLOW, Color.ORANGE, Color.GREEN),
+            (Color.YELLOW, Color.GREEN, Color.RED),
+            (Color.YELLOW, Color.BLUE, Color.ORANGE),
+            (Color.YELLOW, Color.RED, Color.BLUE),
+        )
+        with patch.object(Validator, "_get_corners", return_value=corners):
+            with pytest.raises(ValueError, match="Invalid corner orientation parity"):
+                validator._check_corner_orientation(cube)
+
+
+class TestValidatorCheckCornerChirality:
+    # fmt: off
+    @pytest.mark.parametrize(
+        "cube_size", [2, 3, 4, 5]
+    )
+    # fmt: on
+    def test_success(
+        self,
+        validator: Validator,
+        generate_cube: Callable[[int], Cube],
+        generate_corners: Callable[..., list[tuple[Color, Color, Color]]],
+        cube_size: int,
+    ) -> None:
+        """
+        Test that _check_corner_chirality does not raise when all corners are in canonical CW cyclic order.
+
+        :param validator: Fixture of a Validator instance
+        :param generate_cube: Fixture that creates a Cube of given size
+        :param generate_corners: Fixture that builds a list of corner tuples
+        :param cube_size: The size of the cube to check
+        :return: None
+        """
+
+        cube = generate_cube(cube_size)
+        # Each tuple matches the canonical CW sequence (or a valid cyclic rotation thereof)
+        corners = generate_corners(
+            (Color.WHITE, Color.GREEN, Color.ORANGE),  # canonical for {W,G,O}
+            (Color.WHITE, Color.RED, Color.GREEN),  # canonical for {W,G,R}
+            (Color.WHITE, Color.ORANGE, Color.BLUE),  # canonical for {W,B,O}
+            (Color.WHITE, Color.BLUE, Color.RED),  # canonical for {W,B,R}
+            (Color.YELLOW, Color.ORANGE, Color.GREEN),  # canonical for {Y,G,O}
+            (Color.YELLOW, Color.GREEN, Color.RED),  # canonical for {Y,G,R}
+            (Color.YELLOW, Color.BLUE, Color.ORANGE),  # canonical for {Y,B,O}
+            (Color.YELLOW, Color.RED, Color.BLUE),  # canonical for {Y,B,R}
+        )
+        with patch.object(Validator, "_get_corners", return_value=corners):
+            validator._check_corner_chirality(cube)
+
+    def test_exception(
+        self,
+        validator: Validator,
+        generate_cube: Callable[[int], Cube],
+        generate_corners: Callable[..., list[tuple[Color, Color, Color]]],
+    ) -> None:
+        """
+        Test that _check_corner_chirality raises ValueError when a corner's stickers are in the wrong cyclic order.
+
+        :param validator: Fixture of a Validator instance
+        :param generate_cube: Fixture that creates a Cube of given size
+        :param generate_corners: Fixture that builds a list of corner tuples
+        :return: None
+        """
+
+        cube = generate_cube(2)
+        # UFL has (WHITE, ORANGE, GREEN) — this is the reverse cyclic order of canonical (WHITE, GREEN, ORANGE)
+        corners = generate_corners(
+            (Color.WHITE, Color.ORANGE, Color.GREEN),  # reversed chirality for {W,G,O}
+            (Color.WHITE, Color.RED, Color.GREEN),
+            (Color.WHITE, Color.ORANGE, Color.BLUE),
+            (Color.WHITE, Color.BLUE, Color.RED),
+            (Color.YELLOW, Color.ORANGE, Color.GREEN),
+            (Color.YELLOW, Color.GREEN, Color.RED),
+            (Color.YELLOW, Color.BLUE, Color.ORANGE),
+            (Color.YELLOW, Color.RED, Color.BLUE),
+        )
+        with patch.object(Validator, "_get_corners", return_value=corners):
+            with pytest.raises(ValueError, match="Invalid corner chirality"):
+                validator._check_corner_chirality(cube)
