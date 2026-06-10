@@ -11,14 +11,45 @@ from rubik_cube_solver.validator.validator import Validator
 
 
 class TestValidatorValidate:
+    def test_success_3x3(self, validator: Validator) -> None:
+        """
+        Test that validate calls all 9 check methods exactly once for a 3x3 cube.
+
+        :param validator: Fixture of a Validator instance
+        :return: None
+        """
+
+        cube = Cube(3)
+        with (
+            patch.object(validator, "_check_size") as mock_check_size,
+            patch.object(validator, "_check_color_count") as mock_check_color_count,
+            patch.object(validator, "_check_corner_validity") as mock_check_corner_validity,
+            patch.object(validator, "_check_corner_orientation") as mock_check_corner_orientation,
+            patch.object(validator, "_check_corner_chirality") as mock_check_corner_chirality,
+            patch.object(validator, "_check_center_uniqueness") as mock_check_center_uniqueness,
+            patch.object(validator, "_check_edge_validity") as mock_check_edge_validity,
+            patch.object(validator, "_check_edge_flip_parity") as mock_check_edge_flip_parity,
+            patch.object(validator, "_check_permutation_parity") as mock_check_permutation_parity,
+        ):
+            validator.validate(cube)
+            mock_check_size.assert_called_once_with(cube)
+            mock_check_color_count.assert_called_once_with(cube)
+            mock_check_corner_validity.assert_called_once_with(cube)
+            mock_check_corner_orientation.assert_called_once_with(cube)
+            mock_check_corner_chirality.assert_called_once_with(cube)
+            mock_check_center_uniqueness.assert_called_once_with(cube)
+            mock_check_edge_validity.assert_called_once_with(cube)
+            mock_check_edge_flip_parity.assert_called_once_with(cube)
+            mock_check_permutation_parity.assert_called_once_with(cube)
+
     # fmt: off
     @pytest.mark.parametrize(
-        "cube_size", [2, 3, 4, 5]
+        "cube_size", [2, 4, 5]
     )
     # fmt: on
-    def test_success(self, validator: Validator, cube_size: int) -> None:
+    def test_success_non_3x3(self, validator: Validator, cube_size: int) -> None:
         """
-        Test that validate calls both private check methods exactly once.
+        Test that validate does not call the 4 new 3x3-specific check methods for non-3x3 cubes.
 
         :param validator: Fixture of a Validator instance
         :param cube_size: The size of the cube to validate
@@ -32,6 +63,10 @@ class TestValidatorValidate:
             patch.object(validator, "_check_corner_validity") as mock_check_corner_validity,
             patch.object(validator, "_check_corner_orientation") as mock_check_corner_orientation,
             patch.object(validator, "_check_corner_chirality") as mock_check_corner_chirality,
+            patch.object(validator, "_check_center_uniqueness") as mock_check_center_uniqueness,
+            patch.object(validator, "_check_edge_validity") as mock_check_edge_validity,
+            patch.object(validator, "_check_edge_flip_parity") as mock_check_edge_flip_parity,
+            patch.object(validator, "_check_permutation_parity") as mock_check_permutation_parity,
         ):
             validator.validate(cube)
             mock_check_size.assert_called_once_with(cube)
@@ -39,6 +74,128 @@ class TestValidatorValidate:
             mock_check_corner_validity.assert_called_once_with(cube)
             mock_check_corner_orientation.assert_called_once_with(cube)
             mock_check_corner_chirality.assert_called_once_with(cube)
+            mock_check_center_uniqueness.assert_not_called()
+            mock_check_edge_validity.assert_not_called()
+            mock_check_edge_flip_parity.assert_not_called()
+            mock_check_permutation_parity.assert_not_called()
+
+    def test_check_center_uniqueness_exception(self, validator: Validator) -> None:
+        """
+        Test that validate propagates ValueError from _check_center_uniqueness and does not call subsequent checks.
+
+        :param validator: Fixture of a Validator instance
+        :return: None
+        """
+
+        cube = Cube(3)
+        with (
+            patch.object(validator, "_check_size"),
+            patch.object(validator, "_check_color_count"),
+            patch.object(validator, "_check_corner_validity"),
+            patch.object(validator, "_check_corner_orientation"),
+            patch.object(validator, "_check_corner_chirality"),
+            patch.object(
+                validator,
+                "_check_center_uniqueness",
+                side_effect=ValueError("Duplicate center piece."),
+            ) as mock_check_center_uniqueness,
+            patch.object(validator, "_check_edge_validity") as mock_check_edge_validity,
+            patch.object(validator, "_check_edge_flip_parity") as mock_check_edge_flip_parity,
+            patch.object(validator, "_check_permutation_parity") as mock_check_permutation_parity,
+        ):
+            with pytest.raises(ValueError, match="Duplicate center piece"):
+                validator.validate(cube)
+            mock_check_center_uniqueness.assert_called_once_with(cube)
+            mock_check_edge_validity.assert_not_called()
+            mock_check_edge_flip_parity.assert_not_called()
+            mock_check_permutation_parity.assert_not_called()
+
+    def test_check_edge_validity_exception(self, validator: Validator) -> None:
+        """
+        Test that validate propagates ValueError from _check_edge_validity and does not call subsequent checks.
+
+        :param validator: Fixture of a Validator instance
+        :return: None
+        """
+
+        cube = Cube(3)
+        with (
+            patch.object(validator, "_check_size"),
+            patch.object(validator, "_check_color_count"),
+            patch.object(validator, "_check_corner_validity"),
+            patch.object(validator, "_check_corner_orientation"),
+            patch.object(validator, "_check_corner_chirality"),
+            patch.object(validator, "_check_center_uniqueness"),
+            patch.object(
+                validator,
+                "_check_edge_validity",
+                side_effect=ValueError("Invalid edge piece."),
+            ) as mock_check_edge_validity,
+            patch.object(validator, "_check_edge_flip_parity") as mock_check_edge_flip_parity,
+            patch.object(validator, "_check_permutation_parity") as mock_check_permutation_parity,
+        ):
+            with pytest.raises(ValueError, match="Invalid edge piece"):
+                validator.validate(cube)
+            mock_check_edge_validity.assert_called_once_with(cube)
+            mock_check_edge_flip_parity.assert_not_called()
+            mock_check_permutation_parity.assert_not_called()
+
+    def test_check_edge_flip_parity_exception(self, validator: Validator) -> None:
+        """
+        Test that validate propagates ValueError from _check_edge_flip_parity and does not call subsequent checks.
+
+        :param validator: Fixture of a Validator instance
+        :return: None
+        """
+
+        cube = Cube(3)
+        with (
+            patch.object(validator, "_check_size"),
+            patch.object(validator, "_check_color_count"),
+            patch.object(validator, "_check_corner_validity"),
+            patch.object(validator, "_check_corner_orientation"),
+            patch.object(validator, "_check_corner_chirality"),
+            patch.object(validator, "_check_center_uniqueness"),
+            patch.object(validator, "_check_edge_validity"),
+            patch.object(
+                validator,
+                "_check_edge_flip_parity",
+                side_effect=ValueError("Invalid edge flip parity."),
+            ) as mock_check_edge_flip_parity,
+            patch.object(validator, "_check_permutation_parity") as mock_check_permutation_parity,
+        ):
+            with pytest.raises(ValueError, match="Invalid edge flip parity"):
+                validator.validate(cube)
+            mock_check_edge_flip_parity.assert_called_once_with(cube)
+            mock_check_permutation_parity.assert_not_called()
+
+    def test_check_permutation_parity_exception(self, validator: Validator) -> None:
+        """
+        Test that validate propagates ValueError from _check_permutation_parity.
+
+        :param validator: Fixture of a Validator instance
+        :return: None
+        """
+
+        cube = Cube(3)
+        with (
+            patch.object(validator, "_check_size"),
+            patch.object(validator, "_check_color_count"),
+            patch.object(validator, "_check_corner_validity"),
+            patch.object(validator, "_check_corner_orientation"),
+            patch.object(validator, "_check_corner_chirality"),
+            patch.object(validator, "_check_center_uniqueness"),
+            patch.object(validator, "_check_edge_validity"),
+            patch.object(validator, "_check_edge_flip_parity"),
+            patch.object(
+                validator,
+                "_check_permutation_parity",
+                side_effect=ValueError("Invalid permutation parity."),
+            ) as mock_check_permutation_parity,
+        ):
+            with pytest.raises(ValueError, match="Invalid permutation parity"):
+                validator.validate(cube)
+            mock_check_permutation_parity.assert_called_once_with(cube)
 
     def test_check_size_exception(self, validator: Validator) -> None:
         """
@@ -491,3 +648,297 @@ class TestValidatorCheckCornerChirality:
         with patch.object(Validator, "_get_corners", return_value=corners):
             with pytest.raises(ValueError, match="Invalid corner chirality"):
                 validator._check_corner_chirality(cube)
+
+
+class TestValidatorGetEdges:
+    def test_success(self, validator: Validator) -> None:
+        """
+        Test that _get_edges returns 12 edge tuples with correct sticker colors for a solved 3x3 cube.
+
+        :param validator: Fixture of a Validator instance
+        :return: None
+        """
+
+        cube = Cube(3)
+        edges = validator._get_edges(cube)
+
+        assert len(edges) == 12
+        for edge in edges:
+            assert isinstance(edge, tuple)
+            assert len(edge) == 2
+            assert isinstance(edge[0], Color)
+            assert isinstance(edge[1], Color)
+
+        # UF edge should be (WHITE, GREEN) for a solved cube
+        assert edges[0] == (Color.WHITE, Color.GREEN)
+
+
+class TestValidatorCheckCenterUniqueness:
+    def test_success(self, validator: Validator) -> None:
+        """
+        Test that _check_center_uniqueness does not raise for a solved 3x3 cube.
+
+        :param validator: Fixture of a Validator instance
+        :return: None
+        """
+
+        cube = Cube(3)
+        validator._check_center_uniqueness(cube)
+
+    def test_exception_duplicate_center(self, validator: Validator) -> None:
+        """
+        Test that _check_center_uniqueness raises ValueError when two faces share the same center color.
+
+        :param validator: Fixture of a Validator instance
+        :return: None
+        """
+
+        # fmt: off
+        cube = Cube(
+            size=3,
+            layers={
+                Layer.UP:    [Color.WHITE,  Color.WHITE,  Color.WHITE,
+                              Color.WHITE,  Color.WHITE,  Color.WHITE,
+                              Color.WHITE,  Color.WHITE,  Color.WHITE],
+                Layer.DOWN:  [Color.WHITE,  Color.WHITE,  Color.WHITE,
+                              Color.WHITE,  Color.WHITE,  Color.WHITE,
+                              Color.WHITE,  Color.WHITE,  Color.WHITE],
+                Layer.LEFT:  [Color.ORANGE, Color.ORANGE, Color.ORANGE,
+                              Color.ORANGE, Color.ORANGE, Color.ORANGE,
+                              Color.ORANGE, Color.ORANGE, Color.ORANGE],
+                Layer.RIGHT: [Color.RED,    Color.RED,    Color.RED,
+                              Color.RED,    Color.RED,    Color.RED,
+                              Color.RED,    Color.RED,    Color.RED],
+                Layer.FRONT: [Color.GREEN,  Color.GREEN,  Color.GREEN,
+                              Color.GREEN,  Color.GREEN,  Color.GREEN,
+                              Color.GREEN,  Color.GREEN,  Color.GREEN],
+                Layer.BACK:  [Color.BLUE,   Color.BLUE,   Color.BLUE,
+                              Color.BLUE,   Color.BLUE,   Color.BLUE,
+                              Color.BLUE,   Color.BLUE,   Color.BLUE],
+            }
+        )
+        # fmt: on
+        with pytest.raises(ValueError, match="Duplicate center piece"):
+            validator._check_center_uniqueness(cube)
+
+
+class TestValidatorCheckEdgeValidity:
+    def test_success(self, validator: Validator) -> None:
+        """
+        Test that _check_edge_validity does not raise when all 12 edges are valid and distinct.
+
+        :param validator: Fixture of a Validator instance
+        :return: None
+        """
+
+        cube = Cube(3)
+        edges = [
+            (Color.WHITE, Color.GREEN),
+            (Color.WHITE, Color.BLUE),
+            (Color.WHITE, Color.ORANGE),
+            (Color.WHITE, Color.RED),
+            (Color.YELLOW, Color.GREEN),
+            (Color.YELLOW, Color.BLUE),
+            (Color.YELLOW, Color.ORANGE),
+            (Color.YELLOW, Color.RED),
+            (Color.GREEN, Color.ORANGE),
+            (Color.GREEN, Color.RED),
+            (Color.BLUE, Color.ORANGE),
+            (Color.BLUE, Color.RED),
+        ]
+        with patch.object(Validator, "_get_edges", return_value=edges):
+            validator._check_edge_validity(cube)
+
+    def test_exception_invalid_edge(self, validator: Validator) -> None:
+        """
+        Test that _check_edge_validity raises ValueError when one edge has an impossible color combination.
+
+        :param validator: Fixture of a Validator instance
+        :return: None
+        """
+
+        cube = Cube(3)
+        edges = [
+            (Color.WHITE, Color.YELLOW),  # invalid: opposite faces cannot share an edge
+            (Color.WHITE, Color.BLUE),
+            (Color.WHITE, Color.ORANGE),
+            (Color.WHITE, Color.RED),
+            (Color.YELLOW, Color.GREEN),
+            (Color.YELLOW, Color.BLUE),
+            (Color.YELLOW, Color.ORANGE),
+            (Color.YELLOW, Color.RED),
+            (Color.GREEN, Color.ORANGE),
+            (Color.GREEN, Color.RED),
+            (Color.BLUE, Color.ORANGE),
+            (Color.BLUE, Color.RED),
+        ]
+        with patch.object(Validator, "_get_edges", return_value=edges):
+            with pytest.raises(ValueError, match="Invalid edge piece"):
+                validator._check_edge_validity(cube)
+
+    def test_exception_duplicate_edge(self, validator: Validator) -> None:
+        """
+        Test that _check_edge_validity raises ValueError when two edges have the same color set.
+
+        :param validator: Fixture of a Validator instance
+        :return: None
+        """
+
+        cube = Cube(3)
+        edges = [
+            (Color.WHITE, Color.GREEN),
+            (Color.WHITE, Color.GREEN),  # duplicate of first edge
+            (Color.WHITE, Color.ORANGE),
+            (Color.WHITE, Color.RED),
+            (Color.YELLOW, Color.GREEN),
+            (Color.YELLOW, Color.BLUE),
+            (Color.YELLOW, Color.ORANGE),
+            (Color.YELLOW, Color.RED),
+            (Color.GREEN, Color.ORANGE),
+            (Color.GREEN, Color.RED),
+            (Color.BLUE, Color.ORANGE),
+            (Color.BLUE, Color.RED),
+        ]
+        with patch.object(Validator, "_get_edges", return_value=edges):
+            with pytest.raises(ValueError, match="Duplicate edge piece"):
+                validator._check_edge_validity(cube)
+
+
+class TestValidatorCheckEdgeFlipParity:
+    def test_success(self, validator: Validator) -> None:
+        """
+        Test that _check_edge_flip_parity does not raise when all 12 edges are in oriented position (total = 0).
+
+        :param validator: Fixture of a Validator instance
+        :return: None
+        """
+
+        cube = Cube(3)
+        # All edges have the primary color in position 0 (orientation = 0, total = 0)
+        edges = [
+            (Color.WHITE, Color.GREEN),
+            (Color.WHITE, Color.BLUE),
+            (Color.WHITE, Color.ORANGE),
+            (Color.WHITE, Color.RED),
+            (Color.YELLOW, Color.GREEN),
+            (Color.YELLOW, Color.BLUE),
+            (Color.YELLOW, Color.ORANGE),
+            (Color.YELLOW, Color.RED),
+            (Color.GREEN, Color.ORANGE),
+            (Color.GREEN, Color.RED),
+            (Color.BLUE, Color.ORANGE),
+            (Color.BLUE, Color.RED),
+        ]
+        with patch.object(Validator, "_get_edges", return_value=edges):
+            validator._check_edge_flip_parity(cube)
+
+    def test_exception(self, validator: Validator) -> None:
+        """
+        Test that _check_edge_flip_parity raises ValueError when one edge is flipped (total = 1, which is odd).
+
+        :param validator: Fixture of a Validator instance
+        :return: None
+        """
+
+        cube = Cube(3)
+        # UF edge is flipped: GREEN is in position 0 instead of WHITE (orientation = 1, total = 1)
+        edges = [
+            (Color.GREEN, Color.WHITE),  # flipped UF edge
+            (Color.WHITE, Color.BLUE),
+            (Color.WHITE, Color.ORANGE),
+            (Color.WHITE, Color.RED),
+            (Color.YELLOW, Color.GREEN),
+            (Color.YELLOW, Color.BLUE),
+            (Color.YELLOW, Color.ORANGE),
+            (Color.YELLOW, Color.RED),
+            (Color.GREEN, Color.ORANGE),
+            (Color.GREEN, Color.RED),
+            (Color.BLUE, Color.ORANGE),
+            (Color.BLUE, Color.RED),
+        ]
+        with patch.object(Validator, "_get_edges", return_value=edges):
+            with pytest.raises(ValueError, match="Invalid edge flip parity"):
+                validator._check_edge_flip_parity(cube)
+
+
+class TestValidatorCheckPermutationParity:
+    def test_success(self, validator: Validator) -> None:
+        """
+        Test that _check_permutation_parity does not raise when corners and edges are both in solved order (both even).
+
+        :param validator: Fixture of a Validator instance
+        :return: None
+        """
+
+        cube = Cube(3)
+        corners = [
+            (Color.WHITE, Color.GREEN, Color.ORANGE),  # UFL
+            (Color.WHITE, Color.RED, Color.GREEN),  # UFR
+            (Color.WHITE, Color.ORANGE, Color.BLUE),  # UBL
+            (Color.WHITE, Color.BLUE, Color.RED),  # UBR
+            (Color.YELLOW, Color.ORANGE, Color.GREEN),  # DFL
+            (Color.YELLOW, Color.GREEN, Color.RED),  # DFR
+            (Color.YELLOW, Color.BLUE, Color.ORANGE),  # DBL
+            (Color.YELLOW, Color.RED, Color.BLUE),  # DBR
+        ]
+        edges = [
+            (Color.WHITE, Color.GREEN),
+            (Color.WHITE, Color.BLUE),
+            (Color.WHITE, Color.ORANGE),
+            (Color.WHITE, Color.RED),
+            (Color.YELLOW, Color.GREEN),
+            (Color.YELLOW, Color.BLUE),
+            (Color.YELLOW, Color.ORANGE),
+            (Color.YELLOW, Color.RED),
+            (Color.GREEN, Color.ORANGE),
+            (Color.GREEN, Color.RED),
+            (Color.BLUE, Color.ORANGE),
+            (Color.BLUE, Color.RED),
+        ]
+        with (
+            patch.object(Validator, "_get_corners", return_value=corners),
+            patch.object(Validator, "_get_edges", return_value=edges),
+        ):
+            validator._check_permutation_parity(cube)
+
+    def test_exception(self, validator: Validator) -> None:
+        """
+        Test that _check_permutation_parity raises ValueError when two corners are swapped (odd corner parity)
+        while edges remain in solved order (even parity).
+
+        :param validator: Fixture of a Validator instance
+        :return: None
+        """
+
+        cube = Cube(3)
+        # Swap UFL and UFR corners — this creates one inversion (odd corner parity)
+        corners = [
+            (Color.WHITE, Color.RED, Color.GREEN),  # UFR in UFL slot
+            (Color.WHITE, Color.GREEN, Color.ORANGE),  # UFL in UFR slot
+            (Color.WHITE, Color.ORANGE, Color.BLUE),  # UBL
+            (Color.WHITE, Color.BLUE, Color.RED),  # UBR
+            (Color.YELLOW, Color.ORANGE, Color.GREEN),  # DFL
+            (Color.YELLOW, Color.GREEN, Color.RED),  # DFR
+            (Color.YELLOW, Color.BLUE, Color.ORANGE),  # DBL
+            (Color.YELLOW, Color.RED, Color.BLUE),  # DBR
+        ]
+        edges = [
+            (Color.WHITE, Color.GREEN),
+            (Color.WHITE, Color.BLUE),
+            (Color.WHITE, Color.ORANGE),
+            (Color.WHITE, Color.RED),
+            (Color.YELLOW, Color.GREEN),
+            (Color.YELLOW, Color.BLUE),
+            (Color.YELLOW, Color.ORANGE),
+            (Color.YELLOW, Color.RED),
+            (Color.GREEN, Color.ORANGE),
+            (Color.GREEN, Color.RED),
+            (Color.BLUE, Color.ORANGE),
+            (Color.BLUE, Color.RED),
+        ]
+        with (
+            patch.object(Validator, "_get_corners", return_value=corners),
+            patch.object(Validator, "_get_edges", return_value=edges),
+        ):
+            with pytest.raises(ValueError, match="Invalid permutation parity"):
+                validator._check_permutation_parity(cube)
