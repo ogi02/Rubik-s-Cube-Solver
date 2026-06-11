@@ -5,65 +5,15 @@ from collections import Counter
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.enums.Color import Color
 from rubik_cube_solver.enums.Layer import Layer
-
-_VALID_CORNER_COLOR_SETS: frozenset[frozenset[Color]] = frozenset(
-    {
-        frozenset({Color.WHITE, Color.GREEN, Color.ORANGE}),
-        frozenset({Color.WHITE, Color.GREEN, Color.RED}),
-        frozenset({Color.WHITE, Color.BLUE, Color.ORANGE}),
-        frozenset({Color.WHITE, Color.BLUE, Color.RED}),
-        frozenset({Color.YELLOW, Color.GREEN, Color.ORANGE}),
-        frozenset({Color.YELLOW, Color.GREEN, Color.RED}),
-        frozenset({Color.YELLOW, Color.BLUE, Color.ORANGE}),
-        frozenset({Color.YELLOW, Color.BLUE, Color.RED}),
-    }
+from rubik_cube_solver.validator.validator_constants import (
+    CENTER_COLORS_OPPOSITES,
+    CENTER_LAYER_OPPOSITES,
+    CORNER_CANONICAL_CW,
+    EDGE_CANONICAL_ORIENTATION,
+    VALID_CORNER_COLOR_SETS,
+    VALID_EDGE_COLOR_SETS,
 )
-
-# Canonical CW sequence for each valid corner color set
-_CORNER_CANONICAL_CW: dict[frozenset[Color], tuple[Color, Color, Color]] = {
-    frozenset({Color.WHITE, Color.GREEN, Color.ORANGE}): (Color.WHITE, Color.GREEN, Color.ORANGE),
-    frozenset({Color.WHITE, Color.GREEN, Color.RED}): (Color.WHITE, Color.RED, Color.GREEN),
-    frozenset({Color.WHITE, Color.BLUE, Color.ORANGE}): (Color.WHITE, Color.ORANGE, Color.BLUE),
-    frozenset({Color.WHITE, Color.BLUE, Color.RED}): (Color.WHITE, Color.BLUE, Color.RED),
-    frozenset({Color.YELLOW, Color.GREEN, Color.ORANGE}): (Color.YELLOW, Color.ORANGE, Color.GREEN),
-    frozenset({Color.YELLOW, Color.GREEN, Color.RED}): (Color.YELLOW, Color.GREEN, Color.RED),
-    frozenset({Color.YELLOW, Color.BLUE, Color.ORANGE}): (Color.YELLOW, Color.BLUE, Color.ORANGE),
-    frozenset({Color.YELLOW, Color.BLUE, Color.RED}): (Color.YELLOW, Color.RED, Color.BLUE),
-}
-
-_VALID_EDGE_COLOR_SETS: frozenset[frozenset[Color]] = frozenset(
-    {
-        frozenset({Color.WHITE, Color.GREEN}),
-        frozenset({Color.WHITE, Color.BLUE}),
-        frozenset({Color.WHITE, Color.ORANGE}),
-        frozenset({Color.WHITE, Color.RED}),
-        frozenset({Color.YELLOW, Color.GREEN}),
-        frozenset({Color.YELLOW, Color.BLUE}),
-        frozenset({Color.YELLOW, Color.ORANGE}),
-        frozenset({Color.YELLOW, Color.RED}),
-        frozenset({Color.GREEN, Color.ORANGE}),
-        frozenset({Color.GREEN, Color.RED}),
-        frozenset({Color.BLUE, Color.ORANGE}),
-        frozenset({Color.BLUE, Color.RED}),
-    }
-)
-
-# For each edge color set, the primary color is the one that should face UP/DOWN (for U/D edges)
-# or FRONT/BACK (for equatorial edges) to be considered "oriented" (orientation = 0)
-_EDGE_CANONICAL_ORIENTATION: dict[frozenset[Color], Color] = {
-    frozenset({Color.WHITE, Color.GREEN}): Color.WHITE,
-    frozenset({Color.WHITE, Color.BLUE}): Color.WHITE,
-    frozenset({Color.WHITE, Color.ORANGE}): Color.WHITE,
-    frozenset({Color.WHITE, Color.RED}): Color.WHITE,
-    frozenset({Color.YELLOW, Color.GREEN}): Color.YELLOW,
-    frozenset({Color.YELLOW, Color.BLUE}): Color.YELLOW,
-    frozenset({Color.YELLOW, Color.ORANGE}): Color.YELLOW,
-    frozenset({Color.YELLOW, Color.RED}): Color.YELLOW,
-    frozenset({Color.GREEN, Color.ORANGE}): Color.GREEN,
-    frozenset({Color.GREEN, Color.RED}): Color.GREEN,
-    frozenset({Color.BLUE, Color.ORANGE}): Color.BLUE,
-    frozenset({Color.BLUE, Color.RED}): Color.BLUE,
-}
+from rubik_cube_solver.validator.validator_utils import get_corners, get_edges
 
 
 class Validator:
@@ -86,7 +36,7 @@ class Validator:
         self._check_corner_orientation(cube)
         self._check_corner_chirality(cube)
 
-        if cube.size == 3:
+        if cube.size % 2 == 1:
             self._check_center_uniqueness(cube)
             self._check_edge_validity(cube)
             self._check_edge_flip_parity(cube)
@@ -126,38 +76,6 @@ class Validator:
                 )
 
     @staticmethod
-    def _get_corners(cube: Cube) -> list[tuple[Color, Color, Color]]:
-        """
-        Returns a list of 8 corner tuples, one per corner, each containing the 3 sticker
-        colors in the canonical clockwise face-sequence order.
-
-        :param cube: The Cube instance
-        :return: List of 8 corner color tuples
-        """
-
-        n = cube.size
-        layers = cube.layers
-        # Each entry: (face1_color, face2_color, face3_color) in CW order
-        return [
-            # UFL
-            (layers[Layer.UP][n * (n - 1)], layers[Layer.FRONT][0], layers[Layer.LEFT][n - 1]),
-            # UFR
-            (layers[Layer.UP][n * n - 1], layers[Layer.RIGHT][0], layers[Layer.FRONT][n - 1]),
-            # UBL
-            (layers[Layer.UP][0], layers[Layer.LEFT][0], layers[Layer.BACK][n - 1]),
-            # UBR
-            (layers[Layer.UP][n - 1], layers[Layer.BACK][0], layers[Layer.RIGHT][n - 1]),
-            # DFL
-            (layers[Layer.DOWN][0], layers[Layer.LEFT][n * n - 1], layers[Layer.FRONT][n * (n - 1)]),
-            # DFR
-            (layers[Layer.DOWN][n - 1], layers[Layer.FRONT][n * n - 1], layers[Layer.RIGHT][n * (n - 1)]),
-            # DBL
-            (layers[Layer.DOWN][n * (n - 1)], layers[Layer.BACK][n * n - 1], layers[Layer.LEFT][n * (n - 1)]),
-            # DBR
-            (layers[Layer.DOWN][n * n - 1], layers[Layer.RIGHT][n * n - 1], layers[Layer.BACK][n * (n - 1)]),
-        ]
-
-    @staticmethod
     def _check_corner_validity(cube: Cube) -> None:
         """
         Validates that all 8 corner pieces are present exactly once with valid 3-color combinations.
@@ -166,12 +84,12 @@ class Validator:
         :return: None
         """
 
-        corners = Validator._get_corners(cube)
+        corners = get_corners(cube)
         seen_color_sets: list[frozenset[Color]] = []
 
         for corner in corners:
             colors = frozenset(corner)
-            if colors not in _VALID_CORNER_COLOR_SETS:
+            if colors not in VALID_CORNER_COLOR_SETS:
                 raise ValueError(f"Invalid corner piece: {colors}.")
             if colors in seen_color_sets:
                 raise ValueError(f"Duplicate corner piece: {colors}.")
@@ -186,7 +104,7 @@ class Validator:
         :return: None
         """
 
-        corners = Validator._get_corners(cube)
+        corners = get_corners(cube)
         ud_colors = {Color.WHITE, Color.YELLOW}
         total = 0
 
@@ -215,12 +133,12 @@ class Validator:
         :return: None
         """
 
-        corners = Validator._get_corners(cube)
+        corners = get_corners(cube)
 
         for corner in corners:
             c0, c1, c2 = corner
             color_set = frozenset({c0, c1, c2})
-            canonical = _CORNER_CANONICAL_CW[color_set]
+            canonical = CORNER_CANONICAL_CW[color_set]
             valid_rotations = {
                 canonical,
                 (canonical[1], canonical[2], canonical[0]),
@@ -230,47 +148,9 @@ class Validator:
                 raise ValueError(f"Invalid corner chirality for piece {color_set}.")
 
     @staticmethod
-    def _get_edges(cube: Cube) -> list[tuple[Color, Color]]:
-        """
-        Returns a list of 12 edge tuples in canonical order (UF, UB, UL, UR, DF, DB, DL, DR, FL, FR, BL, BR).
-        Each tuple is (face1_color, face2_color) as defined by the sticker index table.
-
-        :param cube: The Cube instance
-        :return: List of 12 edge color tuples
-        """
-
-        layers = cube.layers
-        return [
-            # UF
-            (layers[Layer.UP][7], layers[Layer.FRONT][1]),
-            # UB
-            (layers[Layer.UP][1], layers[Layer.BACK][1]),
-            # UL
-            (layers[Layer.UP][3], layers[Layer.LEFT][1]),
-            # UR
-            (layers[Layer.UP][5], layers[Layer.RIGHT][1]),
-            # DF
-            (layers[Layer.DOWN][1], layers[Layer.FRONT][7]),
-            # DB
-            (layers[Layer.DOWN][7], layers[Layer.BACK][7]),
-            # DL
-            (layers[Layer.DOWN][3], layers[Layer.LEFT][7]),
-            # DR
-            (layers[Layer.DOWN][5], layers[Layer.RIGHT][7]),
-            # FL
-            (layers[Layer.FRONT][3], layers[Layer.LEFT][5]),
-            # FR
-            (layers[Layer.FRONT][5], layers[Layer.RIGHT][3]),
-            # BL
-            (layers[Layer.BACK][5], layers[Layer.LEFT][3]),
-            # BR
-            (layers[Layer.BACK][3], layers[Layer.RIGHT][5]),
-        ]
-
-    @staticmethod
     def _check_center_uniqueness(cube: Cube) -> None:
         """
-        Validates that all 6 center stickers of a 3x3 cube are distinct colors.
+        Validates that all 6 center stickers of an odd sized cube are distinct colors.
 
         :param cube: The Cube instance to validate
         :return: None
@@ -278,10 +158,25 @@ class Validator:
 
         seen_colors: list[Color] = []
         for face in Layer:
-            center_color = cube.layers[face][4]
+            center_color = cube.layers[face][cube.size // 2]
             if center_color in seen_colors:
                 raise ValueError(f"Duplicate center piece: {center_color}.")
             seen_colors.append(center_color)
+
+    @staticmethod
+    def _check_center_opposites(cube: Cube) -> None:
+        """
+        Validates that all 6 center stickers of an odd sized cube have correct opposite colors.
+
+        :param cube: The Cube instance to validate
+        :return: None
+        """
+
+        for face in Layer:
+            center_color = cube.layers[face][cube.size // 2]
+            opposite_color = cube.layers[CENTER_LAYER_OPPOSITES[face]][cube.size // 2]
+            if CENTER_COLORS_OPPOSITES[center_color] != opposite_color:
+                raise ValueError(f"Invalid opposite color of {center_color}: {opposite_color}.")
 
     @staticmethod
     def _check_edge_validity(cube: Cube) -> None:
@@ -292,12 +187,12 @@ class Validator:
         :return: None
         """
 
-        edges = Validator._get_edges(cube)
+        edges = get_edges(cube)
         seen_color_sets: list[frozenset[Color]] = []
 
         for edge in edges:
             colors = frozenset(edge)
-            if colors not in _VALID_EDGE_COLOR_SETS:
+            if colors not in VALID_EDGE_COLOR_SETS:
                 raise ValueError(f"Invalid edge piece: {colors}.")
             if colors in seen_color_sets:
                 raise ValueError(f"Duplicate edge piece: {colors}.")
@@ -312,11 +207,11 @@ class Validator:
         :return: None
         """
 
-        edges = Validator._get_edges(cube)
+        edges = get_edges(cube)
         total = 0
 
         for c1, c2 in edges:
-            primary_color = _EDGE_CANONICAL_ORIENTATION[frozenset({c1, c2})]
+            primary_color = EDGE_CANONICAL_ORIENTATION[frozenset({c1, c2})]
             if c1 == primary_color:
                 total += 0
             else:
@@ -360,10 +255,10 @@ class Validator:
             frozenset({Color.BLUE, Color.RED}),  # BR
         ]
 
-        corners = Validator._get_corners(cube)
+        corners = get_corners(cube)
         corner_perm = [canonical_corners.index(frozenset(corner)) for corner in corners]
 
-        edges = Validator._get_edges(cube)
+        edges = get_edges(cube)
         edge_perm = [canonical_edges.index(frozenset(edge)) for edge in edges]
 
         def count_inversions(perm: list[int]) -> int:
