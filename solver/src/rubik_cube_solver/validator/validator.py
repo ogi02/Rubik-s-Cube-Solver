@@ -5,31 +5,15 @@ from collections import Counter
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.enums.Color import Color
 from rubik_cube_solver.enums.Layer import Layer
-
-_VALID_CORNER_COLOR_SETS: frozenset[frozenset[Color]] = frozenset(
-    {
-        frozenset({Color.WHITE, Color.GREEN, Color.ORANGE}),
-        frozenset({Color.WHITE, Color.GREEN, Color.RED}),
-        frozenset({Color.WHITE, Color.BLUE, Color.ORANGE}),
-        frozenset({Color.WHITE, Color.BLUE, Color.RED}),
-        frozenset({Color.YELLOW, Color.GREEN, Color.ORANGE}),
-        frozenset({Color.YELLOW, Color.GREEN, Color.RED}),
-        frozenset({Color.YELLOW, Color.BLUE, Color.ORANGE}),
-        frozenset({Color.YELLOW, Color.BLUE, Color.RED}),
-    }
+from rubik_cube_solver.validator.validator_constants import (
+    CENTER_COLORS_OPPOSITES,
+    CENTER_LAYER_OPPOSITES,
+    CORNER_CANONICAL_CW,
+    EDGE_CANONICAL_ORIENTATION,
+    VALID_CORNER_COLOR_SETS,
+    VALID_EDGE_COLOR_SETS,
 )
-
-# Canonical CW sequence for each valid corner color set
-_CORNER_CANONICAL_CW: dict[frozenset[Color], tuple[Color, Color, Color]] = {
-    frozenset({Color.WHITE, Color.GREEN, Color.ORANGE}): (Color.WHITE, Color.GREEN, Color.ORANGE),
-    frozenset({Color.WHITE, Color.GREEN, Color.RED}): (Color.WHITE, Color.RED, Color.GREEN),
-    frozenset({Color.WHITE, Color.BLUE, Color.ORANGE}): (Color.WHITE, Color.ORANGE, Color.BLUE),
-    frozenset({Color.WHITE, Color.BLUE, Color.RED}): (Color.WHITE, Color.BLUE, Color.RED),
-    frozenset({Color.YELLOW, Color.GREEN, Color.ORANGE}): (Color.YELLOW, Color.ORANGE, Color.GREEN),
-    frozenset({Color.YELLOW, Color.GREEN, Color.RED}): (Color.YELLOW, Color.GREEN, Color.RED),
-    frozenset({Color.YELLOW, Color.BLUE, Color.ORANGE}): (Color.YELLOW, Color.BLUE, Color.ORANGE),
-    frozenset({Color.YELLOW, Color.BLUE, Color.RED}): (Color.YELLOW, Color.RED, Color.BLUE),
-}
+from rubik_cube_solver.validator.validator_utils import get_corners, get_edges
 
 
 class Validator:
@@ -51,6 +35,12 @@ class Validator:
         self._check_corner_validity(cube)
         self._check_corner_orientation(cube)
         self._check_corner_chirality(cube)
+
+        if cube.size % 2 == 1:
+            self._check_center_uniqueness(cube)
+            self._check_edge_validity(cube)
+            self._check_edge_flip_parity(cube)
+            self._check_permutation_parity(cube)
 
     @staticmethod
     def _check_size(cube: Cube) -> None:
@@ -86,38 +76,6 @@ class Validator:
                 )
 
     @staticmethod
-    def _get_corners(cube: Cube) -> list[tuple[Color, Color, Color]]:
-        """
-        Returns a list of 8 corner tuples, one per corner, each containing the 3 sticker
-        colors in the canonical clockwise face-sequence order.
-
-        :param cube: The Cube instance
-        :return: List of 8 corner color tuples
-        """
-
-        n = cube.size
-        layers = cube.layers
-        # Each entry: (face1_color, face2_color, face3_color) in CW order
-        return [
-            # UFL
-            (layers[Layer.UP][n * (n - 1)], layers[Layer.FRONT][0], layers[Layer.LEFT][n - 1]),
-            # UFR
-            (layers[Layer.UP][n * n - 1], layers[Layer.RIGHT][0], layers[Layer.FRONT][n - 1]),
-            # UBL
-            (layers[Layer.UP][0], layers[Layer.LEFT][0], layers[Layer.BACK][n - 1]),
-            # UBR
-            (layers[Layer.UP][n - 1], layers[Layer.BACK][0], layers[Layer.RIGHT][n - 1]),
-            # DFL
-            (layers[Layer.DOWN][0], layers[Layer.LEFT][n * n - 1], layers[Layer.FRONT][n * (n - 1)]),
-            # DFR
-            (layers[Layer.DOWN][n - 1], layers[Layer.FRONT][n * n - 1], layers[Layer.RIGHT][n * (n - 1)]),
-            # DBL
-            (layers[Layer.DOWN][n * (n - 1)], layers[Layer.BACK][n * n - 1], layers[Layer.LEFT][n * (n - 1)]),
-            # DBR
-            (layers[Layer.DOWN][n * n - 1], layers[Layer.RIGHT][n * n - 1], layers[Layer.BACK][n * (n - 1)]),
-        ]
-
-    @staticmethod
     def _check_corner_validity(cube: Cube) -> None:
         """
         Validates that all 8 corner pieces are present exactly once with valid 3-color combinations.
@@ -126,12 +84,12 @@ class Validator:
         :return: None
         """
 
-        corners = Validator._get_corners(cube)
+        corners = get_corners(cube)
         seen_color_sets: list[frozenset[Color]] = []
 
         for corner in corners:
             colors = frozenset(corner)
-            if colors not in _VALID_CORNER_COLOR_SETS:
+            if colors not in VALID_CORNER_COLOR_SETS:
                 raise ValueError(f"Invalid corner piece: {colors}.")
             if colors in seen_color_sets:
                 raise ValueError(f"Duplicate corner piece: {colors}.")
@@ -146,7 +104,7 @@ class Validator:
         :return: None
         """
 
-        corners = Validator._get_corners(cube)
+        corners = get_corners(cube)
         ud_colors = {Color.WHITE, Color.YELLOW}
         total = 0
 
@@ -175,12 +133,12 @@ class Validator:
         :return: None
         """
 
-        corners = Validator._get_corners(cube)
+        corners = get_corners(cube)
 
         for corner in corners:
             c0, c1, c2 = corner
             color_set = frozenset({c0, c1, c2})
-            canonical = _CORNER_CANONICAL_CW[color_set]
+            canonical = CORNER_CANONICAL_CW[color_set]
             valid_rotations = {
                 canonical,
                 (canonical[1], canonical[2], canonical[0]),
@@ -188,3 +146,131 @@ class Validator:
             }
             if (c0, c1, c2) not in valid_rotations:
                 raise ValueError(f"Invalid corner chirality for piece {color_set}.")
+
+    @staticmethod
+    def _check_center_uniqueness(cube: Cube) -> None:
+        """
+        Validates that all 6 center stickers of an odd sized cube are distinct colors.
+
+        :param cube: The Cube instance to validate
+        :return: None
+        """
+
+        seen_colors: list[Color] = []
+        for face in Layer:
+            center_color = cube.layers[face][cube.size // 2]
+            if center_color in seen_colors:
+                raise ValueError(f"Duplicate center piece: {center_color}.")
+            seen_colors.append(center_color)
+
+    @staticmethod
+    def _check_center_opposites(cube: Cube) -> None:
+        """
+        Validates that all 6 center stickers of an odd sized cube have correct opposite colors.
+
+        :param cube: The Cube instance to validate
+        :return: None
+        """
+
+        for face in Layer:
+            center_color = cube.layers[face][cube.size // 2]
+            opposite_color = cube.layers[CENTER_LAYER_OPPOSITES[face]][cube.size // 2]
+            if CENTER_COLORS_OPPOSITES[center_color] != opposite_color:
+                raise ValueError(f"Invalid opposite color of {center_color}: {opposite_color}.")
+
+    @staticmethod
+    def _check_edge_validity(cube: Cube) -> None:
+        """
+        Validates that all 12 edge pieces are present exactly once with valid 2-color combinations.
+
+        :param cube: The Cube instance to validate
+        :return: None
+        """
+
+        edges = get_edges(cube)
+        seen_color_sets: list[frozenset[Color]] = []
+
+        for edge in edges:
+            colors = frozenset(edge)
+            if colors not in VALID_EDGE_COLOR_SETS:
+                raise ValueError(f"Invalid edge piece: {colors}.")
+            if colors in seen_color_sets:
+                raise ValueError(f"Duplicate edge piece: {colors}.")
+            seen_color_sets.append(colors)
+
+    @staticmethod
+    def _check_edge_flip_parity(cube: Cube) -> None:
+        """
+        Validates that the sum of all 12 edge orientations is divisible by 2.
+
+        :param cube: The Cube instance to validate
+        :return: None
+        """
+
+        edges = get_edges(cube)
+        total = 0
+
+        for c1, c2 in edges:
+            primary_color = EDGE_CANONICAL_ORIENTATION[frozenset({c1, c2})]
+            if c1 == primary_color:
+                total += 0
+            else:
+                total += 1
+
+        if total % 2 != 0:
+            raise ValueError(f"Invalid edge flip parity: sum of orientations is {total}, expected a multiple of 2.")
+
+    @staticmethod
+    def _check_permutation_parity(cube: Cube) -> None:
+        """
+        Validates that corner and edge permutations share the same parity (both even or both odd).
+
+        :param cube: The Cube instance to validate
+        :return: None
+        """
+
+        canonical_corners: list[frozenset[Color]] = [
+            frozenset({Color.WHITE, Color.GREEN, Color.ORANGE}),  # UFL
+            frozenset({Color.WHITE, Color.GREEN, Color.RED}),  # UFR
+            frozenset({Color.WHITE, Color.ORANGE, Color.BLUE}),  # UBL
+            frozenset({Color.WHITE, Color.BLUE, Color.RED}),  # UBR
+            frozenset({Color.YELLOW, Color.ORANGE, Color.GREEN}),  # DFL
+            frozenset({Color.YELLOW, Color.GREEN, Color.RED}),  # DFR
+            frozenset({Color.YELLOW, Color.BLUE, Color.ORANGE}),  # DBL
+            frozenset({Color.YELLOW, Color.BLUE, Color.RED}),  # DBR
+        ]
+
+        canonical_edges: list[frozenset[Color]] = [
+            frozenset({Color.WHITE, Color.GREEN}),  # UF
+            frozenset({Color.WHITE, Color.BLUE}),  # UB
+            frozenset({Color.WHITE, Color.ORANGE}),  # UL
+            frozenset({Color.WHITE, Color.RED}),  # UR
+            frozenset({Color.YELLOW, Color.GREEN}),  # DF
+            frozenset({Color.YELLOW, Color.BLUE}),  # DB
+            frozenset({Color.YELLOW, Color.ORANGE}),  # DL
+            frozenset({Color.YELLOW, Color.RED}),  # DR
+            frozenset({Color.GREEN, Color.ORANGE}),  # FL
+            frozenset({Color.GREEN, Color.RED}),  # FR
+            frozenset({Color.BLUE, Color.ORANGE}),  # BL
+            frozenset({Color.BLUE, Color.RED}),  # BR
+        ]
+
+        corners = get_corners(cube)
+        corner_perm = [canonical_corners.index(frozenset(corner)) for corner in corners]
+
+        edges = get_edges(cube)
+        edge_perm = [canonical_edges.index(frozenset(edge)) for edge in edges]
+
+        def count_inversions(perm: list[int]) -> int:
+            inversions = 0
+            for i in range(len(perm)):
+                for j in range(i + 1, len(perm)):
+                    if perm[i] > perm[j]:
+                        inversions += 1
+            return inversions
+
+        corner_parity = count_inversions(corner_perm) % 2
+        edge_parity = count_inversions(edge_perm) % 2
+
+        if corner_parity != edge_parity:
+            raise ValueError("Invalid permutation parity: corner and edge permutations have different parities.")
