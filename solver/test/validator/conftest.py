@@ -5,7 +5,10 @@ from typing import Callable
 import pytest
 
 # Project imports
+from rubik_cube_solver.cube import Cube
+from rubik_cube_solver.cube_rotation.rotator import Rotator
 from rubik_cube_solver.enums.Color import Color
+from rubik_cube_solver.scramble.scrambler import Scrambler
 from rubik_cube_solver.validator.validator import Validator
 from rubik_cube_solver.validator.validator_constants import CENTER_COLORS_OPPOSITES
 
@@ -81,3 +84,99 @@ def generate_expected_wing_edges() -> Callable:
         return wing_edges
 
     return _generate
+
+
+@pytest.fixture(scope="session")
+def scrambled_2x2_cube() -> Cube:
+    """
+    Returns a 2x2 cube that has been scrambled via the Scrambler and Rotator.
+
+    :return: A scrambled 2x2 Cube instance
+    """
+
+    cube = Cube(2)
+    scramble = Scrambler().generate_scramble(2)
+    rotator = Rotator(cube)
+    for move in scramble:
+        rotator.turn(move)
+    return cube
+
+
+@pytest.fixture(scope="session")
+def scrambled_3x3_cube() -> Cube:
+    """
+    Returns a 3x3 cube that has been scrambled via the Scrambler and Rotator.
+
+    :return: A scrambled 3x3 Cube instance
+    """
+
+    cube = Cube(3)
+    scramble = Scrambler().generate_scramble(3)
+    rotator = Rotator(cube)
+    for move in scramble:
+        rotator.turn(move)
+    return cube
+
+
+@pytest.fixture(scope="session")
+def scrambled_4x4_cube() -> Cube:
+    """
+    Returns a 4x4 cube that has been scrambled via the Scrambler and Rotator.
+
+    :return: A scrambled 4x4 Cube instance
+    """
+
+    cube = Cube(4)
+    scramble = Scrambler().generate_scramble(4)
+    rotator = Rotator(cube)
+    for move in scramble:
+        rotator.turn(move)
+    return cube
+
+
+@pytest.fixture(scope="session")
+def scrambled_5x5_cube() -> Cube:
+    """
+    Returns a 5x5 cube that has been scrambled via the Scrambler and Rotator.
+
+    :return: A scrambled 5x5 Cube instance
+    """
+
+    cube = Cube(5)
+    scramble = Scrambler().generate_scramble(5)
+    rotator = Rotator(cube)
+    for move in scramble:
+        rotator.turn(move)
+    return cube
+
+
+@pytest.fixture(scope="session")
+def scrambled_6x6_cube() -> Cube:
+    """
+    Returns a 6x6 cube that has been scrambled via the Scrambler and Rotator.
+
+    :return: A scrambled 6x6 Cube instance
+    """
+
+    cube = Cube(6)
+    scramble = Scrambler().generate_scramble(6)
+    rotator = Rotator(cube)
+    for move in scramble:
+        rotator.turn(move)
+    return cube
+
+
+@pytest.fixture(scope="session")
+def scrambled_7x7_cube() -> Cube:
+    """
+    Returns a 7x7 cube that has been scrambled via the Scrambler and Rotator.
+
+    :return: A scrambled 7x7 Cube instance
+    """
+
+    cube = Cube(7)
+    scramble = Scrambler().generate_scramble(7)
+    rotator = Rotator(cube)
+    for move in scramble:
+        rotator.turn(move)
+    return cube
