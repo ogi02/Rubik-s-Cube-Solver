@@ -163,7 +163,7 @@ class Validator:
 
         seen_colors: list[Color] = []
         for face in Layer:
-            center_color = cube.layers[face][cube.size // 2]
+            center_color = cube.layers[face][cube.size * cube.size // 2]
             if center_color in seen_colors:
                 raise ValueError(f"Duplicate center piece: {center_color}.")
             seen_colors.append(center_color)
@@ -178,8 +178,8 @@ class Validator:
         """
 
         for face in Layer:
-            center_color = cube.layers[face][cube.size // 2]
-            opposite_color = cube.layers[CENTER_LAYER_OPPOSITES[face]][cube.size // 2]
+            center_color = cube.layers[face][cube.size * cube.size // 2]
+            opposite_color = cube.layers[CENTER_LAYER_OPPOSITES[face]][cube.size * cube.size // 2]
             if CENTER_COLORS_OPPOSITES[center_color] != opposite_color:
                 raise ValueError(f"Invalid opposite color of {center_color}: {opposite_color}.")
 
