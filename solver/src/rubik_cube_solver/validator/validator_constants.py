@@ -78,3 +78,15 @@ CENTER_LAYER_OPPOSITES: dict[Layer, Layer] = {
     Layer.LEFT: Layer.RIGHT,
     Layer.RIGHT: Layer.LEFT,
 }
+
+# 6 layer pairs: (primary_face, [secondary_faces])
+# Primary face provides the "more clockwise" sticker,
+# secondary stickers provide the "less clockwise" sticker
+WING_EDGES_LAYER_PAIRS: list[tuple[Layer, list[Layer]]] = [
+    (Layer.UP, [Layer.LEFT, Layer.RIGHT, Layer.FRONT, Layer.BACK]),  # UP layer as primary
+    (Layer.DOWN, [Layer.LEFT, Layer.RIGHT, Layer.FRONT, Layer.BACK]),  # DOWN layer as primary
+    (Layer.LEFT, [Layer.UP, Layer.DOWN, Layer.FRONT, Layer.BACK]),  # LEFT layer as primary
+    (Layer.RIGHT, [Layer.UP, Layer.DOWN, Layer.FRONT, Layer.BACK]),  # RIGHT layer as primary
+    (Layer.FRONT, [Layer.UP, Layer.DOWN, Layer.LEFT, Layer.RIGHT]),  # FRONT layer as primary
+    (Layer.BACK, [Layer.UP, Layer.DOWN, Layer.LEFT, Layer.RIGHT]),  # BACK layer as primary
+]
