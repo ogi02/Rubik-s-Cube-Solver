@@ -13,7 +13,7 @@ from rubik_cube_solver.validator.validator_constants import (
     VALID_CORNER_COLOR_SETS,
     VALID_EDGE_COLOR_SETS,
 )
-from rubik_cube_solver.validator.validator_utils import get_corners, get_edges
+from rubik_cube_solver.validator.validator_utils import get_centers, get_corners, get_edges, get_wing_edges
 
 
 class Validator:
@@ -38,9 +38,14 @@ class Validator:
 
         if cube.size % 2 == 1:
             self._check_center_uniqueness(cube)
+            self._check_center_opposites(cube)
             self._check_edge_validity(cube)
             self._check_edge_flip_parity(cube)
             self._check_permutation_parity(cube)
+
+        if cube.size >= 4:
+            self._check_center_count_big(cube)
+            self._check_wing_edge_validity(cube)
 
     @staticmethod
     def _check_size(cube: Cube) -> None:
@@ -179,6 +184,28 @@ class Validator:
                 raise ValueError(f"Invalid opposite color of {center_color}: {opposite_color}.")
 
     @staticmethod
+    def _check_center_count_big(cube: Cube) -> None:
+        """
+        Validates that each center piece type appears exactly 4 times for big cubes (N >= 4).
+
+        :param cube: The Cube instance to validate
+        :return: None
+        """
+
+        centers = get_centers(cube)
+        counter: Counter = Counter()
+
+        for center in centers:
+            counter[center] += 1
+
+        for piece, count in counter.items():
+            (color, row, col) = piece
+            if count != 4:
+                raise ValueError(
+                    f"Invalid center piece count for {color} at row {row}, col {col}: expected 4, got {count}."
+                )
+
+    @staticmethod
     def _check_edge_validity(cube: Cube) -> None:
         """
         Validates that all 12 edge pieces are present exactly once with valid 2-color combinations.
@@ -197,6 +224,27 @@ class Validator:
             if colors in seen_color_sets:
                 raise ValueError(f"Duplicate edge piece: {colors}.")
             seen_color_sets.append(colors)
+
+    @staticmethod
+    def _check_wing_edge_validity(cube: Cube) -> None:
+        """
+        Validates that all directed wing edge pieces are present exactly once for big cubes (N >= 4).
+
+        :param cube: The Cube instance to validate
+        :return: None
+        """
+
+        wing_edges = get_wing_edges(cube)
+        seen_wing_edges: list[tuple[int, Color, Color]] = []
+
+        for wing_edge in wing_edges:
+            _, primary_color, secondary_color = wing_edge
+            wing_edge_colors = frozenset({primary_color, secondary_color})
+            if wing_edge_colors not in VALID_EDGE_COLOR_SETS:
+                raise ValueError(f"Invalid wing edge piece: {wing_edge_colors}.")
+            if wing_edge in seen_wing_edges:
+                raise ValueError(f"Duplicate wing edge piece: {wing_edge}.")
+            seen_wing_edges.append(wing_edge)
 
     @staticmethod
     def _check_edge_flip_parity(cube: Cube) -> None:
