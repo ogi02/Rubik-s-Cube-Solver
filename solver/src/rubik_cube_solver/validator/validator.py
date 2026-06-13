@@ -199,7 +199,7 @@ class Validator:
             counter[center] += 1
 
         for piece, count in counter.items():
-            (color, row, col) = piece
+            color, row, col = piece
             if count != 4:
                 raise ValueError(
                     f"Invalid center piece count for {color} at row {row}, col {col}: expected 4, got {count}."
