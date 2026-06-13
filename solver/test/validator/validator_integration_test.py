@@ -6,7 +6,7 @@ from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.validator.validator import Validator
 
 
-class TestValidatorIntegration:
+class TestValidatorValidate:
     # fmt: off
     @pytest.mark.parametrize("cube_size", [2, 3, 4, 5, 6, 7])
     # fmt: on

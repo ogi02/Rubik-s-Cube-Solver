@@ -122,6 +122,45 @@ R O G R W G W R B W G B
       W Y O
 ```
 
+5. Validating a Cube State
+
+```python
+from rubik_cube_solver.cube import Cube
+from rubik_cube_solver.cube_rotation.move import Move
+from rubik_cube_solver.cube_rotation.rotator import Rotator
+from rubik_cube_solver.enums.Color import Color
+from rubik_cube_solver.enums.Direction import Direction
+from rubik_cube_solver.enums.Layer import Layer
+from rubik_cube_solver.validator.validator import Validator
+
+# Initialize cube and validator
+cube = Cube(size=3)
+validator = Validator()
+
+# A solved cube is valid — no exception is raised
+validator.validate(cube)
+
+# A scrambled cube is also valid
+rotator = Rotator(cube)
+rotator.turn(Move(layer=Layer.UP, direction=Direction.CW, layer_amount=1))
+rotator.turn(Move(layer=Layer.FRONT, direction=Direction.CCW, layer_amount=1))
+validator.validate(cube)
+
+# An invalid cube state raises a ValueError
+# Replace two WHITE stickers on the UP face with RED
+cube.layers[Layer.UP][0] = Color.RED
+cube.layers[Layer.UP][1] = Color.RED
+try:
+    validator.validate(cube)
+except ValueError as e:
+    print(f"Validation error: {e}")
+```
+
+Sample Output:
+```text
+Validation error: Invalid color count for WHITE: expected 9, got 7.
+```
+
 ## Contact
 Author: [Ognian Baruh](https://github.com/ogi02)  
 Email: [ognian@baruh.net](mailto:ognian@baruh.net)
