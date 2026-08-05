@@ -8,9 +8,70 @@ import pytest
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.cube_rotation.move import Move
 from rubik_cube_solver.cube_rotation.rotator import Rotator
+from rubik_cube_solver.enums.Color import Color
 from rubik_cube_solver.enums.Direction import Direction
 from rubik_cube_solver.enums.Layer import Layer
 from rubik_cube_solver.enums.Rotation import Rotation
+
+
+@pytest.fixture
+def scrambled_2x2_cube() -> Cube:
+    """
+    Fixture to return a scrambled 2x2x2 cube.
+    Scramble used: R' F R U' F' U2 R
+
+    :return: a scrambled 2x2x2 cube
+    """
+    # fmt: off
+    layers = {
+        Layer.UP:    [Color.RED,    Color.WHITE,
+                      Color.WHITE,  Color.WHITE],
+        Layer.DOWN:  [Color.BLUE,   Color.BLUE,
+                      Color.YELLOW, Color.YELLOW],
+        Layer.LEFT:  [Color.YELLOW, Color.RED,
+                      Color.ORANGE, Color.WHITE],
+        Layer.RIGHT: [Color.RED,    Color.RED,
+                      Color.ORANGE, Color.ORANGE],
+        Layer.FRONT: [Color.BLUE,   Color.GREEN,
+                      Color.ORANGE, Color.YELLOW],
+        Layer.BACK:  [Color.GREEN,  Color.GREEN,
+                      Color.GREEN,  Color.BLUE],
+    }
+    # fmt: on
+    return Cube(2, layers)
+
+
+@pytest.fixture
+def scrambled_3x3_cube() -> Cube:
+    """
+    Fixture to return a scrambled 3x3x3 cube.
+    Scramble used: D2 L2 B2 L' D2 R' B2 R' U2 L2 F2 D2 F U2 F' R' B' D' F' U' L
+
+    :return: a scrambled 3x3x3 cube
+    """
+    # fmt: off
+    layers = {
+        Layer.UP:    [Color.BLUE,   Color.GREEN,  Color.YELLOW,
+                      Color.BLUE,   Color.WHITE,  Color.ORANGE,
+                      Color.ORANGE, Color.BLUE,   Color.WHITE],
+        Layer.DOWN:  [Color.WHITE,  Color.WHITE,  Color.BLUE,
+                      Color.BLUE,   Color.YELLOW, Color.RED,
+                      Color.BLUE,   Color.WHITE,  Color.RED],
+        Layer.LEFT:  [Color.WHITE,  Color.YELLOW, Color.GREEN,
+                      Color.GREEN,  Color.ORANGE, Color.WHITE,
+                      Color.RED,    Color.WHITE,  Color.BLUE],
+        Layer.RIGHT: [Color.RED,    Color.YELLOW, Color.GREEN,
+                      Color.BLUE,   Color.RED,    Color.ORANGE,
+                      Color.YELLOW, Color.YELLOW, Color.YELLOW],
+        Layer.FRONT: [Color.WHITE,  Color.ORANGE, Color.GREEN,
+                      Color.ORANGE, Color.GREEN,  Color.RED,
+                      Color.RED,    Color.GREEN,  Color.ORANGE],
+        Layer.BACK:  [Color.ORANGE, Color.RED,    Color.ORANGE,
+                      Color.GREEN,  Color.BLUE,   Color.YELLOW,
+                      Color.GREEN,  Color.RED,    Color.YELLOW],
+    }
+    # fmt: on
+    return Cube(3, layers)
 
 
 class TestRotatorTurn:
@@ -92,59 +153,177 @@ class TestRotationEnum:
 class TestRotatorRotate:
     # fmt: off
     @pytest.mark.parametrize(
-        "rotation, expected_private_method", [
-            (Rotation.X, "_Rotator__rotate_x"),
-            (Rotation.Y, "_Rotator__rotate_y"),
-            (Rotation.Z, "_Rotator__rotate_z"),
+        "cube_fixture, rotation, direction, expected_layers", [
+            ("scrambled_2x2_cube", Rotation.X, Direction.CW, {
+                Layer.UP: [],
+                Layer.DOWN: [],
+                Layer.LEFT: [],
+                Layer.RIGHT: [],
+                Layer.FRONT: [],
+                Layer.BACK: [],
+            }),
+            ("scrambled_2x2_cube", Rotation.X, Direction.CCW, {
+                Layer.UP: [],
+                Layer.DOWN: [],
+                Layer.LEFT: [],
+                Layer.RIGHT: [],
+                Layer.FRONT: [],
+                Layer.BACK: [],
+            }),
+            ("scrambled_2x2_cube", Rotation.X, Direction.DOUBLE, {
+                Layer.UP: [],
+                Layer.DOWN: [],
+                Layer.LEFT: [],
+                Layer.RIGHT: [],
+                Layer.FRONT: [],
+                Layer.BACK: [],
+            }),
+            ("scrambled_2x2_cube", Rotation.Y, Direction.CW, {
+                Layer.UP: [],
+                Layer.DOWN: [],
+                Layer.LEFT: [],
+                Layer.RIGHT: [],
+                Layer.FRONT: [],
+                Layer.BACK: [],
+            }),
+            ("scrambled_2x2_cube", Rotation.Y, Direction.CCW, {
+                Layer.UP: [],
+                Layer.DOWN: [],
+                Layer.LEFT: [],
+                Layer.RIGHT: [],
+                Layer.FRONT: [],
+                Layer.BACK: [],
+            }),
+            ("scrambled_2x2_cube", Rotation.Y, Direction.DOUBLE, {
+                Layer.UP: [],
+                Layer.DOWN: [],
+                Layer.LEFT: [],
+                Layer.RIGHT: [],
+                Layer.FRONT: [],
+                Layer.BACK: [],
+            }),
+            ("scrambled_2x2_cube", Rotation.Z, Direction.CW, {
+                Layer.UP: [],
+                Layer.DOWN: [],
+                Layer.LEFT: [],
+                Layer.RIGHT: [],
+                Layer.FRONT: [],
+                Layer.BACK: [],
+            }),
+            ("scrambled_2x2_cube", Rotation.Z, Direction.CCW, {
+                Layer.UP: [],
+                Layer.DOWN: [],
+                Layer.LEFT: [],
+                Layer.RIGHT: [],
+                Layer.FRONT: [],
+                Layer.BACK: [],
+            }),
+            ("scrambled_2x2_cube", Rotation.Z, Direction.DOUBLE, {
+                Layer.UP: [],
+                Layer.DOWN: [],
+                Layer.LEFT: [],
+                Layer.RIGHT: [],
+                Layer.FRONT: [],
+                Layer.BACK: [],
+            }),
+            ("scrambled_3x3_cube", Rotation.X, Direction.CW, {
+                Layer.UP: [],
+                Layer.DOWN: [],
+                Layer.LEFT: [],
+                Layer.RIGHT: [],
+                Layer.FRONT: [],
+                Layer.BACK: [],
+            }),
+            ("scrambled_3x3_cube", Rotation.X, Direction.CCW, {
+                Layer.UP: [],
+                Layer.DOWN: [],
+                Layer.LEFT: [],
+                Layer.RIGHT: [],
+                Layer.FRONT: [],
+                Layer.BACK: [],
+            }),
+            ("scrambled_3x3_cube", Rotation.X, Direction.DOUBLE, {
+                Layer.UP: [],
+                Layer.DOWN: [],
+                Layer.LEFT: [],
+                Layer.RIGHT: [],
+                Layer.FRONT: [],
+                Layer.BACK: [],
+            }),
+            ("scrambled_3x3_cube", Rotation.Y, Direction.CW, {
+                Layer.UP: [],
+                Layer.DOWN: [],
+                Layer.LEFT: [],
+                Layer.RIGHT: [],
+                Layer.FRONT: [],
+                Layer.BACK: [],
+            }),
+            ("scrambled_3x3_cube", Rotation.Y, Direction.CCW, {
+                Layer.UP: [],
+                Layer.DOWN: [],
+                Layer.LEFT: [],
+                Layer.RIGHT: [],
+                Layer.FRONT: [],
+                Layer.BACK: [],
+            }),
+            ("scrambled_3x3_cube", Rotation.Y, Direction.DOUBLE, {
+                Layer.UP: [],
+                Layer.DOWN: [],
+                Layer.LEFT: [],
+                Layer.RIGHT: [],
+                Layer.FRONT: [],
+                Layer.BACK: [],
+            }),
+            ("scrambled_3x3_cube", Rotation.Z, Direction.CW, {
+                Layer.UP: [],
+                Layer.DOWN: [],
+                Layer.LEFT: [],
+                Layer.RIGHT: [],
+                Layer.FRONT: [],
+                Layer.BACK: [],
+            }),
+            ("scrambled_3x3_cube", Rotation.Z, Direction.CCW, {
+                Layer.UP: [],
+                Layer.DOWN: [],
+                Layer.LEFT: [],
+                Layer.RIGHT: [],
+                Layer.FRONT: [],
+                Layer.BACK: [],
+            }),
+            ("scrambled_3x3_cube", Rotation.Z, Direction.DOUBLE, {
+                Layer.UP: [],
+                Layer.DOWN: [],
+                Layer.LEFT: [],
+                Layer.RIGHT: [],
+                Layer.FRONT: [],
+                Layer.BACK: [],
+            }),
         ]
     )
     # fmt: on
-    def test_dispatches_to_correct_axis_handler(
+    def test_success(
         self,
-        generate_cube: Callable[[int], Cube],
-        generate_rotator: Callable[[Cube], Rotator],
+        request: pytest.FixtureRequest,
+        cube_fixture: str,
         rotation: Rotation,
-        expected_private_method: str,
+        direction: Direction,
+        expected_layers: dict[Layer, list[Color]],
+        generate_rotator: Callable[[Cube], Rotator],
     ) -> None:
         """
         Test that rotate() dispatches to the correct private axis handler.
 
-        :param generate_cube: Fixture to generate a cube
-        :param generate_rotator: Fixture to generate a rotator
+        :param request: The request fixture
+        :param cube_fixture: Fixture to generate a scrambled cube
         :param rotation: The rotation axis
-        :param expected_private_method: The name-mangled private method to expect
-        :return: None
-        """
-        cube = generate_cube(3)
-        rotator = generate_rotator(cube)
-
-        with patch.object(rotator, expected_private_method) as mock_handler:
-            rotator.rotate(rotation, 1)
-            mock_handler.assert_called_once_with(1)
-
-    # fmt: off
-    @pytest.mark.parametrize(
-        "invalid_amount", [
-            0, 3, -2, 4, -3, 10,
-        ]
-    )
-    # fmt: on
-    def test_invalid_amount(
-        self,
-        generate_cube: Callable[[int], Cube],
-        generate_rotator: Callable[[Cube], Rotator],
-        invalid_amount: int,
-    ) -> None:
-        """
-        Test that a ValueError is raised for invalid rotation amounts.
-
-        :param generate_cube: Fixture to generate a cube
+        :param direction: The direction of the rotation
+        :param expected_layers: The expected layers after the rotation
         :param generate_rotator: Fixture to generate a rotator
-        :param invalid_amount: An invalid rotation amount
         :return: None
         """
-        cube = generate_cube(3)
-        rotator = generate_rotator(cube)
 
-        with pytest.raises(ValueError, match="Invalid rotation amount"):
-            rotator.rotate(Rotation.X, invalid_amount)
+        cube = request.getfixturevalue(cube_fixture)
+        rotator = generate_rotator(cube)
+        rotator.rotate(rotation, direction)
+
+        assert cube.layers == expected_layers
