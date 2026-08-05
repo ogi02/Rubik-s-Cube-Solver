@@ -62,7 +62,7 @@ class Rotator:
         # Rotate the side stickers
         rotate_sides(self.__cube, move.layer, move.direction, move.layer_amount)
 
-    def rotate(self, rotation: Rotation, amount: int) -> None:
+    def rotate(self, rotation: Rotation, direction: Direction) -> None:
         """
         Applies a whole-cube rotation around the specified axis.
 
@@ -70,17 +70,13 @@ class Rotator:
         and also rotates the stickers of the two faces perpendicular to the axis.
 
         :param rotation: The axis to rotate around (Rotation.X, Rotation.Y, or Rotation.Z)
-        :param amount: Number of quarter-turns: 1 (CW), 2 (double), or -1 (CCW)
+        :param direction: The direction of the rotation (Direction.CW, Direction.CCW, Direction.DOUBLE)
         :return: None
-        :raises ValueError: If amount is not in {-1, 1, 2}
         """
-
-        if amount not in (-1, 1, 2):
-            raise ValueError(f"Invalid rotation amount: {amount}")
 
         order: dict[Layer, Layer] = {}
         faces: dict[Layer, Direction] = {}
-        order, faces = CUBE_ROTATION_MAP.get((rotation, amount))
+        order, faces = CUBE_ROTATION_MAP.get((rotation, direction))
 
         # Swap around the faces
         old_layers: list[list[Color]] = [self.__cube.layers[layer] for layer in order.keys()]
@@ -88,5 +84,5 @@ class Rotator:
             self.__cube.layers[new_layer] = old_layers[index]
 
         # Fix orientation
-        for layer, direction in faces.items():
-            rotate_face(self.__cube, layer, direction)
+        for layer, layer_direction in faces.items():
+            rotate_face(self.__cube, layer, layer_direction)

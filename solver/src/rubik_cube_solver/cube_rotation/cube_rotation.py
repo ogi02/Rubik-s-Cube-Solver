@@ -4,8 +4,8 @@ from rubik_cube_solver.enums.Direction import Direction
 from rubik_cube_solver.enums.Layer import Layer
 
 # Maps for cube rotation
-CUBE_ROTATION_MAP: dict[tuple[Rotation, int], tuple[dict[Layer, Layer], dict[Layer, Direction]]] = {
-    (Rotation.X, 1): (
+CUBE_ROTATION_MAP: dict[tuple[Rotation, Direction], tuple[dict[Layer, Layer], dict[Layer, Direction]]] = {
+    (Rotation.X, Direction.CW): (
         {
             Layer.UP: Layer.BACK,
             Layer.BACK: Layer.DOWN,
@@ -19,7 +19,7 @@ CUBE_ROTATION_MAP: dict[tuple[Rotation, int], tuple[dict[Layer, Layer], dict[Lay
             Layer.RIGHT: Direction.CW,
         },
     ),
-    (Rotation.X, -1): (
+    (Rotation.X, Direction.CCW): (
         {
             Layer.UP: Layer.FRONT,
             Layer.FRONT: Layer.DOWN,
@@ -33,7 +33,7 @@ CUBE_ROTATION_MAP: dict[tuple[Rotation, int], tuple[dict[Layer, Layer], dict[Lay
             Layer.RIGHT: Direction.CCW,
         },
     ),
-    (Rotation.X, 2): (
+    (Rotation.X, Direction.DOUBLE): (
         {
             Layer.UP: Layer.DOWN,
             Layer.DOWN: Layer.UP,
@@ -47,7 +47,7 @@ CUBE_ROTATION_MAP: dict[tuple[Rotation, int], tuple[dict[Layer, Layer], dict[Lay
             Layer.RIGHT: Direction.DOUBLE,
         },
     ),
-    (Rotation.Y, 1): (
+    (Rotation.Y, Direction.CW): (
         {
             Layer.FRONT: Layer.LEFT,
             Layer.LEFT: Layer.BACK,
@@ -59,7 +59,7 @@ CUBE_ROTATION_MAP: dict[tuple[Rotation, int], tuple[dict[Layer, Layer], dict[Lay
             Layer.DOWN: Direction.CCW,
         },
     ),
-    (Rotation.Y, -1): (
+    (Rotation.Y, Direction.CCW): (
         {
             Layer.FRONT: Layer.RIGHT,
             Layer.RIGHT: Layer.BACK,
@@ -71,7 +71,7 @@ CUBE_ROTATION_MAP: dict[tuple[Rotation, int], tuple[dict[Layer, Layer], dict[Lay
             Layer.DOWN: Direction.CW,
         },
     ),
-    (Rotation.Y, 2): (
+    (Rotation.Y, Direction.DOUBLE): (
         {
             Layer.FRONT: Layer.BACK,
             Layer.BACK: Layer.FRONT,
@@ -83,7 +83,7 @@ CUBE_ROTATION_MAP: dict[tuple[Rotation, int], tuple[dict[Layer, Layer], dict[Lay
             Layer.DOWN: Direction.DOUBLE,
         },
     ),
-    (Rotation.Z, 1): (
+    (Rotation.Z, Direction.CW): (
         {
             Layer.UP: Layer.RIGHT,
             Layer.RIGHT: Layer.DOWN,
@@ -99,7 +99,7 @@ CUBE_ROTATION_MAP: dict[tuple[Rotation, int], tuple[dict[Layer, Layer], dict[Lay
             Layer.BACK: Direction.CCW,
         },
     ),
-    (Rotation.Z, -1): (
+    (Rotation.Z, Direction.CCW): (
         {
             Layer.UP: Layer.LEFT,
             Layer.LEFT: Layer.DOWN,
@@ -115,7 +115,7 @@ CUBE_ROTATION_MAP: dict[tuple[Rotation, int], tuple[dict[Layer, Layer], dict[Lay
             Layer.BACK: Direction.CW,
         },
     ),
-    (Rotation.Z, 2): (
+    (Rotation.Z, Direction.DOUBLE): (
         {
             Layer.UP: Layer.DOWN,
             Layer.DOWN: Layer.UP,
