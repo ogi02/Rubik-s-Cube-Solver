@@ -4,7 +4,7 @@ repos:
   hooks:
     - id: black
       name: black
-      language_version: python3.12
+      language_version: python3
       types: [python]
       files: ^client/.*\.py$
       entry: black --config client/pyproject.toml
@@ -14,7 +14,7 @@ repos:
   hooks:
     - id: isort
       name: isort
-      language_version: python3.12
+      language_version: python3
       types: [python]
       files: ^client/.*\.py$
       entry: isort --settings-path client/pyproject.toml
@@ -24,7 +24,7 @@ repos:
   hooks:
     - id: flake8
       name: flake8
-      language_version: python3.12
+      language_version: python3
       types: [python]
       files: ^client/.*\.py$
       entry: flake8 --config client/.flake8
@@ -34,7 +34,7 @@ repos:
   hooks:
     - id: bandit
       name: bandit
-      language_version: python3.12
+      language_version: python3
       types: [python]
       files: ^client/.*\.py$
       entry: bandit -r -c client/pyproject.toml

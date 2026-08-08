@@ -1,3 +1,5 @@
+from rubik_cube_solver.enums.Direction import Directionfrom rubik_cube_solver.enums import Rotation
+
 # Rubik's Cube Solver
 
 [![Lint](https://img.shields.io/github/actions/workflow/status/ogi02/Rubik-s-Cube-Solver/solver-lint.yml?branch=main&label=Lint)](https://github.com/ogi02/Rubik-s-Cube-Solver/actions)
@@ -18,7 +20,7 @@ pip install -i https://test.pypi.org/simple/ rubik-cube-solver
 
 ## Usage Examples
 
-1. Generating a `Cube` and `Rotator`
+#### Generating a `Cube` and `Rotator`
 
 ```python
 from rubik_cube_solver.cube import Cube
@@ -31,7 +33,7 @@ cube = Cube(size=3)
 rotator = Rotator(cube)
 ```
 
-2. Turning a `Layer` Using a `Move`
+#### Turning a `Layer` Using a `Move`
 
 ```python
 from rubik_cube_solver.cube import Cube
@@ -51,7 +53,7 @@ move = Move(layer=Layer.UP, direction=Direction.CW, layer_amount=1)
 rotator.turn(move)
 ```
 
-3. Generating a Scramble
+#### Generating a Scramble
 
 ```python
 from rubik_cube_solver.scramble.scrambler import Scrambler
@@ -66,7 +68,7 @@ for move in scramble_moves:
     print(move)
 ```
 
-4. Apply a Scramble to a 3×3 Cube
+#### Apply a Scramble to a 3×3 Cube
 
 ```python
 from rubik_cube_solver.cube import Cube
@@ -122,14 +124,12 @@ R O G R W G W R B W G B
       W Y O
 ```
 
-5. Validating a Cube State
+#### Validating a Cube State
 
 ```python
 from rubik_cube_solver.cube import Cube
-from rubik_cube_solver.cube_rotation.move import Move
 from rubik_cube_solver.cube_rotation.rotator import Rotator
 from rubik_cube_solver.enums.Color import Color
-from rubik_cube_solver.enums.Direction import Direction
 from rubik_cube_solver.enums.Layer import Layer
 from rubik_cube_solver.scramble.scrambler import Scrambler
 from rubik_cube_solver.validator.validator import Validator
@@ -164,6 +164,69 @@ except ValueError as e:
 Sample Output:
 ```text
 Validation error: Invalid color count for WHITE: expected 9, got 7.
+```
+
+#### Rotating a Cube
+
+```python
+from rubik_cube_solver.cube import Cube
+from rubik_cube_solver.cube_rotation.rotator import Rotator
+from rubik_cube_solver.enums.Direction import Direction
+from rubik_cube_solver.enums.Rotation import Rotation
+from rubik_cube_solver.scramble.scrambler import Scrambler
+
+# Initialize cube, rotator, and scrambler
+cube = Cube(size=3)
+rotator = Rotator(cube)
+scrambler = Scrambler()
+
+# Generate a scramble
+scramble_moves = scrambler.generate_scramble(cube_size=3)
+
+# Print the scramble
+print(f"Scramble: {" ".join(str(move) for move in scramble_moves)}")
+
+# Apply each move to the cube
+for move in scramble_moves:
+    rotator.turn(move)
+
+# Print the scramble cube
+print(f"\nScrambled cube state: \n{cube}")
+
+# Apply a "x" rotation
+rotator.rotate(Rotation.X, Direction.CW)
+
+# Print the rotated cube
+print(f"\nRotated cube state: \n{cube}\n")
+```
+
+Sample output:
+
+```text
+Scramble: F2 B' D F' D2 B2 U' B F' L' R' U R2 D2 F' B2 U D L B'
+
+Scrambled cube state:
+      B W R
+      O W Y
+      O R Y
+R G G W Y G O G G Y O W
+R O R B G B W R Y O B W
+W B R G B B O W R B R B
+      W Y Y
+      O Y G
+      O G Y
+
+
+Rotated cube state:
+      W Y G
+      B G B
+      G B B
+G R R W Y Y O W O Y R O
+G O B O Y G W R G Y W O
+R R W O G Y R Y G R W B
+      B R B
+      W B O
+      W O Y
 ```
 
 ## Contact

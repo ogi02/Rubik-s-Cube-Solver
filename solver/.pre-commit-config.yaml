@@ -4,7 +4,7 @@ repos:
   hooks:
     - id: black
       name: black
-      language_version: python3.12
+      language_version: python3
       types: [python]
       files: ^solver/.*\.py$
       entry: black --config solver/pyproject.toml
@@ -14,7 +14,7 @@ repos:
   hooks:
     - id: isort
       name: isort
-      language_version: python3.12
+      language_version: python3
       types: [python]
       files: ^solver/.*\.py$
       entry: isort --settings-path solver/pyproject.toml
@@ -24,7 +24,7 @@ repos:
   hooks:
     - id: flake8
       name: flake8
-      language_version: python3.12
+      language_version: python3
       types: [python]
       files: ^solver/.*\.py$
       entry: flake8 --config solver/.flake8

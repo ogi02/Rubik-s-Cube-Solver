@@ -1,8 +1,13 @@
 # Project imports
 from rubik_cube_solver.cube import Cube
+from rubik_cube_solver.cube_rotation.cube_rotation import CUBE_ROTATION_MAP
 from rubik_cube_solver.cube_rotation.face_stickers_rotation import rotate_face
 from rubik_cube_solver.cube_rotation.move import Move
 from rubik_cube_solver.cube_rotation.side_stickers_rotation import rotate_sides
+from rubik_cube_solver.enums.Color import Color
+from rubik_cube_solver.enums.Direction import Direction
+from rubik_cube_solver.enums.Layer import Layer
+from rubik_cube_solver.enums.Rotation import Rotation
 
 
 class Rotator:
@@ -56,3 +61,28 @@ class Rotator:
 
         # Rotate the side stickers
         rotate_sides(self.__cube, move.layer, move.direction, move.layer_amount)
+
+    def rotate(self, rotation: Rotation, direction: Direction) -> None:
+        """
+        Applies a whole-cube rotation around the specified axis.
+
+        The rotation remaps all 6 faces of the cube according to the axis
+        and also rotates the stickers of the two faces perpendicular to the axis.
+
+        :param rotation: The axis to rotate around (Rotation.X, Rotation.Y, or Rotation.Z)
+        :param direction: The direction of the rotation (Direction.CW, Direction.CCW, Direction.DOUBLE)
+        :return: None
+        """
+
+        order: dict[Layer, Layer] = {}
+        faces: dict[Layer, Direction] = {}
+        order, faces = CUBE_ROTATION_MAP.get((rotation, direction))
+
+        # Swap around the faces
+        old_layers: list[list[Color]] = [self.__cube.layers[layer] for layer in order.keys()]
+        for index, new_layer in enumerate(order.values()):
+            self.__cube.layers[new_layer] = old_layers[index]
+
+        # Fix orientation
+        for layer, layer_direction in faces.items():
+            rotate_face(self.__cube, layer, layer_direction)
