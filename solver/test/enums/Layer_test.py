@@ -1,6 +1,4 @@
 # Python imports
-import re
-
 import pytest
 
 # Project imports
@@ -50,5 +48,5 @@ class TestLayerFromValue:
         """
 
         # Assert
-        with pytest.raises(ValueError, match=re.escape(f"Invalid value {value} for the Layer enumeration")):
+        with pytest.raises(ValueError, match=f"Invalid value {value} for the Layer enumeration"):
             Layer.from_value(value)

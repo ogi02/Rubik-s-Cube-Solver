@@ -1,5 +1,4 @@
 # Python imports
-import re
 from typing import Callable
 
 import pytest
@@ -184,5 +183,5 @@ class TestMoveFromStr:
         """
 
         # Assert
-        with pytest.raises(ValueError, match=re.escape(f"Couldn't parse move notation: {move_string}")):
+        with pytest.raises(ValueError, match=f"Couldn't parse move notation: {move_string}"):
             Move.from_str(move_string)

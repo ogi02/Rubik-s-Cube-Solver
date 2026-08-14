@@ -1,6 +1,4 @@
 # Python imports
-import re
-
 import pytest
 
 # Project imports
@@ -46,5 +44,5 @@ class TestDirectionFromValue:
         """
 
         # Assert
-        with pytest.raises(ValueError, match=re.escape(f"Invalid value {value} for the Direction enumeration")):
+        with pytest.raises(ValueError, match=f"Invalid value {value} for the Direction enumeration"):
             Direction.from_value(value)

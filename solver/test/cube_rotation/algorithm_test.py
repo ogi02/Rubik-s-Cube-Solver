@@ -1,5 +1,4 @@
 # Python imports
-import re
 from typing import Callable
 
 import pytest
@@ -258,5 +257,5 @@ class TestAlgorithmFromStr:
         """
 
         # Assert
-        with pytest.raises(ValueError, match=re.escape(f"Couldn't parse move notation: {invalid_move}")):
+        with pytest.raises(ValueError, match=f"Couldn't parse move notation: {invalid_move}"):
             Algorithm.from_str(algorithm_string)
