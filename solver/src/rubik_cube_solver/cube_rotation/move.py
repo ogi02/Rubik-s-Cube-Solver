@@ -1,3 +1,7 @@
+# Python imports
+import re
+from typing import Self
+
 # Project imports
 from rubik_cube_solver.enums.Direction import Direction
 from rubik_cube_solver.enums.Layer import Layer
@@ -113,3 +117,39 @@ class Move:
         return (
             self.layer == other.layer and self.direction == other.direction and self.layer_amount == other.layer_amount
         )
+
+    @classmethod
+    def from_str(cls, move_string: str) -> Self:
+        r"""
+        Create a Move from string.
+
+        Regex pattern explanation:
+        Group 1 - Layer Amount - (\d+)? - Optional number prefix
+        Group 2 - Layer - ([UDLRFB]) - One of the faces
+        Group 3 - Wide Move - (w?) - Optional "w" indicating a wide move
+        Group 4 - Direction - (['2]?) - Optional one of "'" (CCW) or "2" (Double)
+
+        :param move_string: The string representation of a move
+        :return: A new Move object
+        """
+
+        pattern = r"^(\d+)?([UDLRFB])(w?)(['2]?)$"
+        match = re.match(pattern, move_string.strip())
+        if not match:
+            raise ValueError(f"Couldn't parse move notation: {move_string}")
+
+        layer_amount_group, layer_group, wide_group, direction_group = match.groups()
+
+        layer = Layer.from_value(layer_group)
+        direction = Direction.from_value(direction_group)
+
+        if layer_amount_group:
+            layer_amount = int(layer_amount_group)
+            if layer_amount < 2 or not wide_group:
+                raise ValueError(f"Couldn't parse move notation: {move_string}")
+        elif wide_group:
+            layer_amount = 2
+        else:
+            layer_amount = 1
+
+        return cls(layer, direction, layer_amount)

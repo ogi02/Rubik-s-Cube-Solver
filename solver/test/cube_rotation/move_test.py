@@ -116,3 +116,72 @@ class TestMoveEq:
         other_move = "Not a Move"
 
         assert move != other_move
+
+
+class TestMoveFromStr:
+    # fmt: off
+    @pytest.mark.parametrize(
+        "move_string, layer, direction, layer_amount", [
+            ("U",       Layer.UP,    Direction.CW,     1),
+            ("R'",      Layer.RIGHT, Direction.CCW,    1),
+            ("F2",      Layer.FRONT, Direction.DOUBLE, 1),
+            ("Uw",      Layer.UP,    Direction.CW,     2),
+            ("Rw'",     Layer.RIGHT, Direction.CCW,    2),
+            ("Fw2",     Layer.FRONT, Direction.DOUBLE, 2),
+            ("3Lw2",    Layer.LEFT,  Direction.DOUBLE, 3),
+            ("4Rw",     Layer.RIGHT, Direction.CW,     4),
+            ("  U  ",   Layer.UP,    Direction.CW,     1),
+            ("\tRw'\t", Layer.RIGHT, Direction.CCW,    2),
+        ]
+    )
+    # fmt: on
+    def test_success(
+        self,
+        move_string: str,
+        layer: Layer,
+        direction: Direction,
+        layer_amount: int,
+    ) -> None:
+        """
+        Tests creating a Move from string.
+
+        :param move_string: The string representation of the move
+        :param layer: The expected layer of the move
+        :param direction: The expected direction of the move
+        :param layer_amount: The expected layer amount of the move
+        :return: None
+        """
+
+        # Act
+        move = Move.from_str(move_string)
+
+        # Assert
+        assert move == Move(layer, direction, layer_amount)
+
+    # fmt: off
+    @pytest.mark.parametrize(
+        "move_string", [
+            "",
+            "X",
+            "RR",
+            "R3",
+            "Rw3",
+            "3R",
+            "1Rw",
+            "0Rw",
+            "r",
+            "R '",
+        ]
+    )
+    # fmt: on
+    def test_invalid_notation(self, move_string: str) -> None:
+        """
+        Tests that creating a Move from an invalid string raises a ValueError.
+
+        :param move_string: The string representation of the move
+        :return: None
+        """
+
+        # Assert
+        with pytest.raises(ValueError, match=f"Couldn't parse move notation: {move_string}"):
+            Move.from_str(move_string)

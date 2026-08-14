@@ -5,6 +5,7 @@ import pytest
 
 # Project imports
 from rubik_cube_solver.cube import Cube
+from rubik_cube_solver.cube_rotation.algorithm import Algorithm
 from rubik_cube_solver.cube_rotation.move import Move
 from rubik_cube_solver.cube_rotation.rotator import Rotator
 from rubik_cube_solver.enums.Color import Color
@@ -223,5 +224,26 @@ def generate_move() -> Callable[[Layer, Direction, int], Move]:
         """
 
         return Move(layer, direction, amount)
+
+    return _generate
+
+
+@pytest.fixture
+def generate_algorithm() -> Callable[[list[Move]], Algorithm]:
+    """
+    Returns a method to generate an algorithm.
+
+    :return: The callable method
+    """
+
+    def _generate(moves: list[Move]) -> Algorithm:
+        """
+        Generates an algorithm.
+
+        :param moves: The moves of the algorithm
+        :return: The algorithm
+        """
+
+        return Algorithm(moves)
 
     return _generate
