@@ -12,6 +12,7 @@ from rubik_cube_solver.enums.Color import Color
 from rubik_cube_solver.enums.Direction import Direction
 from rubik_cube_solver.enums.EdgePosition import EdgePosition
 from rubik_cube_solver.enums.Layer import Layer
+from rubik_cube_solver.enums.Rotation import Rotation
 
 RUBIKS_CUBE_COLORS: list[Color] = [Color.WHITE, Color.YELLOW, Color.ORANGE, Color.RED, Color.GREEN, Color.BLUE]
 
@@ -206,18 +207,18 @@ def generate_rotator() -> Callable[[Cube], Rotator]:
 
 
 @pytest.fixture
-def generate_move() -> Callable[[Layer, Direction, int], Move]:
+def generate_move() -> Callable[[Layer | Rotation, Direction, int], Move]:
     """
     Returns a method to generate a move.
 
     :return: The callable method
     """
 
-    def _generate(layer: Layer, direction: Direction, amount: int) -> Move:
+    def _generate(layer: Layer | Rotation, direction: Direction, amount: int) -> Move:
         """
         Generates a move.
 
-        :param layer: The layer to rotate
+        :param layer: The layer to turn or the axis to rotate the whole cube around
         :param direction: The direction to rotate
         :param amount: The amount of layers to rotate
         :return: The move

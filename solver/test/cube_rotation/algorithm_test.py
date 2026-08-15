@@ -4,10 +4,13 @@ from typing import Callable
 import pytest
 
 # Project imports
+from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.cube_rotation.algorithm import Algorithm
 from rubik_cube_solver.cube_rotation.move import Move
+from rubik_cube_solver.cube_rotation.rotator import Rotator
 from rubik_cube_solver.enums.Direction import Direction
 from rubik_cube_solver.enums.Layer import Layer
+from rubik_cube_solver.enums.Rotation import Rotation
 
 # Moves used in the case tables below, named after the notation they represent
 U: Move = Move(Layer.UP, Direction.CW, 1)
@@ -181,6 +184,92 @@ class TestAlgorithmEq:
 
         # Assert
         assert algorithm != other_algorithm
+
+
+class TestAlgorithmRemoveRotations:
+    # fmt: off
+    @pytest.mark.parametrize(
+        "algorithm_string, expected_string", [
+            ("",                     ""),
+            ("R U R' U'",            "R U R' U'"),
+            ("x",                    ""),
+            ("x y z",                ""),
+            ("x R U R' U'",          "R F R' F'"),
+            ("x R U y R' U'",        "R F U' F'"),
+            ("x2 R U",               "R D"),
+            ("y' R U",               "F U"),
+            ("z F L",                "F D"),
+            ("R U x2 3Bw D",         "R U 3Fw U"),
+            ("y' Rw2 3Fw'",          "Fw2 3Lw'"),
+            ("R U x",                "R U"),
+        ]
+    )
+    # fmt: on
+    def test_success(self, algorithm_string: str, expected_string: str) -> None:
+        """
+        Tests that removing the rotations of an algorithm rewrites the following moves into the
+        orientation the algorithm started from.
+
+        :param algorithm_string: The string representation of the algorithm
+        :param expected_string: The string representation of the expected rotation-free algorithm
+        :return: None
+        """
+
+        # Mock the algorithm
+        algorithm = Algorithm.from_str(algorithm_string)
+
+        # Act
+        algorithm.remove_rotations()
+
+        # Assert
+        assert algorithm == Algorithm.from_str(expected_string)
+
+    # fmt: off
+    @pytest.mark.parametrize(
+        "algorithm_string", [
+            "x R U R' U'",
+            "x R U y R' U'",
+            "z' y2 x' U L2 Fw",
+        ]
+    )
+    # fmt: on
+    def test_equivalent_to_the_original(
+        self,
+        generate_cube: Callable[[int], Cube],
+        generate_rotator: Callable[[Cube], Rotator],
+        algorithm_string: str,
+    ) -> None:
+        """
+        Tests that the rotation-free algorithm leaves the cube in the same state as the original one,
+        once the rotations the original performed are applied on top of it.
+
+        :param generate_cube: Fixture to generate a cube
+        :param generate_rotator: Fixture to generate a rotator
+        :param algorithm_string: The string representation of the algorithm
+        :return: None
+        """
+
+        # Mock the cubes
+        original_cube = generate_cube(5)
+        rotation_free_cube = generate_cube(5)
+
+        # Mock the algorithms
+        original = Algorithm.from_str(algorithm_string)
+        rotation_free = Algorithm.from_str(algorithm_string)
+        rotation_free.remove_rotations()
+
+        # Act
+        generate_rotator(original_cube).apply(original)
+        rotation_free_rotator = generate_rotator(rotation_free_cube)
+        rotation_free_rotator.apply(rotation_free)
+
+        # Re-orient the second cube with the rotations that were removed
+        for move in Algorithm.from_str(algorithm_string).moves:
+            if isinstance(move.layer, Rotation):
+                rotation_free_rotator.turn(move)
+
+        # Assert
+        assert original_cube.layers == rotation_free_cube.layers
 
 
 class TestAlgorithmFromStr:

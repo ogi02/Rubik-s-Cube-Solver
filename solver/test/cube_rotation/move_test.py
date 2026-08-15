@@ -7,6 +7,7 @@ import pytest
 from rubik_cube_solver.cube_rotation.move import Move
 from rubik_cube_solver.enums.Direction import Direction
 from rubik_cube_solver.enums.Layer import Layer
+from rubik_cube_solver.enums.Rotation import Rotation
 
 
 class TestMoveStr:
@@ -16,13 +17,16 @@ class TestMoveStr:
             (Layer.UP,    Direction.CW,     1, "U"),
             (Layer.FRONT, Direction.CCW,    2, "Fw'"),
             (Layer.LEFT,  Direction.DOUBLE, 3, "3Lw2"),
+            (Rotation.X,  Direction.CW,     1, "x"),
+            (Rotation.Y,  Direction.CCW,    1, "y'"),
+            (Rotation.Z,  Direction.DOUBLE, 1, "z2"),
         ]
     )
     # fmt: on
     def test_success(
         self,
-        generate_move: Callable[[Layer, Direction, int], Move],
-        layer: Layer,
+        generate_move: Callable[[Layer | Rotation, Direction, int], Move],
+        layer: Layer | Rotation,
         direction: Direction,
         layer_amount: int,
         move_str: str,
@@ -31,7 +35,7 @@ class TestMoveStr:
         Tests the string representation of the Move class.
 
         :param generate_move: Fixture to generate a move
-        :param layer: The layer to turn
+        :param layer: The layer to turn or the axis to rotate around
         :param direction: The direction of the turn
         :param layer_amount: The amount of layers to turn
         :param move_str: The expected string representation of the move
@@ -55,16 +59,19 @@ class TestMoveEq:
             (Layer.FRONT, Direction.CW,     2, Layer.FRONT, Direction.CCW,    2, False),
             (Layer.LEFT,  Direction.DOUBLE, 3, Layer.LEFT,  Direction.DOUBLE, 3, True),
             (Layer.LEFT,  Direction.DOUBLE, 3, Layer.LEFT,  Direction.DOUBLE, 2, False),
+            (Rotation.X,  Direction.CW,     1, Rotation.X,  Direction.CW,     1, True),
+            (Rotation.X,  Direction.CW,     1, Rotation.Y,  Direction.CW,     1, False),
+            (Rotation.X,  Direction.CW,     1, Layer.RIGHT, Direction.CW,     1, False),
         ]
     )
     # fmt: on
     def test_success(
         self,
-        generate_move: Callable[[Layer, Direction, int], Move],
-        layer: Layer,
+        generate_move: Callable[[Layer | Rotation, Direction, int], Move],
+        layer: Layer | Rotation,
         direction: Direction,
         layer_amount: int,
-        other_layer: Layer,
+        other_layer: Layer | Rotation,
         other_direction: Direction,
         other_layer_amount: int,
         expected: bool,
@@ -132,13 +139,17 @@ class TestMoveFromStr:
             ("4Rw",     Layer.RIGHT, Direction.CW,     4),
             ("  U  ",   Layer.UP,    Direction.CW,     1),
             ("\tRw'\t", Layer.RIGHT, Direction.CCW,    2),
+            ("x",       Rotation.X,  Direction.CW,     1),
+            ("y'",      Rotation.Y,  Direction.CCW,    1),
+            ("z2",      Rotation.Z,  Direction.DOUBLE, 1),
+            ("  x  ",   Rotation.X,  Direction.CW,     1),
         ]
     )
     # fmt: on
     def test_success(
         self,
         move_string: str,
-        layer: Layer,
+        layer: Layer | Rotation,
         direction: Direction,
         layer_amount: int,
     ) -> None:
@@ -146,7 +157,7 @@ class TestMoveFromStr:
         Tests creating a Move from string.
 
         :param move_string: The string representation of the move
-        :param layer: The expected layer of the move
+        :param layer: The expected layer or rotation axis of the move
         :param direction: The expected direction of the move
         :param layer_amount: The expected layer amount of the move
         :return: None
@@ -171,6 +182,10 @@ class TestMoveFromStr:
             "0Rw",
             "r",
             "R '",
+            "xy",
+            "x3",
+            "xw",
+            "2x",
         ]
     )
     # fmt: on
