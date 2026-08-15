@@ -2,7 +2,10 @@
 from typing import Self
 
 # Project imports
+from rubik_cube_solver.cube_rotation.cube_rotation import MOVE_TRANSLATION_MAP
 from rubik_cube_solver.cube_rotation.move import Move
+from rubik_cube_solver.enums.Layer import Layer
+from rubik_cube_solver.enums.Rotation import Rotation
 
 
 class Algorithm:
@@ -62,6 +65,32 @@ class Algorithm:
             return False
 
         return self.moves == other.moves
+
+    def remove_rotations(self) -> None:
+        """
+        Removes all whole-cube rotations from the algorithm.
+
+        A rotation does not turn any layer, it only changes which face every following move refers to.
+        Every rotation is therefore dropped and each move after it is rewritten in the orientation the
+        cube had before the rotation, which leaves an equivalent algorithm of layer turns only.
+
+        Example: `x R U R' U'` becomes `R F R' F'`.
+
+        :return: None
+        """
+
+        # The layer each move names, expressed in the orientation the algorithm started from
+        orientation: dict[Layer, Layer] = {layer: layer for layer in Layer}
+        moves: list[Move] = []
+
+        for move in self.__moves:
+            if isinstance(move.layer, Rotation):
+                translation = MOVE_TRANSLATION_MAP[(move.layer, move.direction)]
+                orientation = {layer: orientation[translation[layer]] for layer in Layer}
+            else:
+                moves.append(Move(orientation[move.layer], move.direction, move.layer_amount))
+
+        self.__moves = moves
 
     @classmethod
     def from_str(cls, algorithm_string: str) -> Self:

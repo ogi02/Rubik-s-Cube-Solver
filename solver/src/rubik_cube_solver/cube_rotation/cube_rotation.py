@@ -1,7 +1,7 @@
 # Project imports
-from rubik_cube_solver.enums import Rotation
 from rubik_cube_solver.enums.Direction import Direction
 from rubik_cube_solver.enums.Layer import Layer
+from rubik_cube_solver.enums.Rotation import Rotation
 
 # Maps for cube rotation
 CUBE_ROTATION_MAP: dict[tuple[Rotation, Direction], tuple[dict[Layer, Layer], dict[Layer, Direction]]] = {
@@ -132,3 +132,12 @@ CUBE_ROTATION_MAP: dict[tuple[Rotation, Direction], tuple[dict[Layer, Layer], di
         },
     ),
 }
+
+# Maps a layer written after a whole-cube rotation back to the layer it refers to before the rotation.
+# `CUBE_ROTATION_MAP` sends the face at position `old` to position `new`, so the face a move names after
+# the rotation is the one that used to sit at the inverse position. Layers that the rotation leaves in
+# place map to themselves.
+MOVE_TRANSLATION_MAP: dict[tuple[Rotation, Direction], dict[Layer, Layer]] = {}
+for rotation_key, (rotation_order, _) in CUBE_ROTATION_MAP.items():
+    inverted_order: dict[Layer, Layer] = {new: old for old, new in rotation_order.items()}
+    MOVE_TRANSLATION_MAP[rotation_key] = {layer: inverted_order.get(layer, layer) for layer in Layer}
