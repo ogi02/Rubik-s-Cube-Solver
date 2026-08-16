@@ -4,6 +4,7 @@ from typing import Self
 # Project imports
 from rubik_cube_solver.cube_rotation.cube_rotation import MOVE_TRANSLATION_MAP
 from rubik_cube_solver.cube_rotation.move import Move
+from rubik_cube_solver.cube_rotation.move_cancellation import can_combine, combine
 from rubik_cube_solver.enums.Layer import Layer
 from rubik_cube_solver.enums.Rotation import Rotation
 
@@ -91,6 +92,46 @@ class Algorithm:
                 moves.append(Move(orientation[move.layer], move.direction, move.layer_amount))
 
         self.__moves = moves
+
+    def cancel_moves(self) -> None:
+        """
+        Reduces the algorithm by cancelling and combining adjacent moves that name the same
+        layer (or rotation axis) and, for layer turns, the same layer amount.
+
+        Cancellation cascades: once a pair of moves disappears or combines into one, the moves
+        that become newly adjacent are considered as well.
+
+        Example: `R U U' R2` becomes `R'`.
+
+        :return: None
+        """
+
+        moves: list[Move] = []
+
+        for move in self.__moves:
+            current: Move | None = move
+            while moves and current is not None and can_combine(moves[-1], current):
+                current = combine(moves.pop(), current)
+            if current is not None:
+                moves.append(current)
+
+        self.__moves = moves
+
+    def merge(self, other: "Algorithm") -> None:
+        """
+        Merges another algorithm into this one, then cancels moves across the whole result.
+
+        `other` is left untouched; the concatenated and cancelled moves are stored on this
+        algorithm.
+
+        Example: `R U U' R2` merged with `L` becomes `R' L`.
+
+        :param other: The algorithm to merge into this one
+        :return: None
+        """
+
+        self.__moves = self.__moves + other.moves
+        self.cancel_moves()
 
     @classmethod
     def from_str(cls, algorithm_string: str) -> Self:
