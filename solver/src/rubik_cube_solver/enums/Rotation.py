@@ -1,5 +1,6 @@
 # Python imports
 from enum import Enum
+from typing import Self
 
 
 class Rotation(Enum):
@@ -15,3 +16,22 @@ class Rotation(Enum):
     X = "x"
     Y = "y"
     Z = "z"
+
+    @classmethod
+    def from_value(cls, value: str) -> Self:
+        """
+        Return an enumeration value from string.
+
+        :param value: The string value
+        :return: The enumeration value
+        """
+
+        match value:
+            case "x":
+                return Rotation.X
+            case "y":
+                return Rotation.Y
+            case "z":
+                return Rotation.Z
+            case _:
+                raise ValueError(f"Invalid value {value} for the Rotation enumeration")

@@ -1,5 +1,6 @@
 # Project imports
 from rubik_cube_solver.cube import Cube
+from rubik_cube_solver.cube_rotation.algorithm import Algorithm
 from rubik_cube_solver.cube_rotation.cube_rotation import CUBE_ROTATION_MAP
 from rubik_cube_solver.cube_rotation.face_stickers_rotation import rotate_face
 from rubik_cube_solver.cube_rotation.move import Move
@@ -49,12 +50,19 @@ class Rotator:
         Firstly, it generates a map for the rotation of the face stickers and performs the rotation.
         Secondly, for every layer in `layer_amount` it moves around the sides stickers, depending on the adjacent faces.
 
+        A move carrying a whole-cube rotation instead of a layer is forwarded to `rotate`.
+
         Possible faces: 'U', 'D', 'L', 'R', 'F', 'B'.
         Possible directions: clockwise, counter-clockwise, double
 
         :param move: The move to perform
         :return: None
         """
+
+        # Forward whole-cube rotations
+        if isinstance(move.layer, Rotation):
+            self.rotate(move.layer, move.direction)
+            return
 
         # Rotate the face stickers
         rotate_face(self.__cube, move.layer, move.direction)
@@ -86,3 +94,14 @@ class Rotator:
         # Fix orientation
         for layer, layer_direction in faces.items():
             rotate_face(self.__cube, layer, layer_direction)
+
+    def apply(self, algorithm: Algorithm) -> None:
+        """
+        Applies every move of an algorithm to the cube, in order.
+
+        :param algorithm: The algorithm to perform
+        :return: None
+        """
+
+        for move in algorithm.moves:
+            self.turn(move)

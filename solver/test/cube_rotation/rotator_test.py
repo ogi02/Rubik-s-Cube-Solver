@@ -6,6 +6,7 @@ import pytest
 
 # Project imports
 from rubik_cube_solver.cube import Cube
+from rubik_cube_solver.cube_rotation.algorithm import Algorithm
 from rubik_cube_solver.cube_rotation.move import Move
 from rubik_cube_solver.cube_rotation.rotator import Rotator
 from rubik_cube_solver.enums.Color import Color
@@ -127,6 +128,51 @@ class TestRotatorTurn:
 
             # Assert that rotate_sides was called once with correct parameters
             mocked_rotate_sides.assert_called_once_with(cube, layer, direction, layer_amount)
+
+    # fmt: off
+    @pytest.mark.parametrize(
+        "rotation, direction", [
+            (Rotation.X, Direction.CW),
+            (Rotation.Y, Direction.CCW),
+            (Rotation.Z, Direction.DOUBLE),
+        ]
+    )
+    # fmt: on
+    def test_whole_cube_rotation(
+        self,
+        generate_cube: Callable[[int], Cube],
+        generate_rotator: Callable[[Cube], Rotator],
+        generate_move: Callable[[Layer | Rotation, Direction, int], Move],
+        rotation: Rotation,
+        direction: Direction,
+    ) -> None:
+        """
+        Tests that the turn method of the Rotator class forwards a whole-cube rotation to the rotate method.
+
+        :param generate_cube: Fixture to generate a cube
+        :param generate_rotator: Fixture to generate a rotator
+        :param generate_move: Fixture to generate a move
+        :param rotation: The axis to rotate around
+        :param direction: The direction of the rotation
+        :return: None
+        """
+
+        # Mock the cube
+        cube = generate_cube(3)
+
+        # Mock the rotator class
+        rotator = generate_rotator(cube)
+
+        # Mock the move
+        move = generate_move(rotation, direction, 1)
+
+        with patch.object(Rotator, "rotate") as mocked_rotate:
+
+            # Perform the turn
+            rotator.turn(move)
+
+            # Assert that rotate was called once with correct parameters
+            mocked_rotate.assert_called_once_with(rotation, direction)
 
 
 class TestRotationEnum:
@@ -489,3 +535,48 @@ class TestRotatorRotate:
         rotator.rotate(rotation, direction)
 
         assert cube.layers == expected_layers
+
+
+class TestRotatorApply:
+    # fmt: off
+    @pytest.mark.parametrize(
+        "algorithm_string", [
+            "",
+            "R U R' U'",
+            "x y' z2",
+            "x R U y R' U'",
+        ]
+    )
+    # fmt: on
+    def test_success(
+        self,
+        generate_cube: Callable[[int], Cube],
+        generate_rotator: Callable[[Cube], Rotator],
+        algorithm_string: str,
+    ) -> None:
+        """
+        Tests that the apply method of the Rotator class performs every move of the algorithm, in order.
+
+        :param generate_cube: Fixture to generate a cube
+        :param generate_rotator: Fixture to generate a rotator
+        :param algorithm_string: The string representation of the algorithm to apply
+        :return: None
+        """
+
+        # Mock the cubes
+        applied_cube = generate_cube(3)
+        expected_cube = generate_cube(3)
+
+        # Mock the algorithm
+        algorithm = Algorithm.from_str(algorithm_string)
+
+        # Act
+        generate_rotator(applied_cube).apply(algorithm)
+
+        # Perform the same moves one by one
+        expected_rotator = generate_rotator(expected_cube)
+        for move in algorithm.moves:
+            expected_rotator.turn(move)
+
+        # Assert
+        assert applied_cube.layers == expected_cube.layers

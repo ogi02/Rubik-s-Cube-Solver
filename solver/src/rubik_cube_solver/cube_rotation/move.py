@@ -5,18 +5,22 @@ from typing import Self
 # Project imports
 from rubik_cube_solver.enums.Direction import Direction
 from rubik_cube_solver.enums.Layer import Layer
+from rubik_cube_solver.enums.Rotation import Rotation
 
 
 class Move:
     """
     Represents a single move on a Rubik's Cube.
+
+    A move is either a layer turn (`R`, `Rw'`, `3Fw2`) or a whole-cube rotation (`x`, `y'`, `z2`).
+    A whole-cube rotation turns every layer at once, so its layer amount is always 1.
     """
 
-    def __init__(self, layer: Layer, direction: Direction, layer_amount: int):
+    def __init__(self, layer: Layer | Rotation, direction: Direction, layer_amount: int):
         """
         Constructor for the `Move` class.
 
-        :param layer: The layer to rotate
+        :param layer: The layer to turn or the axis to rotate the whole cube around
         :param direction: The direction to rotate
         :param layer_amount: The amount of layers to rotate
         """
@@ -26,7 +30,7 @@ class Move:
         self.__layer_amount = layer_amount
 
     @property
-    def layer(self) -> Layer:
+    def layer(self) -> Layer | Rotation:
         """
         Layer getter.
 
@@ -36,7 +40,7 @@ class Move:
         return self.__layer
 
     @layer.setter
-    def layer(self, layer: Layer):
+    def layer(self, layer: Layer | Rotation):
         """
         Layer setter.
 
@@ -95,6 +99,9 @@ class Move:
         :return: String representation
         """
 
+        if isinstance(self.__layer, Rotation):
+            return f"{self.__layer.value}{self.__direction.value}"
+
         match self.__layer_amount:
             case 1:
                 return f"{self.__layer.value}{self.__direction.value}"
@@ -123,7 +130,13 @@ class Move:
         r"""
         Create a Move from string.
 
-        Regex pattern explanation:
+        A whole-cube rotation is matched first, then a layer turn.
+
+        Rotation pattern explanation:
+        Group 1 - Rotation - ([xyz]) - One of the axes
+        Group 2 - Direction - (['2]?) - Optional one of "'" (CCW) or "2" (Double)
+
+        Turn pattern explanation:
         Group 1 - Layer Amount - (\d+)? - Optional number prefix
         Group 2 - Layer - ([UDLRFB]) - One of the faces
         Group 3 - Wide Move - (w?) - Optional "w" indicating a wide move
@@ -132,6 +145,12 @@ class Move:
         :param move_string: The string representation of a move
         :return: A new Move object
         """
+
+        rotation_pattern = r"^([xyz])(['2]?)$"
+        rotation_match = re.match(rotation_pattern, move_string.strip())
+        if rotation_match:
+            rotation_group, direction_group = rotation_match.groups()
+            return cls(Rotation.from_value(rotation_group), Direction.from_value(direction_group), 1)
 
         pattern = r"^(\d+)?([UDLRFB])(w?)(['2]?)$"
         match = re.match(pattern, move_string.strip())
