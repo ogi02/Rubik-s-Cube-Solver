@@ -7,6 +7,33 @@ from rubik_cube_solver.enums.Layer import Layer
 from rubik_cube_solver.validator.validator_constants import WING_EDGES_LAYER_PAIRS
 
 
+def face_center_color(cube: Cube, layer: Layer) -> Color:
+    """
+    Returns the center sticker color of a face.
+
+    :param cube: The Cube instance
+    :param layer: The face to read the center sticker of
+    :return: The center sticker color
+    """
+
+    return cube.layers[layer][cube.size * cube.size // 2]
+
+
+def get_canonical_pieces(cube: Cube, slot_layers: list[tuple[Layer, ...]]) -> list[frozenset[Color]]:
+    """
+    Returns, for each slot, the frozenset of the center colors of the faces meeting at it.
+
+    Used to derive a canonical piece reference frame from the cube's own centers, so it reflects
+    whatever orientation the cube is currently in rather than a fixed hardcoded frame.
+
+    :param cube: The Cube instance
+    :param slot_layers: List of tuples of faces meeting at each slot
+    :return: List of frozensets of center colors, one per slot
+    """
+
+    return [frozenset(face_center_color(cube, layer) for layer in layers) for layers in slot_layers]
+
+
 def get_corners(cube: Cube) -> list[tuple[Color, Color, Color]]:
     """
     Returns a list of 8 corner tuples, one per corner, each containing the 3 sticker

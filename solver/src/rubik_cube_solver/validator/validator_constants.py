@@ -90,3 +90,31 @@ WING_EDGES_LAYER_PAIRS: list[tuple[Layer, list[Layer]]] = [
     (Layer.FRONT, [Layer.UP, Layer.DOWN, Layer.LEFT, Layer.RIGHT]),  # FRONT layer as primary
     (Layer.BACK, [Layer.UP, Layer.DOWN, Layer.LEFT, Layer.RIGHT]),  # BACK layer as primary
 ]
+
+# The 3 faces that meet at each of the 8 corner slots, in the same slot order as `get_corners`
+CORNER_SLOT_LAYERS: list[tuple[Layer, Layer, Layer]] = [
+    (Layer.UP, Layer.FRONT, Layer.LEFT),  # UFL
+    (Layer.UP, Layer.FRONT, Layer.RIGHT),  # UFR
+    (Layer.UP, Layer.BACK, Layer.LEFT),  # UBL
+    (Layer.UP, Layer.BACK, Layer.RIGHT),  # UBR
+    (Layer.DOWN, Layer.FRONT, Layer.LEFT),  # DFL
+    (Layer.DOWN, Layer.FRONT, Layer.RIGHT),  # DFR
+    (Layer.DOWN, Layer.BACK, Layer.LEFT),  # DBL
+    (Layer.DOWN, Layer.BACK, Layer.RIGHT),  # DBR
+]
+
+# The 2 faces that meet at each of the 12 edge slots, in the same slot order as `get_edges`
+EDGE_SLOT_LAYERS: list[tuple[Layer, Layer]] = [
+    (Layer.UP, Layer.FRONT),  # UF
+    (Layer.UP, Layer.BACK),  # UB
+    (Layer.UP, Layer.LEFT),  # UL
+    (Layer.UP, Layer.RIGHT),  # UR
+    (Layer.DOWN, Layer.FRONT),  # DF
+    (Layer.DOWN, Layer.BACK),  # DB
+    (Layer.DOWN, Layer.LEFT),  # DL
+    (Layer.DOWN, Layer.RIGHT),  # DR
+    (Layer.FRONT, Layer.LEFT),  # FL
+    (Layer.FRONT, Layer.RIGHT),  # FR
+    (Layer.BACK, Layer.LEFT),  # BL
+    (Layer.BACK, Layer.RIGHT),  # BR
+]

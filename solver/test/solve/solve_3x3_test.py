@@ -222,7 +222,7 @@ class TestSolve3x3Solve:
     @pytest.mark.parametrize(
         "algorithm", [
             "R U R' U'",
-            "x2 D R F' U L2 D' B R'",
+            "x D R F' U L2 D' B R'",
         ]
     )
     # fmt: on
@@ -232,7 +232,7 @@ class TestSolve3x3Solve:
         """
         Tests that `solve` solves the cross on the live cube end to end, and that the returned
         algorithm contains no whole-cube rotations. One scramble starts already yellow-down, the
-        other is reoriented first with the even `x2` rotation, which the validator accepts.
+        other is reoriented first.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :param algorithm: The scramble solved end to end

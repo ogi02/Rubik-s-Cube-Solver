@@ -5,9 +5,12 @@ import pytest
 
 # Project imports
 from rubik_cube_solver.cube import Cube
+from rubik_cube_solver.cube_rotation.algorithm import Algorithm
+from rubik_cube_solver.cube_rotation.rotator import Rotator
 from rubik_cube_solver.enums.Color import Color
 from rubik_cube_solver.enums.Layer import Layer
 from rubik_cube_solver.validator.validator import Validator
+from rubik_cube_solver.validator.validator_utils import get_corners
 
 
 class TestValidatorValidate:
@@ -1059,6 +1062,38 @@ class TestValidatorCheckPermutationParity:
             patch("rubik_cube_solver.validator.validator.get_corners", return_value=corners),
             patch("rubik_cube_solver.validator.validator.get_edges", return_value=edges),
         ):
+            with pytest.raises(ValueError, match="Invalid permutation parity"):
+                validator._check_permutation_parity(cube)
+
+    def test_success_reoriented(self, validator: Validator) -> None:
+        """
+        Test that _check_permutation_parity does not raise for a solved cube reoriented by a quarter
+        whole-cube rotation, since the canonical reference is derived from the cube's own centers.
+
+        :param validator: Fixture of a Validator instance
+        :return: None
+        """
+
+        cube = Cube(3)
+        Rotator(cube).apply(Algorithm.from_str("x"))
+        validator._check_permutation_parity(cube)
+
+    def test_exception_reoriented_swap_two_corners(self, validator: Validator) -> None:
+        """
+        Test that _check_permutation_parity raises ValueError for a reoriented cube with two corners
+        swapped (odd corner parity) while edges remain in solved order (even parity).
+
+        :param validator: Fixture of a Validator instance
+        :return: None
+        """
+
+        cube = Cube(3)
+        Rotator(cube).apply(Algorithm.from_str("x"))
+
+        corners = get_corners(cube)
+        corners[0], corners[1] = corners[1], corners[0]
+
+        with patch("rubik_cube_solver.validator.validator.get_corners", return_value=corners):
             with pytest.raises(ValueError, match="Invalid permutation parity"):
                 validator._check_permutation_parity(cube)
 
