@@ -3,10 +3,20 @@ import pytest
 
 # Project imports
 from rubik_cube_solver.cube import Cube
+from rubik_cube_solver.cube_rotation.algorithm import Algorithm
+from rubik_cube_solver.cube_rotation.rotator import Rotator
+from rubik_cube_solver.enums.Color import Color
 from rubik_cube_solver.enums.Layer import Layer
 from rubik_cube_solver.validator.validator import Validator
-from rubik_cube_solver.validator.validator_constants import VALID_CORNER_COLOR_SETS, VALID_EDGE_COLOR_SETS
+from rubik_cube_solver.validator.validator_constants import (
+    CORNER_SLOT_LAYERS,
+    EDGE_SLOT_LAYERS,
+    VALID_CORNER_COLOR_SETS,
+    VALID_EDGE_COLOR_SETS,
+)
 from rubik_cube_solver.validator.validator_utils import (
+    face_center_color,
+    get_canonical_pieces,
     get_centers,
     get_corners,
     get_edges,
@@ -14,6 +24,157 @@ from rubik_cube_solver.validator.validator_utils import (
     get_wing_edges,
     wing_edge_indices,
 )
+
+# Canonical corner slot values for a solved Cube(3) in slot order UFL, UFR, UBL, UBR, DFL, DFR, DBL, DBR
+SOLVED_CANONICAL_CORNERS: list[frozenset[Color]] = [
+    frozenset({Color.WHITE, Color.GREEN, Color.ORANGE}),
+    frozenset({Color.WHITE, Color.GREEN, Color.RED}),
+    frozenset({Color.WHITE, Color.ORANGE, Color.BLUE}),
+    frozenset({Color.WHITE, Color.BLUE, Color.RED}),
+    frozenset({Color.YELLOW, Color.ORANGE, Color.GREEN}),
+    frozenset({Color.YELLOW, Color.GREEN, Color.RED}),
+    frozenset({Color.YELLOW, Color.BLUE, Color.ORANGE}),
+    frozenset({Color.YELLOW, Color.BLUE, Color.RED}),
+]
+
+# Canonical edge slot values for a solved Cube(3) in slot order UF, UB, UL, UR, DF, DB, DL, DR, FL, FR, BL, BR
+SOLVED_CANONICAL_EDGES: list[frozenset[Color]] = [
+    frozenset({Color.WHITE, Color.GREEN}),
+    frozenset({Color.WHITE, Color.BLUE}),
+    frozenset({Color.WHITE, Color.ORANGE}),
+    frozenset({Color.WHITE, Color.RED}),
+    frozenset({Color.YELLOW, Color.GREEN}),
+    frozenset({Color.YELLOW, Color.BLUE}),
+    frozenset({Color.YELLOW, Color.ORANGE}),
+    frozenset({Color.YELLOW, Color.RED}),
+    frozenset({Color.GREEN, Color.ORANGE}),
+    frozenset({Color.GREEN, Color.RED}),
+    frozenset({Color.BLUE, Color.ORANGE}),
+    frozenset({Color.BLUE, Color.RED}),
+]
+
+# Canonical corner slot values for a Cube(3) reoriented by "x", same slot order as above
+ROTATED_X_CANONICAL_CORNERS: list[frozenset[Color]] = [
+    frozenset({Color.YELLOW, Color.GREEN, Color.ORANGE}),
+    frozenset({Color.YELLOW, Color.GREEN, Color.RED}),
+    frozenset({Color.WHITE, Color.GREEN, Color.ORANGE}),
+    frozenset({Color.WHITE, Color.GREEN, Color.RED}),
+    frozenset({Color.YELLOW, Color.BLUE, Color.ORANGE}),
+    frozenset({Color.YELLOW, Color.BLUE, Color.RED}),
+    frozenset({Color.WHITE, Color.BLUE, Color.ORANGE}),
+    frozenset({Color.WHITE, Color.BLUE, Color.RED}),
+]
+
+# Canonical edge slot values for a Cube(3) reoriented by "x", same slot order as above
+ROTATED_X_CANONICAL_EDGES: list[frozenset[Color]] = [
+    frozenset({Color.YELLOW, Color.GREEN}),
+    frozenset({Color.WHITE, Color.GREEN}),
+    frozenset({Color.GREEN, Color.ORANGE}),
+    frozenset({Color.GREEN, Color.RED}),
+    frozenset({Color.YELLOW, Color.BLUE}),
+    frozenset({Color.WHITE, Color.BLUE}),
+    frozenset({Color.BLUE, Color.ORANGE}),
+    frozenset({Color.BLUE, Color.RED}),
+    frozenset({Color.YELLOW, Color.ORANGE}),
+    frozenset({Color.YELLOW, Color.RED}),
+    frozenset({Color.WHITE, Color.ORANGE}),
+    frozenset({Color.WHITE, Color.RED}),
+]
+
+
+class TestFaceCenterColor:
+    # fmt: off
+    @pytest.mark.parametrize(
+        "layer, expected_color", [
+            (Layer.UP,    Color.WHITE),
+            (Layer.DOWN,  Color.YELLOW),
+            (Layer.LEFT,  Color.ORANGE),
+            (Layer.RIGHT, Color.RED),
+            (Layer.FRONT, Color.GREEN),
+            (Layer.BACK,  Color.BLUE),
+        ]
+    )
+    # fmt: on
+    def test_success(self, layer: Layer, expected_color: Color) -> None:
+        """
+        Test that face_center_color returns each face's center sticker color on a solved cube.
+
+        :param layer: The face to read the center sticker of
+        :param expected_color: The expected center sticker color
+        :return: None
+        """
+
+        cube = Cube(3)
+        assert face_center_color(cube, layer) == expected_color
+
+    # fmt: off
+    @pytest.mark.parametrize(
+        "layer, expected_color", [
+            (Layer.UP,    Color.GREEN),
+            (Layer.DOWN,  Color.BLUE),
+            (Layer.FRONT, Color.YELLOW),
+            (Layer.BACK,  Color.WHITE),
+            (Layer.LEFT,  Color.ORANGE),
+            (Layer.RIGHT, Color.RED),
+        ]
+    )
+    # fmt: on
+    def test_success_after_rotation(self, layer: Layer, expected_color: Color) -> None:
+        """
+        Test that face_center_color returns the rotated center sticker color after a whole-cube rotation.
+
+        :param layer: The face to read the center sticker of
+        :param expected_color: The expected center sticker color after the cube is rotated with "x"
+        :return: None
+        """
+
+        cube = Cube(3)
+        Rotator(cube).apply(Algorithm.from_str("x"))
+        assert face_center_color(cube, layer) == expected_color
+
+
+class TestGetCanonicalPieces:
+    def test_success_solved_corners(self) -> None:
+        """
+        Test that get_canonical_pieces reproduces the old hardcoded corner reference table for a solved cube.
+
+        :return: None
+        """
+
+        cube = Cube(3)
+        assert get_canonical_pieces(cube, CORNER_SLOT_LAYERS) == SOLVED_CANONICAL_CORNERS
+
+    def test_success_solved_edges(self) -> None:
+        """
+        Test that get_canonical_pieces reproduces the old hardcoded edge reference table for a solved cube.
+
+        :return: None
+        """
+
+        cube = Cube(3)
+        assert get_canonical_pieces(cube, EDGE_SLOT_LAYERS) == SOLVED_CANONICAL_EDGES
+
+    def test_success_rotated_corners(self) -> None:
+        """
+        Test that get_canonical_pieces returns the correspondingly rotated corner sets after an "x" rotation.
+
+        :return: None
+        """
+
+        cube = Cube(3)
+        Rotator(cube).apply(Algorithm.from_str("x"))
+        assert get_canonical_pieces(cube, CORNER_SLOT_LAYERS) == ROTATED_X_CANONICAL_CORNERS
+
+    def test_success_rotated_edges(self) -> None:
+        """
+        Test that get_canonical_pieces returns the correspondingly rotated edge sets after an "x" rotation.
+
+        :return: None
+        """
+
+        cube = Cube(3)
+        Rotator(cube).apply(Algorithm.from_str("x"))
+        assert get_canonical_pieces(cube, EDGE_SLOT_LAYERS) == ROTATED_X_CANONICAL_EDGES
 
 
 class TestGetCorners:
