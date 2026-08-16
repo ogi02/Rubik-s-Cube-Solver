@@ -576,10 +576,7 @@ class TestRotatorApply:
         # Perform the same moves one by one
         expected_rotator = generate_rotator(expected_cube)
         for move in algorithm.moves:
-            if isinstance(move.layer, Rotation):
-                expected_rotator.rotate(move.layer, move.direction)
-            else:
-                expected_rotator.turn(move)
+            expected_rotator.turn(move)
 
         # Assert
         assert applied_cube.layers == expected_cube.layers
