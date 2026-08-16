@@ -272,6 +272,156 @@ class TestAlgorithmRemoveRotations:
         assert original_cube.layers == rotation_free_cube.layers
 
 
+class TestAlgorithmCancelMoves:
+    # fmt: off
+    @pytest.mark.parametrize(
+        "algorithm_string, expected_string", [
+            ("",                ""),             # Empty algorithm
+            ("R U",             "R U"),          # No cancellation
+            ("R R'",            ""),             # Simple cancel
+            ("R R",             "R2"),           # Simple combine
+            ("R U U' R2",       "R'"),           # Cancellation already inside the input
+            ("Rw Rw'",          ""),             # Wide moves cancel
+            ("3Rw 3Rw",         "3Rw2"),         # Wide moves combine
+            ("R Rw'",           "R Rw'"),        # Different layer amounts do not combine
+            ("R x x' R'",       ""),             # Rotations cancel, cascading into layer turns
+            ("F x x U",         "F x2 U"),       # Rotations combine
+            ("R x R'",          "R x R'"),       # A surviving rotation blocks cancellation
+            ("R U F F' U' R'",  ""),             # Full cascade
+        ]
+    )
+    # fmt: on
+    def test_success(self, algorithm_string: str, expected_string: str) -> None:
+        """
+        Tests that cancelling the moves of an algorithm reduces adjacent moves that name the same
+        layer (or rotation axis) and layer amount, cascading through moves that become newly
+        adjacent.
+
+        :param algorithm_string: The string representation of the algorithm
+        :param expected_string: The string representation of the expected reduced algorithm
+        :return: None
+        """
+
+        # Mock the algorithm
+        algorithm = Algorithm.from_str(algorithm_string)
+
+        # Act
+        algorithm.cancel_moves()
+
+        # Assert
+        assert algorithm == Algorithm.from_str(expected_string)
+
+
+class TestAlgorithmMerge:
+    # fmt: off
+    @pytest.mark.parametrize(
+        "algorithm_string, other_string, expected_string", [
+            ("",                  "",           ""),           # Empty and empty
+            ("",                  "R U",        "R U"),        # Empty and non-empty
+            ("R U",               "",           "R U"),        # Non-empty and empty
+            ("R U",               "L D",        "R U L D"),    # No cancellation at all
+            ("R U",               "U' R'",      ""),           # Simple cancel at the seam
+            ("R U",               "U R'",       "R U2 R'"),    # Combine at the seam
+            ("R",                 "R2",         "R'"),         # Combine at the seam
+            ("R2",                "R2",         ""),           # Cancel at the seam
+            ("R U U' R2",         "L",          "R' L"),       # Cancellation already inside an input
+            ("Rw",                "Rw'",        ""),           # Wide moves cancel
+            ("3Rw",               "3Rw",        "3Rw2"),       # Wide moves combine
+            ("R",                 "Rw'",        "R Rw'"),      # Different layer amounts do not combine
+            ("R x",               "x' R'",      ""),           # Rotations cancel
+            ("F x",               "x U",        "F x2 U"),     # Rotations combine
+            ("R x",               "R'",         "R x R'"),     # A surviving rotation blocks cancellation
+            ("R U F",             "F' U' R'",   ""),           # Full cascade
+        ]
+    )
+    # fmt: on
+    def test_success(self, algorithm_string: str, other_string: str, expected_string: str) -> None:
+        """
+        Tests that merging an algorithm concatenates its moves with the other algorithm's moves
+        and cancels moves across the whole resulting sequence.
+
+        :param algorithm_string: The string representation of the algorithm merged into
+        :param other_string: The string representation of the algorithm merged in
+        :param expected_string: The string representation of the expected merged algorithm
+        :return: None
+        """
+
+        # Mock the algorithms
+        algorithm = Algorithm.from_str(algorithm_string)
+        other = Algorithm.from_str(other_string)
+
+        # Act
+        algorithm.merge(other)
+
+        # Assert
+        assert algorithm == Algorithm.from_str(expected_string)
+
+    def test_does_not_mutate_the_other_algorithm(self) -> None:
+        """
+        Tests that merging leaves the other algorithm untouched, mutating only the algorithm
+        merged into.
+
+        :return: None
+        """
+
+        # Mock the algorithms
+        algorithm = Algorithm.from_str("R U")
+        other = Algorithm.from_str("U' R'")
+
+        # Act
+        algorithm.merge(other)
+
+        # Assert
+        assert algorithm == Algorithm.from_str("")
+        assert other == Algorithm.from_str("U' R'")
+
+    # fmt: off
+    @pytest.mark.parametrize(
+        "algorithm_string, other_string", [
+            ("R U R' U'",     "L D L' D'"),
+            ("R x",           "x' R'"),
+            ("z' y2 x' U L2", "Fw R' x"),
+        ]
+    )
+    # fmt: on
+    def test_equivalent_to_the_original(
+        self,
+        generate_cube: Callable[[int], Cube],
+        generate_rotator: Callable[[Cube], Rotator],
+        algorithm_string: str,
+        other_string: str,
+    ) -> None:
+        """
+        Tests that the merged algorithm leaves the cube in the same state as applying the two
+        original algorithms one after the other.
+
+        :param generate_cube: Fixture to generate a cube
+        :param generate_rotator: Fixture to generate a rotator
+        :param algorithm_string: The string representation of the algorithm merged into
+        :param other_string: The string representation of the algorithm merged in
+        :return: None
+        """
+
+        # Mock the cubes
+        original_cube = generate_cube(5)
+        merged_cube = generate_cube(5)
+
+        # Mock the algorithms
+        algorithm = Algorithm.from_str(algorithm_string)
+        other = Algorithm.from_str(other_string)
+        merged = Algorithm.from_str(algorithm_string)
+        merged.merge(Algorithm.from_str(other_string))
+
+        # Act
+        original_rotator = generate_rotator(original_cube)
+        original_rotator.apply(algorithm)
+        original_rotator.apply(other)
+        generate_rotator(merged_cube).apply(merged)
+
+        # Assert
+        assert original_cube.layers == merged_cube.layers
+
+
 class TestAlgorithmFromStr:
     # fmt: off
     @pytest.mark.parametrize(
