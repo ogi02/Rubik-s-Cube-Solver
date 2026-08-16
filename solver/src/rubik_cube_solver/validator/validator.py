@@ -9,11 +9,19 @@ from rubik_cube_solver.validator.validator_constants import (
     CENTER_COLORS_OPPOSITES,
     CENTER_LAYER_OPPOSITES,
     CORNER_CANONICAL_CW,
+    CORNER_SLOT_LAYERS,
     EDGE_CANONICAL_ORIENTATION,
+    EDGE_SLOT_LAYERS,
     VALID_CORNER_COLOR_SETS,
     VALID_EDGE_COLOR_SETS,
 )
-from rubik_cube_solver.validator.validator_utils import get_centers, get_corners, get_edges, get_wing_edges
+from rubik_cube_solver.validator.validator_utils import (
+    get_canonical_pieces,
+    get_centers,
+    get_corners,
+    get_edges,
+    get_wing_edges,
+)
 
 
 class Validator:
@@ -273,35 +281,16 @@ class Validator:
         """
         Validates that corner and edge permutations share the same parity (both even or both odd).
 
+        The canonical reference frame is derived from the cube's own center colors rather than a
+        fixed WHITE-up/GREEN-front frame, so a cube that has only been reoriented by a whole-cube
+        rotation (e.g. `x`, `y'`) still validates correctly.
+
         :param cube: The Cube instance to validate
         :return: None
         """
 
-        canonical_corners: list[frozenset[Color]] = [
-            frozenset({Color.WHITE, Color.GREEN, Color.ORANGE}),  # UFL
-            frozenset({Color.WHITE, Color.GREEN, Color.RED}),  # UFR
-            frozenset({Color.WHITE, Color.ORANGE, Color.BLUE}),  # UBL
-            frozenset({Color.WHITE, Color.BLUE, Color.RED}),  # UBR
-            frozenset({Color.YELLOW, Color.ORANGE, Color.GREEN}),  # DFL
-            frozenset({Color.YELLOW, Color.GREEN, Color.RED}),  # DFR
-            frozenset({Color.YELLOW, Color.BLUE, Color.ORANGE}),  # DBL
-            frozenset({Color.YELLOW, Color.BLUE, Color.RED}),  # DBR
-        ]
-
-        canonical_edges: list[frozenset[Color]] = [
-            frozenset({Color.WHITE, Color.GREEN}),  # UF
-            frozenset({Color.WHITE, Color.BLUE}),  # UB
-            frozenset({Color.WHITE, Color.ORANGE}),  # UL
-            frozenset({Color.WHITE, Color.RED}),  # UR
-            frozenset({Color.YELLOW, Color.GREEN}),  # DF
-            frozenset({Color.YELLOW, Color.BLUE}),  # DB
-            frozenset({Color.YELLOW, Color.ORANGE}),  # DL
-            frozenset({Color.YELLOW, Color.RED}),  # DR
-            frozenset({Color.GREEN, Color.ORANGE}),  # FL
-            frozenset({Color.GREEN, Color.RED}),  # FR
-            frozenset({Color.BLUE, Color.ORANGE}),  # BL
-            frozenset({Color.BLUE, Color.RED}),  # BR
-        ]
+        canonical_corners = get_canonical_pieces(cube, CORNER_SLOT_LAYERS)
+        canonical_edges = get_canonical_pieces(cube, EDGE_SLOT_LAYERS)
 
         corners = get_corners(cube)
         corner_perm = [canonical_corners.index(frozenset(corner)) for corner in corners]
