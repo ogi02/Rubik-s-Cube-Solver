@@ -1,4 +1,5 @@
 # Python imports
+import random
 from typing import Callable
 
 import pytest
@@ -11,11 +12,13 @@ from rubik_cube_solver.enums.CornerSlot import CornerSlot
 from rubik_cube_solver.enums.EdgeSlot import EdgeSlot
 from rubik_cube_solver.enums.Layer import Layer
 from rubik_cube_solver.enums.Rotation import Rotation
+from rubik_cube_solver.scramble.scrambler import Scrambler
 from rubik_cube_solver.solve.corner_search import search_corner
 from rubik_cube_solver.solve.cross import face_center_color
 from rubik_cube_solver.solve.edge_search import search_edge
 from rubik_cube_solver.solve.f2l import F2L_PAIR_INSERTION_TABLE
 from rubik_cube_solver.solve.oll import OLL_TABLE
+from rubik_cube_solver.solve.pll import PLL_TABLE
 from rubik_cube_solver.solve.solve_3x3 import Solve3x3
 
 
@@ -106,6 +109,22 @@ def _last_layer_is_oriented(cube: Cube) -> bool:
     return all(color == face_center_color(cube, Layer.UP) for color in cube.layers[Layer.UP])
 
 
+def _cube_is_solved(cube: Cube) -> bool:
+    """
+    Checks whether the whole cube is solved, by reading raw stickers rather than going through the
+    search helpers, so the oracle is independent of the production code it is verifying.
+
+    Every sticker of every face must match that face's own center sticker. A cube the cross step
+    reoriented is solved in its new orientation, so the centers are the reference rather than the
+    colors a fresh cube would show on each face.
+
+    :param cube: The Cube instance to check
+    :return: True if every face shows one color, False otherwise
+    """
+
+    return all(all(color == face[4] for color in face) for face in cube.layers.values())
+
+
 # Setup algorithm that reorients a solved cube so its yellow center lands on the given layer,
 # exercising every CROSS_ORIENTATION_TABLE case when passed through `_cross`.
 # fmt: off
@@ -178,6 +197,20 @@ OLL_SCRAMBLES: list[str] = [
     "z2 D U2 D2 R' L D2 B' F2",
     "y' R' U2 L2 U' D2 F' U2 L2 U",
 ]
+
+# Scrambles that leave `_pll` a variety of cases once the cross, the first two layers and the
+# orientation are done - only the corners out of place, only the edges, both, and a last layer that
+# is already permuted - again covering both a cube that is already yellow-down and cubes the cross
+# step has to reorient first.
+PLL_SCRAMBLES: list[str] = [
+    "F B2 U L F2 U2",
+    "B' L R' B L D'",
+    "U L' B' F2 D' L",
+    "F' L' D F D U2",
+    "y' R2 L' D B' F L'",
+    "z2 D' F' B' L' B2 D'",
+    "z2 D B' D L2 U' L'",
+]
 # fmt: on
 
 
@@ -223,10 +256,10 @@ class TestSolve3x3Init:
 
 
 class TestSolve3x3Steps:
-    def test_returns_cross_then_f2l_then_oll(self, generate_cube: Callable[[int, str], Cube]) -> None:
+    def test_returns_cross_then_f2l_then_oll_then_pll(self, generate_cube: Callable[[int, str], Cube]) -> None:
         """
         Tests that `_steps` returns the cross step, then the first-two-layers step, then the
-        orientation step, in that order.
+        orientation step, then the permutation step, in that order.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :return: None
@@ -237,7 +270,7 @@ class TestSolve3x3Steps:
         solve = Solve3x3(cube)
 
         # Assert
-        assert solve._steps() == [solve._cross, solve._f2l, solve._oll]
+        assert solve._steps() == [solve._cross, solve._f2l, solve._oll, solve._pll]
 
 
 class TestSolve3x3Cross:
@@ -527,6 +560,77 @@ class TestSolve3x3Oll:
         assert solve.solution == Algorithm([])
 
 
+class TestSolve3x3Pll:
+    @pytest.mark.parametrize("case, algorithm", list(PLL_TABLE.items()))
+    def test_solves_every_case(
+        self,
+        generate_pll_case: Callable[[str], Cube],
+        case: tuple[tuple[int, ...], tuple[int, ...]],
+        algorithm: str,
+    ) -> None:
+        """
+        Tests that `_pll` permutes the last layer in every case of PLL_TABLE. Each case is set up by
+        applying its entry backwards to a solved cube, so this exercises the whole path the entry is
+        reached by - reading where the four UP corners and the four UP edges belong, and picking the
+        entry keyed by them.
+
+        :param generate_pll_case: Fixture generating the case a given permutation algorithm solves
+        :param case: The corner permutation and the edge permutation the entry is keyed by
+        :param algorithm: The permutation algorithm of that entry
+        :return: None
+        """
+
+        # Generate the case and permute the last layer
+        cube = generate_pll_case(algorithm)
+        Solve3x3(cube)._pll()
+
+        # Assert
+        assert _cube_is_solved(cube)
+
+    # fmt: off
+    @pytest.mark.parametrize("algorithm", PLL_SCRAMBLES)
+    # fmt: on
+    def test_permutes_last_layer_after_orientation(
+        self, generate_cube: Callable[[int, str], Cube], algorithm: str
+    ) -> None:
+        """
+        Tests that `_pll` finishes the cube on top of an oriented last layer, from scrambles that
+        reach it through the cross, F2L and orientation steps rather than through a constructed case.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :param algorithm: The scramble applied before solving
+        :return: None
+        """
+
+        # Generate the cube and run every step
+        cube = generate_cube(3, algorithm)
+        solve = Solve3x3(cube)
+        solve._cross()
+        solve._f2l()
+        solve._oll()
+        solve._pll()
+
+        # Assert
+        assert _cube_is_solved(cube)
+
+    def test_already_permuted_last_layer(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that `_pll` adds no moves to the solution when the last layer is already permuted.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate a solved cube and permute the last layer
+        cube = generate_cube(3, "")
+        solve = Solve3x3(cube)
+        solve._pll()
+
+        # Assert
+        assert _cube_is_solved(cube)
+        assert solve.solution == Algorithm([])
+
+
 class TestSolve3x3Solve:
     # fmt: off
     @pytest.mark.parametrize(
@@ -541,8 +645,9 @@ class TestSolve3x3Solve:
     ) -> None:
         """
         Tests that `solve` runs every step on the live cube end to end - the cross, the first two
-        layers and the orientation of the last layer - and that the returned algorithm contains no
-        whole-cube rotations. One scramble starts already yellow-down, the other is reoriented first.
+        layers and the orientation and permutation of the last layer - leaving the cube solved, and
+        that the returned algorithm contains no whole-cube rotations. One scramble starts already
+        yellow-down, the other is reoriented first.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :param algorithm: The scramble solved end to end
@@ -557,6 +662,26 @@ class TestSolve3x3Solve:
         assert _cross_is_solved(cube)
         assert _first_two_layers_are_solved(cube)
         assert _last_layer_is_oriented(cube)
+        assert _cube_is_solved(cube)
 
         # Assert the solution contains no whole-cube rotations
         assert all(not isinstance(move.layer, Rotation) for move in result.moves)
+
+    def test_solves_random_scrambles(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that `solve` finishes a hundred randomly scrambled cubes, which reach far more cases
+        between them than the scrambles picked by hand for the individual steps. The random number
+        generator is seeded, so a failing run can be reproduced exactly.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Solve a hundred scrambled cubes
+        random.seed(0)
+        for _ in range(100):
+            cube = generate_cube(3, str(Algorithm(Scrambler().generate_scramble(3))))
+            Solve3x3(cube).solve()
+
+            # Assert
+            assert _cube_is_solved(cube)
