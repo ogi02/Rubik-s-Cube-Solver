@@ -6,7 +6,7 @@ from rubik_cube_solver.enums.Layer import Layer
 
 # Whole-cube rotation, keyed by the face whose center sticker is yellow, that brings that face
 # to DOWN. A yellow center already on DOWN needs no rotation.
-ORIENTATION_TABLE: dict[Layer, str] = {
+CROSS_ORIENTATION_TABLE: dict[Layer, str] = {
     Layer.DOWN: "",
     Layer.UP: "x2",
     Layer.FRONT: "x'",
@@ -18,7 +18,7 @@ ORIENTATION_TABLE: dict[Layer, str] = {
 # Algorithm that extracts a cross edge out of the DOWN layer or the equatorial layer and into the
 # UP layer, without disturbing any other DOWN-layer edge. The four UP slots have no entry: an edge
 # already in the UP layer needs no extraction.
-EXTRACTION_TABLE: dict[EdgeSlot, str] = {
+CROSS_EXTRACTION_TABLE: dict[EdgeSlot, str] = {
     EdgeSlot.DF: "F2",
     EdgeSlot.DR: "R2",
     EdgeSlot.DL: "L2",
@@ -30,7 +30,7 @@ EXTRACTION_TABLE: dict[EdgeSlot, str] = {
 }
 
 # Algorithm that brings a UP-layer edge to UF.
-ALIGNMENT_TABLE: dict[EdgeSlot, str] = {
+CROSS_ALIGNMENT_TABLE: dict[EdgeSlot, str] = {
     EdgeSlot.UF: "",
     EdgeSlot.UR: "U",
     EdgeSlot.UB: "U2",
@@ -39,7 +39,7 @@ ALIGNMENT_TABLE: dict[EdgeSlot, str] = {
 
 # Algorithm that inserts a UF edge into DF, keyed by whether it is already oriented (yellow on UP)
 # or flipped (yellow on FRONT).
-INSERTION_TABLE: dict[bool, str] = {
+CROSS_INSERTION_TABLE: dict[bool, str] = {
     True: "F2",
     False: "U' R' F R",
 }

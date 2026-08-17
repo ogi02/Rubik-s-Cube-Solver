@@ -11,18 +11,18 @@ from rubik_cube_solver.enums.Color import Color
 from rubik_cube_solver.enums.EdgeSlot import EdgeSlot
 from rubik_cube_solver.enums.Layer import Layer
 from rubik_cube_solver.solve.cross import (
-    ALIGNMENT_TABLE,
-    EXTRACTION_TABLE,
-    INSERTION_TABLE,
-    ORIENTATION_TABLE,
+    CROSS_ALIGNMENT_TABLE,
+    CROSS_EXTRACTION_TABLE,
+    CROSS_INSERTION_TABLE,
+    CROSS_ORIENTATION_TABLE,
     face_center_color,
     find_yellow_center_layer,
 )
 from rubik_cube_solver.solve.edge_search import search_edge
 
 # The algorithm that, applied to a solved cube (yellow center on DOWN), moves the yellow center
-# onto the given layer instead. Each entry is the inverse of the matching ORIENTATION_TABLE
-# algorithm, so applying ORIENTATION_TABLE[layer] afterwards brings the yellow center back to
+# onto the given layer instead. Each entry is the inverse of the matching CROSS_ORIENTATION_TABLE
+# algorithm, so applying CROSS_ORIENTATION_TABLE[layer] afterwards brings the yellow center back to
 # DOWN, which is exactly the contract under test.
 SETUP_ALGORITHM_FOR_YELLOW_ON: dict[Layer, str] = {
     Layer.DOWN: "",
@@ -178,7 +178,7 @@ class TestOrientationTable:
     # fmt: on
     def test_brings_yellow_center_to_down(self, generate_cube: Callable[[int, str], Cube], layer: Layer) -> None:
         """
-        Tests that every ORIENTATION_TABLE entry really brings the yellow center from its face to
+        Tests that every CROSS_ORIENTATION_TABLE entry really brings the yellow center from its face to
         DOWN, verified against the real Rotator.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
@@ -192,7 +192,7 @@ class TestOrientationTable:
         rotator = Rotator(cube)
 
         # Apply the orientation algorithm
-        rotator.apply(Algorithm.from_str(ORIENTATION_TABLE[layer]))
+        rotator.apply(Algorithm.from_str(CROSS_ORIENTATION_TABLE[layer]))
 
         # Assert
         assert face_center_color(cube, Layer.DOWN) == Color.YELLOW
@@ -211,7 +211,7 @@ class TestExtractionTable:
     # fmt: on
     def test_down_layer_slot(self, generate_cube: Callable[[int, str], Cube], slot: EdgeSlot) -> None:
         """
-        Tests that every DOWN-layer EXTRACTION_TABLE entry moves the piece out of that slot into
+        Tests that every DOWN-layer CROSS_EXTRACTION_TABLE entry moves the piece out of that slot into
         the UP layer and leaves the other three DOWN-layer edges in place, verified against the
         real Rotator.
 
@@ -227,7 +227,7 @@ class TestExtractionTable:
         other_pieces_before = [search_edge(cube, *DOWN_HOME_EDGES[other]) for other in other_slots]
 
         # Extract the piece
-        rotator.apply(Algorithm.from_str(EXTRACTION_TABLE[slot]))
+        rotator.apply(Algorithm.from_str(CROSS_EXTRACTION_TABLE[slot]))
 
         # Assert the piece moved into the UP layer
         moved_slot, _ = search_edge(cube, *DOWN_HOME_EDGES[slot])
@@ -249,7 +249,7 @@ class TestExtractionTable:
     # fmt: on
     def test_equatorial_slot(self, generate_cube: Callable[[int, str], Cube], slot: EdgeSlot) -> None:
         """
-        Tests that every equatorial EXTRACTION_TABLE entry moves the piece out of that slot into
+        Tests that every equatorial CROSS_EXTRACTION_TABLE entry moves the piece out of that slot into
         the UP layer and leaves the DOWN-layer cross untouched, verified against the real Rotator.
 
         A yellow-green cross edge is hand-placed at the equatorial slot under test, since a solved
@@ -273,7 +273,7 @@ class TestExtractionTable:
         down_layer_before = _down_layer_snapshot(cube)
 
         # Extract the piece
-        rotator.apply(Algorithm.from_str(EXTRACTION_TABLE[slot]))
+        rotator.apply(Algorithm.from_str(CROSS_EXTRACTION_TABLE[slot]))
 
         # Assert the piece moved into the UP layer
         moved_slot, _ = search_edge(cube, Color.YELLOW, Color.GREEN)
@@ -285,7 +285,7 @@ class TestExtractionTable:
 
 class TestAlignmentTable:
     # The algorithm that, applied to a solved cube, moves the UF cross edge to the slot under
-    # test, so ALIGNMENT_TABLE can be exercised on it from there.
+    # test, so CROSS_ALIGNMENT_TABLE can be exercised on it from there.
     # fmt: off
     _SETUP_ALGORITHM: dict[EdgeSlot, str] = {
         EdgeSlot.UF: "",
@@ -305,7 +305,7 @@ class TestAlignmentTable:
     # fmt: on
     def test_brings_piece_to_uf(self, generate_cube: Callable[[int, str], Cube], slot: EdgeSlot) -> None:
         """
-        Tests that every ALIGNMENT_TABLE entry really brings a UP-layer piece to UF, verified
+        Tests that every CROSS_ALIGNMENT_TABLE entry really brings a UP-layer piece to UF, verified
         against the real Rotator.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
@@ -319,7 +319,7 @@ class TestAlignmentTable:
         rotator = Rotator(cube)
 
         # Align the piece
-        rotator.apply(Algorithm.from_str(ALIGNMENT_TABLE[slot]))
+        rotator.apply(Algorithm.from_str(CROSS_ALIGNMENT_TABLE[slot]))
 
         # Assert
         assert search_edge(cube, Color.WHITE, Color.GREEN) == (EdgeSlot.UF, True)
@@ -336,7 +336,7 @@ class TestInsertionTable:
     # fmt: on
     def test_inserts_piece_at_df(self, generate_cube: Callable[[int, str], Cube], is_good: bool) -> None:
         """
-        Tests that both INSERTION_TABLE entries really place a UF piece at DF with yellow on DOWN
+        Tests that both CROSS_INSERTION_TABLE entries really place a UF piece at DF with yellow on DOWN
         and the side color on FRONT, verified against the real Rotator.
 
         The DF slot is first cleared of its own solved yellow-green piece so it cannot be confused
@@ -360,7 +360,7 @@ class TestInsertionTable:
         rotator = Rotator(cube)
 
         # Insert the piece
-        rotator.apply(Algorithm.from_str(INSERTION_TABLE[is_good]))
+        rotator.apply(Algorithm.from_str(CROSS_INSERTION_TABLE[is_good]))
 
         # Assert the piece is at DF, yellow on DOWN and the side color on FRONT
         assert cube.layers[Layer.DOWN][1] == Color.YELLOW
