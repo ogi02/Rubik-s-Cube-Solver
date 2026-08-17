@@ -9,7 +9,7 @@ from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.cube_rotation.algorithm import Algorithm
 from rubik_cube_solver.cube_rotation.rotator import Rotator
 from rubik_cube_solver.enums.Layer import Layer
-from rubik_cube_solver.solve.pll import PLL_TABLE, up_corner_permutation, up_edge_permutation
+from rubik_cube_solver.solve.cube_3x3.pll import PLL_TABLE, up_corner_permutation, up_edge_permutation
 
 # The two side stickers of each UP-layer corner and the side sticker of each UP-layer edge, as
 # (face, flat sticker index) pairs. Both are spelled out here rather than imported from the
