@@ -26,6 +26,7 @@ from rubik_cube_solver.solve.f2l import (
     is_pair_solved,
 )
 from rubik_cube_solver.solve.oll import OLL_TABLE, up_corner_orientations, up_edge_orientations
+from rubik_cube_solver.solve.pll import PLL_TABLE, up_corner_permutation, up_edge_permutation
 from rubik_cube_solver.solve.solve import Solve
 
 
@@ -34,10 +35,12 @@ class Solve3x3(Solve):
     Human, CFOP-style solver for the 3x3 cube.
 
     Cases are recognized with `search_edge` and `search_corner` and resolved through lookup tables
-    of insertion algorithms and whole-cube `y` rotations, rather than a search algorithm. Currently
-    implements the cross, the first two layers and the orientation of the last layer. The cross is
-    built on the DOWN face with a yellow center, matching a default `Cube(3)`, which starts
-    white-up / yellow-down.
+    of insertion algorithms and whole-cube `y` rotations, rather than a search algorithm. It solves
+    the cross, the first two layers, the orientation of the last layer and its permutation. The
+    cross is built on the DOWN face with a yellow center, matching a default `Cube(3)`, which starts
+    white-up / yellow-down. A cube that started in another orientation is solved in the orientation
+    the cross rotated it into, so every face ends up showing one color but not necessarily the one
+    it started with.
     """
 
     def __init__(self, cube: Cube) -> None:
@@ -60,7 +63,7 @@ class Solve3x3(Solve):
         :return: The ordered solving steps
         """
 
-        return [self._cross, self._f2l, self._oll]
+        return [self._cross, self._f2l, self._oll, self._pll]
 
     def _cross(self) -> None:
         """
@@ -175,3 +178,18 @@ class Solve3x3(Solve):
 
         case = (up_corner_orientations(self.cube), up_edge_orientations(self.cube))
         self._apply(Algorithm.from_str(OLL_TABLE[case]))
+
+    def _pll(self) -> None:
+        """
+        Permutes the last layer, finishing the cube.
+
+        The case is read straight off the cube as the slot each of the four UP corners and each of
+        the four UP edges belongs in. A single table entry places every piece of the layer at once,
+        with both the U turn that aligns the case and the one that finishes the layer already part
+        of it, so this step is one lookup and one algorithm.
+
+        :return: None
+        """
+
+        case = (up_corner_permutation(self.cube), up_edge_permutation(self.cube))
+        self._apply(Algorithm.from_str(PLL_TABLE[case]))
