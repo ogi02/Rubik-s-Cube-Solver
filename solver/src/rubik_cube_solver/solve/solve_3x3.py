@@ -7,6 +7,7 @@ from rubik_cube_solver.cube_rotation.algorithm import Algorithm
 from rubik_cube_solver.enums.Color import Color
 from rubik_cube_solver.enums.EdgeSlot import EdgeSlot
 from rubik_cube_solver.enums.Layer import Layer
+from rubik_cube_solver.solve.corner_search import search_corner
 from rubik_cube_solver.solve.cross import (
     ALIGNMENT_TABLE,
     EXTRACTION_TABLE,
@@ -16,6 +17,14 @@ from rubik_cube_solver.solve.cross import (
     find_yellow_center_layer,
 )
 from rubik_cube_solver.solve.edge_search import search_edge
+from rubik_cube_solver.solve.f2l import (
+    CORNER_ALIGNMENT_TABLE,
+    CORNER_EXTRACTION_TABLE,
+    EDGE_EXTRACTION_TABLE,
+    PAIR_INSERTION_TABLE,
+    front_color_on_up,
+    is_pair_solved,
+)
 from rubik_cube_solver.solve.solve import Solve
 
 
@@ -23,10 +32,10 @@ class Solve3x3(Solve):
     """
     Human, CFOP-style solver for the 3x3 cube.
 
-    Cases are recognized with `search_edge` and resolved through lookup tables of insertion
-    algorithms and whole-cube `y` rotations, rather than a search algorithm. Currently implements
-    only the cross step. The cross is built on the DOWN face with a yellow center, matching a
-    default `Cube(3)`, which starts white-up / yellow-down.
+    Cases are recognized with `search_edge` and `search_corner` and resolved through lookup tables
+    of insertion algorithms and whole-cube `y` rotations, rather than a search algorithm. Currently
+    implements the cross and the first two layers. The cross is built on the DOWN face with a yellow
+    center, matching a default `Cube(3)`, which starts white-up / yellow-down.
     """
 
     def __init__(self, cube: Cube) -> None:
@@ -49,7 +58,7 @@ class Solve3x3(Solve):
         :return: The ordered solving steps
         """
 
-        return [self._cross]
+        return [self._cross, self._f2l]
 
     def _cross(self) -> None:
         """
@@ -94,3 +103,56 @@ class Solve3x3(Solve):
 
         _, is_good = search_edge(self.cube, Color.YELLOW, front_color)
         self._apply(Algorithm.from_str(INSERTION_TABLE[is_good]))
+
+    def _f2l(self) -> None:
+        """
+        Solves the first two layers, on top of the cross the previous step leaves on DOWN.
+
+        The four corner and edge pairs are solved in turn, rotating the whole cube with `y` after
+        each one so the next pair comes to the front-right slot.
+
+        :return: None
+        """
+
+        for _ in range(4):
+            self._solve_f2l_pair()
+            self._apply(Algorithm.from_str("y"))
+
+    def _solve_f2l_pair(self) -> None:
+        """
+        Solves the pair matching the current FRONT and RIGHT center colors into the front-right slot.
+
+        Does nothing if the pair already fills the slot. Otherwise both pieces are brought into the
+        UP layer and inserted together. The corner goes first, because aligning it to UFR is what
+        makes the edge extraction leave it in the UP layer, and it is aligned again afterwards since
+        the extraction moves it along the UP layer. The pieces are re-searched after every applied
+        algorithm, since a previous search result is no longer valid once the cube has moved.
+
+        :return: None
+        """
+
+        front_color = face_center_color(self.cube, Layer.FRONT)
+        right_color = face_center_color(self.cube, Layer.RIGHT)
+
+        if is_pair_solved(self.cube, front_color, right_color):
+            return
+
+        corner_slot, _ = search_corner(self.cube, Color.YELLOW, front_color, right_color)
+        if corner_slot in CORNER_EXTRACTION_TABLE:
+            self._apply(Algorithm.from_str(CORNER_EXTRACTION_TABLE[corner_slot]))
+
+        corner_slot, _ = search_corner(self.cube, Color.YELLOW, front_color, right_color)
+        self._apply(Algorithm.from_str(CORNER_ALIGNMENT_TABLE[corner_slot]))
+
+        edge_slot, _ = search_edge(self.cube, front_color, right_color)
+        if edge_slot in EDGE_EXTRACTION_TABLE:
+            self._apply(Algorithm.from_str(EDGE_EXTRACTION_TABLE[edge_slot]))
+
+        corner_slot, _ = search_corner(self.cube, Color.YELLOW, front_color, right_color)
+        self._apply(Algorithm.from_str(CORNER_ALIGNMENT_TABLE[corner_slot]))
+
+        _, orientation = search_corner(self.cube, Color.YELLOW, front_color, right_color)
+        edge_slot, _ = search_edge(self.cube, front_color, right_color)
+        self._apply(
+            Algorithm.from_str(PAIR_INSERTION_TABLE[(orientation, edge_slot, front_color_on_up(self.cube, edge_slot))])
+        )
