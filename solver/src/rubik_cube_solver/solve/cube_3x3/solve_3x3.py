@@ -8,7 +8,7 @@ from rubik_cube_solver.enums.Color import Color
 from rubik_cube_solver.enums.EdgeSlot import EdgeSlot
 from rubik_cube_solver.enums.Layer import Layer
 from rubik_cube_solver.solve.corner_search import search_corner
-from rubik_cube_solver.solve.cross import (
+from rubik_cube_solver.solve.cube_3x3.cross import (
     CROSS_ALIGNMENT_TABLE,
     CROSS_EXTRACTION_TABLE,
     CROSS_INSERTION_TABLE,
@@ -16,8 +16,7 @@ from rubik_cube_solver.solve.cross import (
     face_center_color,
     find_yellow_center_layer,
 )
-from rubik_cube_solver.solve.edge_search import search_edge
-from rubik_cube_solver.solve.f2l import (
+from rubik_cube_solver.solve.cube_3x3.f2l import (
     F2L_CORNER_ALIGNMENT_TABLE,
     F2L_CORNER_EXTRACTION_TABLE,
     F2L_EDGE_EXTRACTION_TABLE,
@@ -25,8 +24,9 @@ from rubik_cube_solver.solve.f2l import (
     front_color_on_up,
     is_pair_solved,
 )
-from rubik_cube_solver.solve.oll import OLL_TABLE, up_corner_orientations, up_edge_orientations
-from rubik_cube_solver.solve.pll import PLL_TABLE, up_corner_permutation, up_edge_permutation
+from rubik_cube_solver.solve.cube_3x3.oll import OLL_TABLE, up_corner_orientations, up_edge_orientations
+from rubik_cube_solver.solve.cube_3x3.pll import PLL_TABLE, up_corner_permutation, up_edge_permutation
+from rubik_cube_solver.solve.edge_search import search_edge
 from rubik_cube_solver.solve.solve import Solve
 
 

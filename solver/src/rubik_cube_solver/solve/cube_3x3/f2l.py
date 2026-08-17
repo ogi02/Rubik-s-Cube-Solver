@@ -5,7 +5,7 @@ from rubik_cube_solver.enums.CornerSlot import CornerSlot
 from rubik_cube_solver.enums.EdgeSlot import EdgeSlot
 from rubik_cube_solver.enums.Layer import Layer
 from rubik_cube_solver.solve.corner_search import search_corner
-from rubik_cube_solver.solve.cross import face_center_color
+from rubik_cube_solver.solve.cube_3x3.cross import face_center_color
 from rubik_cube_solver.solve.edge_search import search_edge
 
 # The index of a UP-layer edge's sticker on the UP face of a 3x3.

@@ -3,7 +3,7 @@ from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.enums.CornerSlot import CornerSlot
 from rubik_cube_solver.enums.EdgeSlot import EdgeSlot
 from rubik_cube_solver.enums.Layer import Layer
-from rubik_cube_solver.solve.cross import face_center_color
+from rubik_cube_solver.solve.cube_3x3.cross import face_center_color
 
 # The two side (non-UP) stickers of each UP-layer corner, as (face, flat sticker index) pairs. Once
 # the last layer is oriented those two stickers hold the corner's other two colors, which identify
