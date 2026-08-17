@@ -14,12 +14,12 @@ from rubik_cube_solver.enums.Layer import Layer
 from rubik_cube_solver.enums.Rotation import Rotation
 from rubik_cube_solver.scramble.scrambler import Scrambler
 from rubik_cube_solver.solve.corner_search import search_corner
-from rubik_cube_solver.solve.cross import face_center_color
+from rubik_cube_solver.solve.cube_3x3.cross import face_center_color
+from rubik_cube_solver.solve.cube_3x3.f2l import F2L_PAIR_INSERTION_TABLE
+from rubik_cube_solver.solve.cube_3x3.oll import OLL_TABLE
+from rubik_cube_solver.solve.cube_3x3.pll import PLL_TABLE
+from rubik_cube_solver.solve.cube_3x3.solve_3x3 import Solve3x3
 from rubik_cube_solver.solve.edge_search import search_edge
-from rubik_cube_solver.solve.f2l import F2L_PAIR_INSERTION_TABLE
-from rubik_cube_solver.solve.oll import OLL_TABLE
-from rubik_cube_solver.solve.pll import PLL_TABLE
-from rubik_cube_solver.solve.solve_3x3 import Solve3x3
 
 
 def _cross_is_solved(cube: Cube) -> bool:

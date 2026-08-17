@@ -3,7 +3,7 @@ from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.enums.CornerSlot import CornerSlot
 from rubik_cube_solver.enums.EdgeSlot import EdgeSlot
 from rubik_cube_solver.enums.Layer import Layer
-from rubik_cube_solver.solve.cross import face_center_color
+from rubik_cube_solver.solve.cube_3x3.cross import face_center_color
 
 # The three (face, flat sticker index) pairs of each UP-layer corner, in the canonical clockwise
 # face-sequence order `get_corners` uses. Reading a corner in that order is what lets its

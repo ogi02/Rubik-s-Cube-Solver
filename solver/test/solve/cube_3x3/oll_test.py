@@ -10,7 +10,7 @@ from rubik_cube_solver.cube_rotation.algorithm import Algorithm
 from rubik_cube_solver.cube_rotation.rotator import Rotator
 from rubik_cube_solver.enums.Color import Color
 from rubik_cube_solver.enums.Layer import Layer
-from rubik_cube_solver.solve.oll import OLL_TABLE, up_corner_orientations, up_edge_orientations
+from rubik_cube_solver.solve.cube_3x3.oll import OLL_TABLE, up_corner_orientations, up_edge_orientations
 
 # The three stickers of each UP-layer corner, in the clockwise order the orientation index counts
 # through, and the UP-face sticker of each UP-layer edge. Both are spelled out here rather than

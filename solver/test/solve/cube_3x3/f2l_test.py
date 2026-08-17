@@ -12,8 +12,7 @@ from rubik_cube_solver.enums.CornerSlot import CornerSlot
 from rubik_cube_solver.enums.EdgeSlot import EdgeSlot
 from rubik_cube_solver.enums.Layer import Layer
 from rubik_cube_solver.solve.corner_search import search_corner
-from rubik_cube_solver.solve.edge_search import search_edge
-from rubik_cube_solver.solve.f2l import (
+from rubik_cube_solver.solve.cube_3x3.f2l import (
     F2L_CORNER_ALIGNMENT_TABLE,
     F2L_CORNER_EXTRACTION_TABLE,
     F2L_EDGE_EXTRACTION_TABLE,
@@ -21,6 +20,7 @@ from rubik_cube_solver.solve.f2l import (
     front_color_on_up,
     is_pair_solved,
 )
+from rubik_cube_solver.solve.edge_search import search_edge
 
 # The three-color identity of the corner that lives at each DOWN-layer slot on a solved cube.
 DOWN_HOME_CORNERS: dict[CornerSlot, tuple[Color, Color, Color]] = {

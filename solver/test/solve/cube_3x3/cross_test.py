@@ -10,7 +10,7 @@ from rubik_cube_solver.cube_rotation.rotator import Rotator
 from rubik_cube_solver.enums.Color import Color
 from rubik_cube_solver.enums.EdgeSlot import EdgeSlot
 from rubik_cube_solver.enums.Layer import Layer
-from rubik_cube_solver.solve.cross import (
+from rubik_cube_solver.solve.cube_3x3.cross import (
     CROSS_ALIGNMENT_TABLE,
     CROSS_EXTRACTION_TABLE,
     CROSS_INSERTION_TABLE,

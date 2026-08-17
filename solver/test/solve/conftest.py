@@ -59,6 +59,30 @@ def invert_algorithm(algorithm: str) -> str:
 
 
 @pytest.fixture
+def generate_first_layer_case(generate_cube: Callable[[int, str], Cube]) -> Callable[[str], Cube]:
+    """
+    Returns a function that generates the 2x2 first-layer case a given insertion algorithm solves.
+
+    :param generate_cube: Fixture generating a cube with an algorithm applied
+    :return: A function that generates the case solved by the given algorithm
+    """
+
+    def _generate(algorithm: str) -> Cube:
+        """
+        Generates the first-layer case a given insertion algorithm solves, by applying it backwards
+        to a solved 2x2 cube. An insertion only turns the UP layer and the R layer, so the three
+        DOWN corners outside the front-right slot stay solved and only that corner is out of place.
+
+        :param algorithm: The insertion algorithm in standard notation
+        :return: The cube in the case that algorithm solves
+        """
+
+        return generate_cube(2, invert_algorithm(algorithm))
+
+    return _generate
+
+
+@pytest.fixture
 def generate_f2l_case(generate_cube: Callable[[int, str], Cube]) -> Callable[[str], Cube]:
     """
     Returns a function that generates the F2L case a given insertion algorithm solves.
