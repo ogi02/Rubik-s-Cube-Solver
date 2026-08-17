@@ -36,6 +36,28 @@ def generate_cube() -> Callable[[int, str], Cube]:
     return _generate
 
 
+def invert_algorithm(algorithm: str) -> str:
+    """
+    Returns the given algorithm's inverse: its moves in reverse order, each with its direction
+    flipped. A clockwise move becomes counterclockwise and vice versa, while a double move is its
+    own inverse and is left as it is.
+
+    :param algorithm: The algorithm in standard notation
+    :return: The inverse algorithm in standard notation
+    """
+
+    moves = []
+    for move in reversed(algorithm.split()):
+        if move.endswith("'"):
+            moves.append(move[:-1])
+        elif move.endswith("2"):
+            moves.append(move)
+        else:
+            moves.append(f"{move}'")
+
+    return " ".join(moves)
+
+
 @pytest.fixture
 def generate_f2l_case(generate_cube: Callable[[int, str], Cube]) -> Callable[[str], Cube]:
     """
@@ -55,15 +77,30 @@ def generate_f2l_case(generate_cube: Callable[[int, str], Cube]) -> Callable[[st
         :return: The cube in the case that algorithm solves
         """
 
-        moves = []
-        for move in reversed(algorithm.split()):
-            if move.endswith("'"):
-                moves.append(move[:-1])
-            elif move.endswith("2"):
-                moves.append(move)
-            else:
-                moves.append(f"{move}'")
+        return generate_cube(3, invert_algorithm(algorithm))
 
-        return generate_cube(3, " ".join(moves))
+    return _generate
+
+
+@pytest.fixture
+def generate_oll_case(generate_cube: Callable[[int, str], Cube]) -> Callable[[str], Cube]:
+    """
+    Returns a function that generates the OLL case a given orientation algorithm solves.
+
+    :param generate_cube: Fixture generating a cube with an algorithm applied
+    :return: A function that generates the case solved by the given algorithm
+    """
+
+    def _generate(algorithm: str) -> Cube:
+        """
+        Generates the OLL case a given orientation algorithm solves, by applying it backwards to a
+        solved cube. Everything below the UP layer stays solved, so the first two layers are intact
+        and only the orientation of the last layer is off.
+
+        :param algorithm: The orientation algorithm in standard notation
+        :return: The cube in the case that algorithm solves
+        """
+
+        return generate_cube(3, invert_algorithm(algorithm))
 
     return _generate

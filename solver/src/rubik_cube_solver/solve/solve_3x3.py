@@ -25,6 +25,7 @@ from rubik_cube_solver.solve.f2l import (
     front_color_on_up,
     is_pair_solved,
 )
+from rubik_cube_solver.solve.oll import OLL_TABLE, up_corner_orientations, up_edge_orientations
 from rubik_cube_solver.solve.solve import Solve
 
 
@@ -34,8 +35,9 @@ class Solve3x3(Solve):
 
     Cases are recognized with `search_edge` and `search_corner` and resolved through lookup tables
     of insertion algorithms and whole-cube `y` rotations, rather than a search algorithm. Currently
-    implements the cross and the first two layers. The cross is built on the DOWN face with a yellow
-    center, matching a default `Cube(3)`, which starts white-up / yellow-down.
+    implements the cross, the first two layers and the orientation of the last layer. The cross is
+    built on the DOWN face with a yellow center, matching a default `Cube(3)`, which starts
+    white-up / yellow-down.
     """
 
     def __init__(self, cube: Cube) -> None:
@@ -58,7 +60,7 @@ class Solve3x3(Solve):
         :return: The ordered solving steps
         """
 
-        return [self._cross, self._f2l]
+        return [self._cross, self._f2l, self._oll]
 
     def _cross(self) -> None:
         """
@@ -158,3 +160,18 @@ class Solve3x3(Solve):
                 F2L_PAIR_INSERTION_TABLE[(orientation, edge_slot, front_color_on_up(self.cube, edge_slot))]
             )
         )
+
+    def _oll(self) -> None:
+        """
+        Orients the last layer, so the whole UP face ends up showing the UP center's color.
+
+        The case is read straight off the cube as the orientation of each of the four UP corners
+        and each of the four UP edges. A single table entry orients every piece of the layer at
+        once, with the U turn that aligns the case already at its front, so this step is one
+        lookup and one algorithm.
+
+        :return: None
+        """
+
+        case = (up_corner_orientations(self.cube), up_edge_orientations(self.cube))
+        self._apply(Algorithm.from_str(OLL_TABLE[case]))
