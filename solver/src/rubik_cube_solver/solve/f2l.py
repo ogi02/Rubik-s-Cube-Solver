@@ -9,7 +9,7 @@ from rubik_cube_solver.solve.cross import face_center_color
 from rubik_cube_solver.solve.edge_search import search_edge
 
 # The index of a UP-layer edge's sticker on the UP face of a 3x3.
-UP_EDGE_STICKERS: dict[EdgeSlot, int] = {
+F2L_UP_EDGE_STICKERS: dict[EdgeSlot, int] = {
     EdgeSlot.UF: 7,
     EdgeSlot.UR: 5,
     EdgeSlot.UB: 1,
@@ -17,13 +17,13 @@ UP_EDGE_STICKERS: dict[EdgeSlot, int] = {
 }
 
 # The index of the FR edge's sticker on the FRONT face of a 3x3.
-FRONT_RIGHT_EDGE_STICKER: int = 5
+F2L_FRONT_RIGHT_EDGE_STICKER: int = 5
 
 # Algorithm that lifts a corner out of the DOWN layer and into the UP layer. Each one turns a side
 # layer, moves the corner away with U, and turns the side layer back, so every other piece of that
 # layer - the cross edges and the already-solved pairs among them - returns to where it started.
 # The four UP slots have no entry: a corner already in the UP layer needs no extraction.
-CORNER_EXTRACTION_TABLE: dict[CornerSlot, str] = {
+F2L_CORNER_EXTRACTION_TABLE: dict[CornerSlot, str] = {
     CornerSlot.DFR: "R U R'",
     CornerSlot.DFL: "L' U' L",
     CornerSlot.DBR: "R' U R",
@@ -31,7 +31,7 @@ CORNER_EXTRACTION_TABLE: dict[CornerSlot, str] = {
 }
 
 # Algorithm that brings a UP-layer corner to UFR, above the slot being solved.
-CORNER_ALIGNMENT_TABLE: dict[CornerSlot, str] = {
+F2L_CORNER_ALIGNMENT_TABLE: dict[CornerSlot, str] = {
     CornerSlot.UFR: "",
     CornerSlot.UFL: "U'",
     CornerSlot.UBL: "U2",
@@ -41,7 +41,7 @@ CORNER_ALIGNMENT_TABLE: dict[CornerSlot, str] = {
 # Algorithm that lifts an edge out of the equatorial layer and into the UP layer. Every entry leaves
 # a corner sitting at UFR in the UP layer, which is what lets the corner be aligned there first.
 # The four UP slots have no entry, and the four DOWN slots cannot occur: they hold the cross.
-EDGE_EXTRACTION_TABLE: dict[EdgeSlot, str] = {
+F2L_EDGE_EXTRACTION_TABLE: dict[EdgeSlot, str] = {
     EdgeSlot.FR: "R U' R'",
     EdgeSlot.FL: "L' U' L",
     EdgeSlot.BR: "R' U R",
@@ -51,7 +51,7 @@ EDGE_EXTRACTION_TABLE: dict[EdgeSlot, str] = {
 # Algorithm that inserts the pair into the front-right slot, keyed by the corner's orientation at
 # UFR, the UP slot holding the edge, and whether the edge's UP sticker is the FRONT color. Every
 # entry is a shortest <U, R, F> solution, so it can only disturb the UP layer on the way.
-PAIR_INSERTION_TABLE: dict[tuple[int, EdgeSlot, bool], str] = {
+F2L_PAIR_INSERTION_TABLE: dict[tuple[int, EdgeSlot, bool], str] = {
     (0, EdgeSlot.UF, True): "U2 R2 U2 R' U' R U' R2",
     (0, EdgeSlot.UF, False): "F' U2 F U F' U' F",
     (0, EdgeSlot.UR, True): "R U2 R' U' R U R'",
@@ -92,7 +92,7 @@ def front_color_on_up(cube: Cube, slot: EdgeSlot) -> bool:
     :return: Whether the edge's UP sticker has the FRONT center's color
     """
 
-    return cube.layers[Layer.UP][UP_EDGE_STICKERS[slot]] == face_center_color(cube, Layer.FRONT)
+    return cube.layers[Layer.UP][F2L_UP_EDGE_STICKERS[slot]] == face_center_color(cube, Layer.FRONT)
 
 
 def is_pair_solved(cube: Cube, front_color: Color, right_color: Color) -> bool:
@@ -112,5 +112,5 @@ def is_pair_solved(cube: Cube, front_color: Color, right_color: Color) -> bool:
         corner_slot is CornerSlot.DFR
         and orientation == 0
         and edge_slot is EdgeSlot.FR
-        and cube.layers[Layer.FRONT][FRONT_RIGHT_EDGE_STICKER] == front_color
+        and cube.layers[Layer.FRONT][F2L_FRONT_RIGHT_EDGE_STICKER] == front_color
     )

@@ -14,7 +14,7 @@ from rubik_cube_solver.enums.Rotation import Rotation
 from rubik_cube_solver.solve.corner_search import search_corner
 from rubik_cube_solver.solve.cross import face_center_color
 from rubik_cube_solver.solve.edge_search import search_edge
-from rubik_cube_solver.solve.f2l import PAIR_INSERTION_TABLE
+from rubik_cube_solver.solve.f2l import F2L_PAIR_INSERTION_TABLE
 from rubik_cube_solver.solve.solve_3x3 import Solve3x3
 
 
@@ -92,7 +92,7 @@ def _first_two_layers_are_solved(cube: Cube) -> bool:
 
 
 # Setup algorithm that reorients a solved cube so its yellow center lands on the given layer,
-# exercising every ORIENTATION_TABLE case when passed through `_cross`.
+# exercising every CROSS_ORIENTATION_TABLE case when passed through `_cross`.
 # fmt: off
 ORIENTATION_CASES: dict[Layer, str] = {
     Layer.DOWN:  "",
@@ -105,8 +105,8 @@ ORIENTATION_CASES: dict[Layer, str] = {
 # fmt: on
 
 # 13 scrambles that, applied to a solved cube, leave `_cross` to solve the cross from a variety of
-# starting cases. Chosen so that between them every EXTRACTION_TABLE, ALIGNMENT_TABLE and
-# INSERTION_TABLE entry fires at least once - confirmed by instrumenting `_solve_cross_edge` and
+# starting cases. Chosen so that between them every CROSS_EXTRACTION_TABLE, CROSS_ALIGNMENT_TABLE and
+# CROSS_INSERTION_TABLE entry fires at least once - confirmed by instrumenting `_solve_cross_edge` and
 # recording which entry of each table each scramble exercises.
 # fmt: off
 CROSS_SCRAMBLES: list[str] = [
@@ -128,7 +128,7 @@ CROSS_SCRAMBLES: list[str] = [
 
 # Scrambles that, once `_cross` has run, leave the first pair with its corner in the given
 # DOWN-layer slot and its edge in the given equatorial or UP-layer slot. Chosen so that between
-# them every CORNER_EXTRACTION_TABLE and EDGE_EXTRACTION_TABLE entry fires at least once -
+# them every F2L_CORNER_EXTRACTION_TABLE and F2L_EDGE_EXTRACTION_TABLE entry fires at least once -
 # confirmed by searching random scrambles and recording where each one leaves the pair.
 # fmt: off
 F2L_EXTRACTION_CASES: list[tuple[str, CornerSlot, EdgeSlot]] = [
@@ -218,7 +218,7 @@ class TestSolve3x3Cross:
     def test_solves_cross_from_scramble(self, generate_cube: Callable[[int, str], Cube], algorithm: str) -> None:
         """
         Tests that `_cross` solves the yellow cross starting from a variety of scrambles, chosen
-        so that every EXTRACTION_TABLE, ALIGNMENT_TABLE and INSERTION_TABLE entry is exercised
+        so that every CROSS_EXTRACTION_TABLE, CROSS_ALIGNMENT_TABLE and CROSS_INSERTION_TABLE entry is exercised
         somewhere in the table.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
@@ -281,7 +281,7 @@ class TestSolve3x3Cross:
     def test_solves_cross_from_every_orientation(self, generate_cube: Callable[[int, str], Cube], layer: Layer) -> None:
         """
         Tests that `_cross` solves the cross starting from a cube reoriented so the yellow center
-        sits on each of the six possible layers in turn, exercising every ORIENTATION_TABLE entry.
+        sits on each of the six possible layers in turn, exercising every CROSS_ORIENTATION_TABLE entry.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :param layer: The layer the yellow center starts on
@@ -297,7 +297,7 @@ class TestSolve3x3Cross:
 
 
 class TestSolve3x3SolveF2LPair:
-    @pytest.mark.parametrize("case, algorithm", list(PAIR_INSERTION_TABLE.items()))
+    @pytest.mark.parametrize("case, algorithm", list(F2L_PAIR_INSERTION_TABLE.items()))
     def test_solves_every_insertion_case(
         self,
         generate_f2l_case: Callable[[str], Cube],
@@ -305,7 +305,7 @@ class TestSolve3x3SolveF2LPair:
         algorithm: str,
     ) -> None:
         """
-        Tests that `_solve_f2l_pair` solves every case of PAIR_INSERTION_TABLE. Each case is set up
+        Tests that `_solve_f2l_pair` solves every case of F2L_PAIR_INSERTION_TABLE. Each case is set up
         by applying its entry backwards to a solved cube, so this exercises the whole path the entry
         is reached by - reading the corner's orientation, the edge's slot and the edge's UP sticker,
         and picking the entry keyed by them.
@@ -336,7 +336,7 @@ class TestSolve3x3SolveF2LPair:
     ) -> None:
         """
         Tests that `_solve_f2l_pair` solves the pair when one or both of its pieces start buried in
-        the first two layers, exercising every CORNER_EXTRACTION_TABLE and EDGE_EXTRACTION_TABLE
+        the first two layers, exercising every F2L_CORNER_EXTRACTION_TABLE and F2L_EDGE_EXTRACTION_TABLE
         entry between them.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied

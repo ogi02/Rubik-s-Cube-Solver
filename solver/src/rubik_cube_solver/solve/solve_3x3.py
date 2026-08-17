@@ -9,19 +9,19 @@ from rubik_cube_solver.enums.EdgeSlot import EdgeSlot
 from rubik_cube_solver.enums.Layer import Layer
 from rubik_cube_solver.solve.corner_search import search_corner
 from rubik_cube_solver.solve.cross import (
-    ALIGNMENT_TABLE,
-    EXTRACTION_TABLE,
-    INSERTION_TABLE,
-    ORIENTATION_TABLE,
+    CROSS_ALIGNMENT_TABLE,
+    CROSS_EXTRACTION_TABLE,
+    CROSS_INSERTION_TABLE,
+    CROSS_ORIENTATION_TABLE,
     face_center_color,
     find_yellow_center_layer,
 )
 from rubik_cube_solver.solve.edge_search import search_edge
 from rubik_cube_solver.solve.f2l import (
-    CORNER_ALIGNMENT_TABLE,
-    CORNER_EXTRACTION_TABLE,
-    EDGE_EXTRACTION_TABLE,
-    PAIR_INSERTION_TABLE,
+    F2L_CORNER_ALIGNMENT_TABLE,
+    F2L_CORNER_EXTRACTION_TABLE,
+    F2L_EDGE_EXTRACTION_TABLE,
+    F2L_PAIR_INSERTION_TABLE,
     front_color_on_up,
     is_pair_solved,
 )
@@ -71,7 +71,7 @@ class Solve3x3(Solve):
         :return: None
         """
 
-        self._apply(Algorithm.from_str(ORIENTATION_TABLE[find_yellow_center_layer(self.cube)]))
+        self._apply(Algorithm.from_str(CROSS_ORIENTATION_TABLE[find_yellow_center_layer(self.cube)]))
 
         for _ in range(4):
             self._solve_cross_edge()
@@ -95,14 +95,14 @@ class Solve3x3(Solve):
         if slot is EdgeSlot.DF and is_good:
             return
 
-        if slot in EXTRACTION_TABLE:
-            self._apply(Algorithm.from_str(EXTRACTION_TABLE[slot]))
+        if slot in CROSS_EXTRACTION_TABLE:
+            self._apply(Algorithm.from_str(CROSS_EXTRACTION_TABLE[slot]))
 
         slot, _ = search_edge(self.cube, Color.YELLOW, front_color)
-        self._apply(Algorithm.from_str(ALIGNMENT_TABLE[slot]))
+        self._apply(Algorithm.from_str(CROSS_ALIGNMENT_TABLE[slot]))
 
         _, is_good = search_edge(self.cube, Color.YELLOW, front_color)
-        self._apply(Algorithm.from_str(INSERTION_TABLE[is_good]))
+        self._apply(Algorithm.from_str(CROSS_INSERTION_TABLE[is_good]))
 
     def _f2l(self) -> None:
         """
@@ -138,21 +138,23 @@ class Solve3x3(Solve):
             return
 
         corner_slot, _ = search_corner(self.cube, Color.YELLOW, front_color, right_color)
-        if corner_slot in CORNER_EXTRACTION_TABLE:
-            self._apply(Algorithm.from_str(CORNER_EXTRACTION_TABLE[corner_slot]))
+        if corner_slot in F2L_CORNER_EXTRACTION_TABLE:
+            self._apply(Algorithm.from_str(F2L_CORNER_EXTRACTION_TABLE[corner_slot]))
 
         corner_slot, _ = search_corner(self.cube, Color.YELLOW, front_color, right_color)
-        self._apply(Algorithm.from_str(CORNER_ALIGNMENT_TABLE[corner_slot]))
+        self._apply(Algorithm.from_str(F2L_CORNER_ALIGNMENT_TABLE[corner_slot]))
 
         edge_slot, _ = search_edge(self.cube, front_color, right_color)
-        if edge_slot in EDGE_EXTRACTION_TABLE:
-            self._apply(Algorithm.from_str(EDGE_EXTRACTION_TABLE[edge_slot]))
+        if edge_slot in F2L_EDGE_EXTRACTION_TABLE:
+            self._apply(Algorithm.from_str(F2L_EDGE_EXTRACTION_TABLE[edge_slot]))
 
         corner_slot, _ = search_corner(self.cube, Color.YELLOW, front_color, right_color)
-        self._apply(Algorithm.from_str(CORNER_ALIGNMENT_TABLE[corner_slot]))
+        self._apply(Algorithm.from_str(F2L_CORNER_ALIGNMENT_TABLE[corner_slot]))
 
         _, orientation = search_corner(self.cube, Color.YELLOW, front_color, right_color)
         edge_slot, _ = search_edge(self.cube, front_color, right_color)
         self._apply(
-            Algorithm.from_str(PAIR_INSERTION_TABLE[(orientation, edge_slot, front_color_on_up(self.cube, edge_slot))])
+            Algorithm.from_str(
+                F2L_PAIR_INSERTION_TABLE[(orientation, edge_slot, front_color_on_up(self.cube, edge_slot))]
+            )
         )

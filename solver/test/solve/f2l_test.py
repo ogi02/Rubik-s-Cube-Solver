@@ -14,10 +14,10 @@ from rubik_cube_solver.enums.Layer import Layer
 from rubik_cube_solver.solve.corner_search import search_corner
 from rubik_cube_solver.solve.edge_search import search_edge
 from rubik_cube_solver.solve.f2l import (
-    CORNER_ALIGNMENT_TABLE,
-    CORNER_EXTRACTION_TABLE,
-    EDGE_EXTRACTION_TABLE,
-    PAIR_INSERTION_TABLE,
+    F2L_CORNER_ALIGNMENT_TABLE,
+    F2L_CORNER_EXTRACTION_TABLE,
+    F2L_EDGE_EXTRACTION_TABLE,
+    F2L_PAIR_INSERTION_TABLE,
     front_color_on_up,
     is_pair_solved,
 )
@@ -212,7 +212,7 @@ class TestCornerExtractionTable:
     # fmt: on
     def test_lifts_corner_into_up_layer(self, generate_cube: Callable[[int, str], Cube], slot: CornerSlot) -> None:
         """
-        Tests that every CORNER_EXTRACTION_TABLE entry lifts the corner out of that DOWN-layer slot
+        Tests that every F2L_CORNER_EXTRACTION_TABLE entry lifts the corner out of that DOWN-layer slot
         into the UP layer and leaves every first-two-layers piece outside that pair where it was,
         verified against the real Rotator.
 
@@ -227,7 +227,7 @@ class TestCornerExtractionTable:
         pieces_before = _first_two_layers_pieces(cube, slot)
 
         # Extract the corner
-        rotator.apply(Algorithm.from_str(CORNER_EXTRACTION_TABLE[slot]))
+        rotator.apply(Algorithm.from_str(F2L_CORNER_EXTRACTION_TABLE[slot]))
 
         # Assert the corner moved into the UP layer
         moved_slot, _ = search_corner(cube, *DOWN_HOME_CORNERS[slot])
@@ -239,7 +239,7 @@ class TestCornerExtractionTable:
 
 class TestCornerAlignmentTable:
     # The algorithm that, applied to a solved cube, moves the white-green-red corner from UFR to
-    # the slot under test, so CORNER_ALIGNMENT_TABLE can be exercised on it from there.
+    # the slot under test, so F2L_CORNER_ALIGNMENT_TABLE can be exercised on it from there.
     # fmt: off
     _SETUP_ALGORITHM: dict[CornerSlot, str] = {
         CornerSlot.UFR: "",
@@ -259,7 +259,7 @@ class TestCornerAlignmentTable:
     # fmt: on
     def test_brings_corner_to_ufr(self, generate_cube: Callable[[int, str], Cube], slot: CornerSlot) -> None:
         """
-        Tests that every CORNER_ALIGNMENT_TABLE entry really brings a UP-layer corner to UFR,
+        Tests that every F2L_CORNER_ALIGNMENT_TABLE entry really brings a UP-layer corner to UFR,
         verified against the real Rotator.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
@@ -273,7 +273,7 @@ class TestCornerAlignmentTable:
         rotator = Rotator(cube)
 
         # Align the corner
-        rotator.apply(Algorithm.from_str(CORNER_ALIGNMENT_TABLE[slot]))
+        rotator.apply(Algorithm.from_str(F2L_CORNER_ALIGNMENT_TABLE[slot]))
 
         # Assert
         assert search_corner(cube, Color.WHITE, Color.GREEN, Color.RED).slot is CornerSlot.UFR
@@ -297,7 +297,7 @@ class TestEdgeExtractionTable:
         corner_slot: CornerSlot,
     ) -> None:
         """
-        Tests that every EDGE_EXTRACTION_TABLE entry lifts the edge out of that equatorial slot into
+        Tests that every F2L_EDGE_EXTRACTION_TABLE entry lifts the edge out of that equatorial slot into
         the UP layer, leaves a corner aligned at UFR somewhere in the UP layer, and leaves every
         first-two-layers piece outside that pair where it was, verified against the real Rotator.
 
@@ -317,7 +317,7 @@ class TestEdgeExtractionTable:
         pieces_before = _first_two_layers_pieces(cube, corner_slot)
 
         # Extract the edge
-        rotator.apply(Algorithm.from_str(EDGE_EXTRACTION_TABLE[slot]))
+        rotator.apply(Algorithm.from_str(F2L_EDGE_EXTRACTION_TABLE[slot]))
 
         # Assert the edge moved into the UP layer
         moved_slot, _ = search_edge(cube, *EQUATORIAL_HOME_EDGES[slot])
@@ -331,7 +331,7 @@ class TestEdgeExtractionTable:
 
 
 class TestPairInsertionTable:
-    @pytest.mark.parametrize("case, algorithm", list(PAIR_INSERTION_TABLE.items()))
+    @pytest.mark.parametrize("case, algorithm", list(F2L_PAIR_INSERTION_TABLE.items()))
     def test_inserts_pair_into_front_right_slot(
         self,
         generate_f2l_case: Callable[[str], Cube],
@@ -339,7 +339,7 @@ class TestPairInsertionTable:
         algorithm: str,
     ) -> None:
         """
-        Tests every PAIR_INSERTION_TABLE entry against the real Rotator: the case it is keyed by is
+        Tests every F2L_PAIR_INSERTION_TABLE entry against the real Rotator: the case it is keyed by is
         set up by applying the entry backwards to a solved cube, which is then asserted to really be
         that case before the entry is applied forwards and has to fill the front-right slot.
 
