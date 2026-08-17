@@ -13,6 +13,8 @@ from rubik_cube_solver.solve.cube_2x2.first_layer import (
     FIRST_LAYER_EXTRACTION_TABLE,
     FIRST_LAYER_INSERTION_TABLE,
 )
+from rubik_cube_solver.solve.cube_2x2.oll import OLL_TABLE, up_corner_orientations
+from rubik_cube_solver.solve.cube_2x2.pll import PLL_TABLE, up_corner_permutation
 from rubik_cube_solver.solve.solve import Solve
 
 
@@ -20,11 +22,12 @@ class Solve2x2(Solve):
     """
     Human, layer-by-layer solver for the 2x2 cube.
 
-    Cases are recognized with `search_corner` and resolved through lookup tables of algorithms and
-    whole-cube `y` rotations, rather than a search algorithm. It solves the first layer, the yellow
-    one, on the DOWN face. A 2x2 has no centers, so no face carries a fixed color: the layer is
-    built in the color scheme of a solved cube instead, which is why the cube ends up in the
-    orientation of a default `Cube(2)` whatever orientation it started in.
+    Cases are recognized with `search_corner` and read off the stickers of the last layer, then
+    resolved through lookup tables of algorithms and whole-cube `y` rotations, rather than a search
+    algorithm. It solves the first layer, the yellow one, on the DOWN face, then the orientation of
+    the last layer and its permutation. A 2x2 has no centers, so no face carries a fixed color: the
+    cube is solved in the color scheme of a solved cube instead, which is why it ends up equal to a
+    default `Cube(2)` whatever orientation it started in.
     """
 
     def __init__(self, cube: Cube) -> None:
@@ -47,7 +50,7 @@ class Solve2x2(Solve):
         :return: The ordered solving steps
         """
 
-        return [self._first_layer]
+        return [self._first_layer, self._oll, self._pll]
 
     def _first_layer(self) -> None:
         """
@@ -92,3 +95,30 @@ class Solve2x2(Solve):
 
         _, orientation = search_corner(self.cube, Color.YELLOW, front_color, right_color)
         self._apply(Algorithm.from_str(FIRST_LAYER_INSERTION_TABLE[orientation]))
+
+    def _oll(self) -> None:
+        """
+        Orients the last layer, so the whole UP face ends up showing white.
+
+        The case is read straight off the cube as the orientation of each of the four UP corners. A
+        single table entry orients every corner of the layer at once, with the U turn that aligns
+        the case already at its front, so this step is one lookup and one algorithm.
+
+        :return: None
+        """
+
+        self._apply(Algorithm.from_str(OLL_TABLE[up_corner_orientations(self.cube)]))
+
+    def _pll(self) -> None:
+        """
+        Permutes the last layer, finishing the cube.
+
+        The case is read straight off the cube as the slot each of the four UP corners belongs in. A
+        single table entry places every corner of the layer at once, with both the U turn that
+        aligns the case and the one that finishes the layer already part of it, so this step is one
+        lookup and one algorithm.
+
+        :return: None
+        """
+
+        self._apply(Algorithm.from_str(PLL_TABLE[up_corner_permutation(self.cube)]))
