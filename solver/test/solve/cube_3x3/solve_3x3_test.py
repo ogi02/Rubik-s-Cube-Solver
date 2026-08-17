@@ -491,7 +491,7 @@ class TestSolve3x3Oll:
     @pytest.mark.parametrize("case, algorithm", list(OLL_TABLE.items()))
     def test_solves_every_case(
         self,
-        generate_oll_case: Callable[[str], Cube],
+        generate_3x3_oll_case: Callable[[str], Cube],
         case: tuple[tuple[int, ...], tuple[bool, ...]],
         algorithm: str,
     ) -> None:
@@ -501,14 +501,14 @@ class TestSolve3x3Oll:
         reached by - reading the orientation of the four UP corners and the four UP edges, and
         picking the entry keyed by them.
 
-        :param generate_oll_case: Fixture generating the case a given orientation algorithm solves
+        :param generate_3x3_oll_case: Fixture generating the case a given orientation algorithm solves
         :param case: The corner orientations and the edge orientations the entry is keyed by
         :param algorithm: The orientation algorithm of that entry
         :return: None
         """
 
         # Generate the case and orient the last layer
-        cube = generate_oll_case(algorithm)
+        cube = generate_3x3_oll_case(algorithm)
         Solve3x3(cube)._oll()
 
         # Assert
@@ -564,7 +564,7 @@ class TestSolve3x3Pll:
     @pytest.mark.parametrize("case, algorithm", list(PLL_TABLE.items()))
     def test_solves_every_case(
         self,
-        generate_pll_case: Callable[[str], Cube],
+        generate_3x3_pll_case: Callable[[str], Cube],
         case: tuple[tuple[int, ...], tuple[int, ...]],
         algorithm: str,
     ) -> None:
@@ -574,14 +574,14 @@ class TestSolve3x3Pll:
         reached by - reading where the four UP corners and the four UP edges belong, and picking the
         entry keyed by them.
 
-        :param generate_pll_case: Fixture generating the case a given permutation algorithm solves
+        :param generate_3x3_pll_case: Fixture generating the case a given permutation algorithm solves
         :param case: The corner permutation and the edge permutation the entry is keyed by
         :param algorithm: The permutation algorithm of that entry
         :return: None
         """
 
         # Generate the case and permute the last layer
-        cube = generate_pll_case(algorithm)
+        cube = generate_3x3_pll_case(algorithm)
         Solve3x3(cube)._pll()
 
         # Assert
