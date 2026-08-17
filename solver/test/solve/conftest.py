@@ -104,3 +104,28 @@ def generate_oll_case(generate_cube: Callable[[int, str], Cube]) -> Callable[[st
         return generate_cube(3, invert_algorithm(algorithm))
 
     return _generate
+
+
+@pytest.fixture
+def generate_pll_case(generate_cube: Callable[[int, str], Cube]) -> Callable[[str], Cube]:
+    """
+    Returns a function that generates the PLL case a given permutation algorithm solves.
+
+    :param generate_cube: Fixture generating a cube with an algorithm applied
+    :return: A function that generates the case solved by the given algorithm
+    """
+
+    def _generate(algorithm: str) -> Cube:
+        """
+        Generates the PLL case a given permutation algorithm solves, by applying it backwards to a
+        solved cube. Everything below the UP layer stays solved and the UP face keeps showing one
+        color, so the first two layers are intact, the last layer is oriented and only its
+        permutation is off.
+
+        :param algorithm: The permutation algorithm in standard notation
+        :return: The cube in the case that algorithm solves
+        """
+
+        return generate_cube(3, invert_algorithm(algorithm))
+
+    return _generate
