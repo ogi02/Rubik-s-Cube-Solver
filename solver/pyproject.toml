@@ -25,6 +25,12 @@ Issues = "https://github.com/ogi02/Rubik-s-Cube-Solver"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.pytest.ini_options]
+# The test tree mirrors the source packages, so `cube_2x2/` and `cube_3x3/` each hold an
+# `oll_test.py` and a `pll_test.py`. Test directories carry no `__init__.py`, so the default import
+# mode would give those files the same module name and refuse to collect the second one.
+addopts = "--import-mode=importlib"
+
 [tool.black]
 line-length = 120
 target-version = ["py312"]

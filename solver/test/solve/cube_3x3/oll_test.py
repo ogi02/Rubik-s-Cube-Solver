@@ -151,7 +151,7 @@ class TestOllTable:
     @pytest.mark.parametrize("case, algorithm", list(OLL_TABLE.items()))
     def test_orients_the_last_layer(
         self,
-        generate_oll_case: Callable[[str], Cube],
+        generate_3x3_oll_case: Callable[[str], Cube],
         case: tuple[tuple[int, ...], tuple[bool, ...]],
         algorithm: str,
     ) -> None:
@@ -163,7 +163,7 @@ class TestOllTable:
         Reading the case back off the cube is what makes this more than a tautology - it is the
         key, not the algorithm, that recognition has to agree with.
 
-        :param generate_oll_case: Fixture generating the case a given orientation algorithm solves
+        :param generate_3x3_oll_case: Fixture generating the case a given orientation algorithm solves
         :param case: The corner orientations and the edge orientations the entry is keyed by
         :param algorithm: The orientation algorithm of that entry
         :return: None
@@ -171,7 +171,7 @@ class TestOllTable:
 
         # Generate the case by applying the entry backwards to a solved cube
         corner_orientations, edge_orientations = case
-        cube = generate_oll_case(algorithm)
+        cube = generate_3x3_oll_case(algorithm)
         rotator = Rotator(cube)
 
         # Assert the cube really is in the case the entry is keyed by

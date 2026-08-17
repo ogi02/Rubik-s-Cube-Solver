@@ -138,7 +138,7 @@ class TestPllTable:
     @pytest.mark.parametrize("case, algorithm", list(PLL_TABLE.items()))
     def test_permutes_the_last_layer(
         self,
-        generate_pll_case: Callable[[str], Cube],
+        generate_3x3_pll_case: Callable[[str], Cube],
         case: tuple[tuple[int, ...], tuple[int, ...]],
         algorithm: str,
     ) -> None:
@@ -150,7 +150,7 @@ class TestPllTable:
         Reading the case back off the cube is what makes this more than a tautology - it is the
         key, not the algorithm, that recognition has to agree with.
 
-        :param generate_pll_case: Fixture generating the case a given permutation algorithm solves
+        :param generate_3x3_pll_case: Fixture generating the case a given permutation algorithm solves
         :param case: The corner permutation and the edge permutation the entry is keyed by
         :param algorithm: The permutation algorithm of that entry
         :return: None
@@ -158,7 +158,7 @@ class TestPllTable:
 
         # Generate the case by applying the entry backwards to a solved cube
         corner_permutation, edge_permutation = case
-        cube = generate_pll_case(algorithm)
+        cube = generate_3x3_pll_case(algorithm)
         rotator = Rotator(cube)
 
         # Assert the cube really is in the case the entry is keyed by

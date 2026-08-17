@@ -40,6 +40,18 @@ FIRST_LAYER_SCRAMBLES: list[str] = [
     "y2 F2 D R B",
     "z2 F L D",
 ]
+
+# Scrambles solved through the last layer, chosen so that the corners reach the last layer twisted
+# and permuted in a variety of ways. The last two start the cube in another orientation, which no
+# step has a rotation of its own to correct.
+LAST_LAYER_SCRAMBLES: list[str] = [
+    "R U R' U'",
+    "F R U' R' U' R U R' F'",
+    "R2 U' B2 U2 R2 U' R2",
+    "L' U B2 R' F U2 R'",
+    "x' R U2 F' R2 U",
+    "z U' R2 F U R'",
+]
 # fmt: on
 
 
@@ -62,6 +74,37 @@ def _first_layer_is_solved(cube: Cube) -> bool:
     return all(
         cube.layers[layer][index] == color for layer, color in FIRST_LAYER_SIDE_COLORS.items() for index in (2, 3)
     )
+
+
+def _last_layer_is_oriented(cube: Cube) -> bool:
+    """
+    Checks whether the last layer is oriented, by reading raw stickers rather than going through the
+    production readers, so the oracle is independent of the code it is verifying.
+
+    Every sticker of the UP face must be white, the color the solved cube's scheme puts there.
+
+    :param cube: The Cube instance to check
+    :return: True if the whole UP face shows white, False otherwise
+    """
+
+    return all(color == Color.WHITE for color in cube.layers[Layer.UP])
+
+
+def _cube_is_solved(cube: Cube, solved: Cube) -> bool:
+    """
+    Checks whether the whole cube is solved, by comparing it sticker for sticker with a freshly
+    generated solved cube rather than going through the search helpers, so the oracle is independent
+    of the code it is verifying.
+
+    A 2x2 has no centers, so a solved cube is the reference for the whole color scheme, and a solved
+    2x2 is equal to a default `Cube(2)` whatever orientation it was scrambled in.
+
+    :param cube: The Cube instance to check
+    :param solved: A solved Cube instance of the same size
+    :return: True if the cube is solved, False otherwise
+    """
+
+    return cube.layers == solved.layers
 
 
 class TestSolve2x2Init:
@@ -106,9 +149,10 @@ class TestSolve2x2Init:
 
 
 class TestSolve2x2Steps:
-    def test_returns_first_layer(self, generate_cube: Callable[[int, str], Cube]) -> None:
+    def test_returns_the_steps_in_order(self, generate_cube: Callable[[int, str], Cube]) -> None:
         """
-        Tests that `_steps` returns the first-layer step.
+        Tests that `_steps` returns the first-layer step, then the orientation of the last layer,
+        then its permutation.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :return: None
@@ -119,7 +163,7 @@ class TestSolve2x2Steps:
         solve = Solve2x2(cube)
 
         # Assert
-        assert solve._steps() == [solve._first_layer]
+        assert solve._steps() == [solve._first_layer, solve._oll, solve._pll]
 
 
 class TestSolve2x2SolveFirstLayerCorner:
@@ -202,6 +246,91 @@ class TestSolve2x2FirstLayer:
         assert solve.solution == Algorithm([])
 
 
+class TestSolve2x2Oll:
+    # fmt: off
+    @pytest.mark.parametrize("algorithm", LAST_LAYER_SCRAMBLES)
+    # fmt: on
+    def test_orients_the_last_layer(self, generate_cube: Callable[[int, str], Cube], algorithm: str) -> None:
+        """
+        Tests that `_oll` orients the last layer of a cube whose first layer has just been solved,
+        leaving the whole UP face white and the first layer untouched.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :param algorithm: The scramble applied before solving
+        :return: None
+        """
+
+        # Generate the cube and solve up to the orientation of the last layer
+        cube = generate_cube(2, algorithm)
+        solve = Solve2x2(cube)
+        solve._first_layer()
+        solve._oll()
+
+        # Assert
+        assert _last_layer_is_oriented(cube)
+        assert _first_layer_is_solved(cube)
+
+    def test_already_oriented_last_layer(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that `_oll` adds no moves to the solution when the last layer is already oriented,
+        which is the empty entry of the table.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate a cube whose last layer is oriented but not permuted, and orient it
+        cube = generate_cube(2, "U")
+        solve = Solve2x2(cube)
+        solve._oll()
+
+        # Assert
+        assert _last_layer_is_oriented(cube)
+        assert solve.solution == Algorithm([])
+
+
+class TestSolve2x2Pll:
+    # fmt: off
+    @pytest.mark.parametrize("algorithm", LAST_LAYER_SCRAMBLES)
+    # fmt: on
+    def test_permutes_the_last_layer(self, generate_cube: Callable[[int, str], Cube], algorithm: str) -> None:
+        """
+        Tests that `_pll` finishes a cube whose last layer has just been oriented.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :param algorithm: The scramble applied before solving
+        :return: None
+        """
+
+        # Generate the cube and solve it step by step
+        cube = generate_cube(2, algorithm)
+        solve = Solve2x2(cube)
+        solve._first_layer()
+        solve._oll()
+        solve._pll()
+
+        # Assert
+        assert _cube_is_solved(cube, generate_cube(2, ""))
+
+    def test_already_solved_last_layer(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that `_pll` adds no moves to the solution when the last layer is already permuted,
+        which is the empty entry of the table.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate a solved cube and permute its last layer
+        cube = generate_cube(2, "")
+        solve = Solve2x2(cube)
+        solve._pll()
+
+        # Assert
+        assert _cube_is_solved(cube, generate_cube(2, ""))
+        assert solve.solution == Algorithm([])
+
+
 class TestSolve2x2Solve:
     # fmt: off
     @pytest.mark.parametrize(
@@ -211,13 +340,13 @@ class TestSolve2x2Solve:
         ]
     )
     # fmt: on
-    def test_solves_first_layer_with_no_rotations_in_solution(
+    def test_solves_the_cube_with_no_rotations_in_solution(
         self, generate_cube: Callable[[int, str], Cube], algorithm: str
     ) -> None:
         """
-        Tests that `solve` runs the first-layer step on the live cube end to end, leaving the layer
-        solved, and that the returned algorithm contains no whole-cube rotations. One scramble
-        starts in the orientation of a solved cube, the other is turned on its side first.
+        Tests that `solve` runs every step on the live cube end to end, leaving it solved, and that
+        the returned algorithm contains no whole-cube rotations. One scramble starts in the
+        orientation of a solved cube, the other is turned on its side first.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :param algorithm: The scramble solved end to end
@@ -228,8 +357,8 @@ class TestSolve2x2Solve:
         cube = generate_cube(2, algorithm)
         result = Solve2x2(cube).solve()
 
-        # Assert the step landed on the live cube
-        assert _first_layer_is_solved(cube)
+        # Assert the steps landed on the live cube
+        assert _cube_is_solved(cube, generate_cube(2, ""))
 
         # Assert the solution contains no whole-cube rotations
         assert all(not isinstance(move.layer, Rotation) for move in result.moves)
@@ -250,14 +379,14 @@ class TestSolve2x2Solve:
         replayed = generate_cube(2, f"F R' U2 F' R {result}")
 
         # Assert
-        assert _first_layer_is_solved(replayed)
+        assert _cube_is_solved(replayed, generate_cube(2, ""))
         assert replayed.layers == cube.layers
 
     def test_solves_random_scrambles(self, generate_cube: Callable[[int, str], Cube]) -> None:
         """
-        Tests that `solve` solves the first layer of a hundred randomly scrambled cubes, which reach
-        far more cases between them than the scrambles picked by hand for the step. The random
-        number generator is seeded, so a failing run can be reproduced exactly.
+        Tests that `solve` solves a hundred randomly scrambled cubes, which reach far more cases
+        between them than the scrambles picked by hand for the steps. The random number generator is
+        seeded, so a failing run can be reproduced exactly.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :return: None
@@ -265,9 +394,10 @@ class TestSolve2x2Solve:
 
         # Solve a hundred scrambled cubes
         random.seed(0)
+        solved = generate_cube(2, "")
         for _ in range(100):
             cube = generate_cube(2, str(Algorithm(Scrambler().generate_scramble(2))))
             Solve2x2(cube).solve()
 
             # Assert
-            assert _first_layer_is_solved(cube)
+            assert _cube_is_solved(cube, solved)
