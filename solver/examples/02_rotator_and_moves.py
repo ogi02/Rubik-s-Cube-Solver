@@ -11,6 +11,9 @@ Run it with:
     python examples/02_rotator_and_moves.py
 """
 
+# Python imports
+from typing import Callable
+
 # Project imports
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.cube_rotation.move import Move
@@ -115,18 +118,29 @@ def rotate_the_whole_cube() -> None:
     print(cube)
 
 
+# The sections of this example, in the order `main` runs them
+SECTIONS: list[tuple[str, Callable[[], None]]] = [
+    ("Turning a single layer", turn_a_single_layer),
+    ("Moves from standard notation", build_moves_from_notation),
+    ("Wide turns", turn_a_wide_layer),
+    ("Whole-cube rotations", rotate_the_whole_cube),
+]
+
+
 def main() -> None:
     """
-    Runs every part of the example.
+    Runs every section of the example, printing a numbered header before each one.
 
     :return: None
     """
 
-    turn_a_single_layer()
-    build_moves_from_notation()
-    print()
-    turn_a_wide_layer()
-    rotate_the_whole_cube()
+    for number, (title, section) in enumerate(SECTIONS, start=1):
+        print("=" * 100)
+        print(f"[{number}] {title}")
+        print("=" * 100)
+        print()
+        section()
+        print()
 
 
 if __name__ == "__main__":

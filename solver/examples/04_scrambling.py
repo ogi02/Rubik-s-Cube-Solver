@@ -13,6 +13,9 @@ Run it with:
     python examples/04_scrambling.py
 """
 
+# Python imports
+from typing import Callable
+
 # Project imports
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.cube_rotation.algorithm import Algorithm
@@ -74,17 +77,28 @@ def reject_an_impossible_size() -> None:
         print(f"A 1x1 cube is rejected: {error}")
 
 
+# The sections of this example, in the order `main` runs them
+SECTIONS: list[tuple[str, Callable[[], None]]] = [
+    ("Scrambles for different cube sizes", generate_scrambles_for_different_sizes),
+    ("Scrambling a cube", scramble_a_cube),
+    ("An impossible cube size", reject_an_impossible_size),
+]
+
+
 def main() -> None:
     """
-    Runs every part of the example.
+    Runs every section of the example, printing a numbered header before each one.
 
     :return: None
     """
 
-    generate_scrambles_for_different_sizes()
-    print()
-    scramble_a_cube()
-    reject_an_impossible_size()
+    for number, (title, section) in enumerate(SECTIONS, start=1):
+        print("=" * 100)
+        print(f"[{number}] {title}")
+        print("=" * 100)
+        print()
+        section()
+        print()
 
 
 if __name__ == "__main__":

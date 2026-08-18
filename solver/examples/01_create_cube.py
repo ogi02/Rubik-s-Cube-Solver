@@ -10,6 +10,9 @@ Run it with:
     python examples/01_create_cube.py
 """
 
+# Python imports
+from typing import Callable
+
 # Project imports
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.enums.Color import Color
@@ -77,17 +80,28 @@ def create_cube_from_explicit_layers() -> None:
     print(cube)
 
 
+# The sections of this example, in the order `main` runs them
+SECTIONS: list[tuple[str, Callable[[], None]]] = [
+    ("Cubes of different sizes", create_cubes_of_different_sizes),
+    ("Reading individual stickers", read_individual_stickers),
+    ("A cube from an explicit sticker layout", create_cube_from_explicit_layers),
+]
+
+
 def main() -> None:
     """
-    Runs every part of the example.
+    Runs every section of the example, printing a numbered header before each one.
 
     :return: None
     """
 
-    create_cubes_of_different_sizes()
-    read_individual_stickers()
-    print()
-    create_cube_from_explicit_layers()
+    for number, (title, section) in enumerate(SECTIONS, start=1):
+        print("=" * 100)
+        print(f"[{number}] {title}")
+        print("=" * 100)
+        print()
+        section()
+        print()
 
 
 if __name__ == "__main__":

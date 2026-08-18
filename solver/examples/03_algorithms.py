@@ -11,6 +11,9 @@ Run it with:
     python examples/03_algorithms.py
 """
 
+# Python imports
+from typing import Callable
+
 # Project imports
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.cube_rotation.algorithm import Algorithm
@@ -98,19 +101,29 @@ def build_an_algorithm_from_moves() -> None:
     print(f"Equal to the parsed one:  {algorithm == Algorithm.from_str(SEXY_MOVE)}")
 
 
+# The sections of this example, in the order `main` runs them
+SECTIONS: list[tuple[str, Callable[[], None]]] = [
+    ("Applying an algorithm", apply_an_algorithm),
+    ("The notation round trip", notation_round_trips),
+    ("Repeating an algorithm until the cube is solved", repeat_until_solved),
+    ("Building an algorithm from Move objects", build_an_algorithm_from_moves),
+]
+
+
 def main() -> None:
     """
-    Runs every part of the example.
+    Runs every section of the example, printing a numbered header before each one.
 
     :return: None
     """
 
-    apply_an_algorithm()
-    notation_round_trips()
-    print()
-    repeat_until_solved()
-    print()
-    build_an_algorithm_from_moves()
+    for number, (title, section) in enumerate(SECTIONS, start=1):
+        print("=" * 100)
+        print(f"[{number}] {title}")
+        print("=" * 100)
+        print()
+        section()
+        print()
 
 
 if __name__ == "__main__":

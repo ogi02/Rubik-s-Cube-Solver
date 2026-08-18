@@ -14,6 +14,9 @@ Run it with:
     python examples/06_solve_2x2.py
 """
 
+# Python imports
+from typing import Callable
+
 # Project imports
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.cube_rotation.algorithm import Algorithm
@@ -83,16 +86,28 @@ def reject_the_wrong_size() -> None:
         print(f"A 3x3 is rejected: {error}")
 
 
+# The sections of this example, in the order `main` runs them
+SECTIONS: list[tuple[str, Callable[[], None]]] = [
+    ("Solving a scrambled 2x2", solve_a_scrambled_cube),
+    ("Replaying the solution on a second cube", replay_the_solution),
+    ("The size check", reject_the_wrong_size),
+]
+
+
 def main() -> None:
     """
-    Runs every part of the example.
+    Runs every section of the example, printing a numbered header before each one.
 
     :return: None
     """
 
-    solve_a_scrambled_cube()
-    replay_the_solution()
-    reject_the_wrong_size()
+    for number, (title, section) in enumerate(SECTIONS, start=1):
+        print("=" * 100)
+        print(f"[{number}] {title}")
+        print("=" * 100)
+        print()
+        section()
+        print()
 
 
 if __name__ == "__main__":

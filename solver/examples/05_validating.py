@@ -14,6 +14,9 @@ Run it with:
     python examples/05_validating.py
 """
 
+# Python imports
+from typing import Callable
+
 # Project imports
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.cube_rotation.algorithm import Algorithm
@@ -107,17 +110,29 @@ def validate_a_swapped_edge_pair() -> None:
     report("Two edges swapped", cube)
 
 
+# The sections of this example, in the order `main` runs them
+SECTIONS: list[tuple[str, Callable[[], None]]] = [
+    ("Reachable states", validate_reachable_states),
+    ("A miscounted color", validate_a_miscounted_color),
+    ("A twisted corner", validate_a_twisted_corner),
+    ("A swapped pair of edges", validate_a_swapped_edge_pair),
+]
+
+
 def main() -> None:
     """
-    Runs every part of the example.
+    Runs every section of the example, printing a numbered header before each one.
 
     :return: None
     """
 
-    validate_reachable_states()
-    validate_a_miscounted_color()
-    validate_a_twisted_corner()
-    validate_a_swapped_edge_pair()
+    for number, (title, section) in enumerate(SECTIONS, start=1):
+        print("=" * 100)
+        print(f"[{number}] {title}")
+        print("=" * 100)
+        print()
+        section()
+        print()
 
 
 if __name__ == "__main__":

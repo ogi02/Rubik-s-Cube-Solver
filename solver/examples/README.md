@@ -13,7 +13,8 @@ python examples/01_create_cube.py
 ```
 
 Every script apart from `04_scrambling.py` uses a fixed scramble, so its output is the same on every
-run.
+run. Each script is split into numbered sections, listed in its `SECTIONS` table and printed above
+the output they produce, so every block of output can be traced back to the function behind it.
 
 ## The scripts
 
