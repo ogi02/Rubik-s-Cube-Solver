@@ -30,12 +30,12 @@ jobs:
 
       - name: Black check
         working-directory: solver
-        run: black --check src test --config pyproject.toml
+        run: black --check src test examples --config pyproject.toml
 
       - name: isort check
         working-directory: solver
-        run: isort --check-only src test --settings-path pyproject.toml
+        run: isort --check-only src test examples --settings-path pyproject.toml
 
       - name: Flake8 lint
         working-directory: solver
-        run: flake8 src test --config .flake8
+        run: flake8 src test examples --config .flake8
