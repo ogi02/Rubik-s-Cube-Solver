@@ -1,5 +1,3 @@
-from rubik_cube_solver.enums.Direction import Directionfrom rubik_cube_solver.enums import Rotation
-
 # Rubik's Cube Solver
 
 [![Lint](https://img.shields.io/github/actions/workflow/status/ogi02/Rubik-s-Cube-Solver/solver-lint.yml?branch=main&label=Lint)](https://github.com/ogi02/Rubik-s-Cube-Solver/actions)
@@ -19,6 +17,8 @@ pip install -i https://test.pypi.org/simple/ rubik-cube-solver
 ```
 
 ## Usage Examples
+
+Runnable versions of these snippets, and more, live in [`examples/`](examples/README.md).
 
 #### Generating a `Cube` and `Rotator`
 
