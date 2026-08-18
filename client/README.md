@@ -128,6 +128,26 @@ async def main():
 asyncio.run(main())
 ```
 
+## Development Setup
+Clone the repository and navigate to the project directory:
+
+```bash
+git clone https://github.com/ogi02/Rubik-s-Cube-Solver.git
+cd Rubik-s-Cube-Solver/client
+```
+
+Install the development dependencies, which cover testing, linting, formatting and building:
+
+```bash
+pip install -r dev-requirements.txt
+```
+
+Optionally, install the client in editable mode:
+
+```bash
+pip install -e .
+```
+
 ## Testing
 Run all tests with coverage:
 
@@ -145,6 +165,23 @@ Install pre-commit and enable hooks:
 pip install -r dev-requirements.txt
 pre-commit install
 pre-commit run --all-files
+```
+
+## Building and Publishing
+Raise the `version` field in `pyproject.toml` before publishing, since Test PyPI rejects a version that already exists.
+
+Build the package:
+
+```bash
+pip install --upgrade build
+python -m build
+```
+
+Publish to Test PyPI:
+
+```bash
+pip install --upgrade twine
+python -m twine upload --repository testpypi dist/*
 ```
 
 ## Contact
