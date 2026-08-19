@@ -22,6 +22,9 @@ npm run dev
 The visualizer is designed to work with websocket messages to visualize cube states and apply moves.
 It is dependent on a client that sends the appropriate messages. It cannot function standalone.
 
+The visualizer is **receive-only**: it consumes `cube_state` and `apply_moves` messages, and the
+only message it ever sends is `disconnect`, sent to the server before the page unloads.
+
 ### Visualizing Cube States
 
 The visualizer supports receiving the state of a cube via a websocket connection.
@@ -207,6 +210,17 @@ Move Delay: 20
 Output:
 
 ![3x3x3 Cube Fast Speed](./videos/3x3-apply-moves-fast.gif)
+
+### Disconnecting
+
+The visualizer sends a `disconnect` message to the server before the page unloads, if the
+connection is still open:
+
+```json
+{
+    "type": "disconnect"
+}
+```
 
 ## Testing
 Test the build of the project:

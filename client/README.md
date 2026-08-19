@@ -128,6 +128,49 @@ async def main():
 asyncio.run(main())
 ```
 
+## Messages
+
+Every message exchanged over the WebSocket connection is a `{"type": ..., "data": ...}` envelope. The `rubik_cube_websocket_client.messages` module provides builders for every message type so a caller never hand-writes the envelope. The visualizer is receive-only — it only ever sends `disconnect` — and the server validates every relayed message against the contract, dropping anything that does not match it.
+
+### `cube_state`
+
+Sent from the solver to the visualizer to describe the full state of the cube.
+
+- `dimensions` (`int`, >= 2) — the size of the cube, e.g. `3` for a 3x3x3 cube
+- `state` (`dict[str, list[str]]`) — maps each of `UP`, `DOWN`, `LEFT`, `RIGHT`, `FRONT`, `BACK` to a list of exactly `dimensions * dimensions` sticker colors
+
+### `apply_moves`
+
+Sent from the solver to the visualizer to animate a sequence of moves.
+
+- `moves` (`list[str]`) — the moves to apply, in cube notation
+
+### `disconnect`
+
+Sent by either client to the server to signal a graceful disconnect. It is never relayed to the other client.
+
+Example usage with `send_message`:
+
+```python
+from rubik_cube_websocket_client import messages
+
+await client.send_message(messages.cube_state(
+    dimensions=3,
+    state={
+        "UP": ["white"] * 9,
+        "DOWN": ["yellow"] * 9,
+        "LEFT": ["orange"] * 9,
+        "RIGHT": ["red"] * 9,
+        "FRONT": ["green"] * 9,
+        "BACK": ["blue"] * 9,
+    },
+))
+
+await client.send_message(messages.apply_moves(["R", "U", "R'"]))
+
+await client.send_message(messages.disconnect())
+```
+
 ## Development Setup
 Clone the repository and navigate to the project directory:
 

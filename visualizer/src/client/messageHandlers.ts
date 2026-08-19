@@ -1,6 +1,7 @@
 import p5 from "p5";
 import { Cube } from "../cube/cube.ts";
 import { type CubeSettings, loadCubeSettings } from "../utils/cubeSettings.ts";
+import { type ApplyMovesMessage, CUBE_SIDES, type CubeState, type CubeStateMessage } from "./messageTypes.ts";
 
 /**
  * Handle incoming cube state message to set up the cube.
@@ -13,7 +14,7 @@ import { type CubeSettings, loadCubeSettings } from "../utils/cubeSettings.ts";
  * @example
  * handleCubeStateMessage(data, p, cube);
  */
-export const handleCubeStateMessage = (data: any, p: p5) : Cube => {
+export const handleCubeStateMessage = (data: Partial<CubeStateMessage>, p: p5) : Cube => {
     // Validate
     if (!data.data || data.data.dimensions === undefined || !data.data.state) {
         console.error("Invalid cube_state message: missing required fields", data);
@@ -25,7 +26,7 @@ export const handleCubeStateMessage = (data: any, p: p5) : Cube => {
     const cube : Cube = new Cube(settings);
 
     // Validate the state
-    const expectedSides : string[] = ['UP', 'DOWN', 'LEFT', 'RIGHT', 'FRONT', 'BACK'];
+    const expectedSides : readonly string[] = CUBE_SIDES;
     const state : object = data.data.state;
     if (
         // State must be an object with exactly 6 sides
@@ -42,7 +43,7 @@ export const handleCubeStateMessage = (data: any, p: p5) : Cube => {
     }
 
     // Apply the state to the cube
-    const sides = new Map<string, Array<string>>(Object.entries(state));
+    const sides = new Map<string, Array<string>>(Object.entries(state as CubeState["state"]));
     cube.setUpFromState(sides);
 
     return cube;
@@ -57,7 +58,7 @@ export const handleCubeStateMessage = (data: any, p: p5) : Cube => {
  * @example
  * handleApplyMovesMessage(data);
  */
-export const handleApplyMovesMessage = (data: any, cube: Cube) : void => {
+export const handleApplyMovesMessage = (data: Partial<ApplyMovesMessage>, cube: Cube) : void => {
     // Validate
     if (!data.data || !data.data.moves) {
         console.error("Invalid apply_moves message: missing required fields", data);

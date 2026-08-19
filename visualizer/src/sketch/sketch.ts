@@ -5,6 +5,7 @@ import { authenticate } from "../client/authenticate.ts";
 import { setBackground, setupCanvas, windowResized } from "./canvas.ts";
 import { loadCubeSettings, type CubeSettings } from "../utils/cubeSettings.ts";
 import { handleApplyMovesMessage, handleCubeStateMessage } from "../client/messageHandlers.ts";
+import { MESSAGE_TYPES } from "../client/messageTypes.ts";
 
 /**
  * Cube sketch for p5 visualization
@@ -98,13 +99,13 @@ export const cubeSketch = (p: p5) => {
                 const data = JSON.parse(event.data);
 
                 // Handle cube state message
-                if (data.type === "cube_state") {
+                if (data.type === MESSAGE_TYPES.CUBE_STATE) {
                     cube = handleCubeStateMessage(data, p);
                     settings = cube.settings;
                 }
 
                 // Handle apply moves message
-                if (data.type === "apply_moves") {
+                if (data.type === MESSAGE_TYPES.APPLY_MOVES) {
                     handleApplyMovesMessage(data, cube);
                 }
             } catch (error) {
@@ -121,7 +122,7 @@ export const cubeSketch = (p: p5) => {
         // Handle graceful disconnect before unload
         const beforeUnloadHandler = () : void => {
             if (socket && socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify({ type: "disconnect" }));
+                socket.send(JSON.stringify({ type: MESSAGE_TYPES.DISCONNECT }));
             }
         }
         window.addEventListener("beforeunload", beforeUnloadHandler);
