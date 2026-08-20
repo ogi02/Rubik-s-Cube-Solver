@@ -14,12 +14,9 @@ html, body {
     transform: translateX(-50%);
     display: flex;
     gap: 4px;
-    padding: 10px 16px;
-    border-radius: 8px;
-    background: rgba(34, 34, 34, 0.8);
-    color: #eeeeee;
+    color: #222222;
     font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
-    font-size: 18px;
+    font-size: 24px;
     line-height: 1;
     white-space: nowrap;
     /* Never swallow a drag, so orbit control keeps working over the box */
@@ -37,14 +34,13 @@ html, body {
 /* One slot per move, wide enough that the columns hold still as the moves scroll */
 #message-box .move {
     min-width: 3.5ch;
-    padding: 3px 4px;
-    border-radius: 4px;
     text-align: center;
+    /* Dim the moves either side, so the middle slot reads without a marker behind it */
+    opacity: 0.45;
 }
 
 /* The move currently being applied, always the middle slot */
 #message-box .move.current {
-    background: #eeeeee;
-    color: #222222;
+    opacity: 1;
     font-weight: bold;
 }
