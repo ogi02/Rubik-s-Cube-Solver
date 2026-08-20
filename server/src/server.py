@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 # Project imports
 import config
 import utils
+from message_type import MessageType
 from role import Role
 
 # FastAPI app
@@ -70,7 +71,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str) -> None:
             if not isinstance(data, dict):
                 raise json.JSONDecodeError("Message is not a JSON object", doc=str(data), pos=0)
             # Check for disconnect message
-            if data.get("type") == "disconnect":
+            if data.get("type") == MessageType.DISCONNECT.value:
                 logging.info(f"Client requested disconnect: {payload.get('sub')}")
                 await websocket.close(code=1000, reason="Client requested disconnect")
                 # Unregister client

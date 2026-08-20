@@ -60,20 +60,76 @@ Every client should periodically send a ping message to the server:
 await websocket.ping()
 ```
 
-The server supports the following message types:
+### Message Envelope
 
-- `cube_state`: Sent by the machine client to update the visualizer with the current state of the Rubik's Cube.
-- `apply_moves`: Sent by the machine client to instruct the visualizer to display a series of moves on the Rubik's Cube.
-- `disconnect`: Sent by either client to notify the server of disconnection.
-
-Required message format:
+Every message is a JSON object with a `type` field naming the message and a `data` field holding
+its payload:
 
 ```json
 {
   "type": "message_type",
+  "data": {}
+}
+```
+
+The server validates every message it is asked to relay against the specification below.
+An invalid message is logged and dropped — the connection is kept open, but the message never
+reaches the visualizer. The visualizer is receive-only: it never sends any message type other
+than `disconnect`.
+
+### `cube_state`
+
+- **Direction:** solver -> visualizer
+- **When:** sent by the solver whenever it wants the visualizer to display a full cube state.
+- **Payload fields:**
+  - `dimensions` (`int`, `>= 2`): the size of the cube, e.g. `3` for a 3x3x3 cube.
+  - `state` (`dict`): maps each of the six side names `UP`, `DOWN`, `LEFT`, `RIGHT`, `FRONT`,
+    `BACK` to a list of `str` stickers. Every list must have exactly `dimensions * dimensions`
+    entries, and no side may be missing or extra.
+
+```json
+{
+  "type": "cube_state",
   "data": {
-      
+    "dimensions": 2,
+    "state": {
+      "UP": ["W", "W", "W", "W"],
+      "DOWN": ["Y", "Y", "Y", "Y"],
+      "LEFT": ["O", "O", "O", "O"],
+      "RIGHT": ["R", "R", "R", "R"],
+      "FRONT": ["G", "G", "G", "G"],
+      "BACK": ["B", "B", "B", "B"]
+    }
   }
+}
+```
+
+### `apply_moves`
+
+- **Direction:** solver -> visualizer
+- **When:** sent by the solver to instruct the visualizer to animate a sequence of moves.
+- **Payload fields:**
+  - `moves` (`list` of `str`): the moves to apply, in order. An empty list is valid.
+
+```json
+{
+  "type": "apply_moves",
+  "data": {
+    "moves": ["R", "U", "R'", "U'"]
+  }
+}
+```
+
+### `disconnect`
+
+- **Direction:** solver or visualizer -> server
+- **When:** sent by either client to notify the server it is disconnecting.
+- **Payload fields:** none. This message is consumed by the server and is never relayed to the
+  other client.
+
+```json
+{
+  "type": "disconnect"
 }
 ```
 

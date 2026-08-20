@@ -1,5 +1,7 @@
 # Python imports
 import asyncio
+import logging
+from datetime import datetime, timedelta, timezone
 from typing import Callable
 
 import pytest
@@ -58,6 +60,44 @@ def test_generate_jwt_invalid_key_exception() -> None:
 
     with pytest.raises(HTTPException):
         utils.generate_jwt("bad-key")
+
+
+def test_generate_jwt_invalid_key_not_logged(caplog: pytest.LogCaptureFixture) -> None:
+    """
+    Tests that generate_jwt's rejection log does not contain the supplied invalid API key.
+
+    :param caplog: Fixture to capture log records
+    """
+
+    bad_key = "super-secret-bad-key"
+
+    with caplog.at_level(logging.ERROR):
+        with pytest.raises(HTTPException):
+            utils.generate_jwt(bad_key)
+
+    # Assert the log does not leak the supplied key
+    assert bad_key not in caplog.text
+
+
+def test_generate_jwt_token_expiry_seconds(solver_api_key: str) -> None:
+    """
+    Tests that generate_jwt issues a token whose expiry is JWT_LIFETIME (60 seconds) after generation.
+
+    :param solver_api_key: Fixture providing the test solver API key
+    """
+
+    before = int(datetime.now(timezone.utc).timestamp())
+    token = utils.generate_jwt(solver_api_key)
+    after = int(datetime.now(timezone.utc).timestamp())
+
+    payload = utils.verify_jwt(token)
+
+    # Assert the configured lifetime is 60 seconds
+    assert utils.JWT_LIFETIME == timedelta(seconds=60)
+
+    # Assert the expiry claim is exactly JWT_LIFETIME after generation
+    assert before + int(utils.JWT_LIFETIME.total_seconds()) <= payload["exp"]
+    assert payload["exp"] <= after + int(utils.JWT_LIFETIME.total_seconds())
 
 
 def test_verify_jwt_invalid_token_exception() -> None:
@@ -136,81 +176,111 @@ async def test_unregister_client_success(known_clients: dict[Role, DummyWebSocke
 
 # fmt: off
 @pytest.mark.parametrize(
-    "sender_role, recipient_role", [
-        (Role.SOLVER,     Role.VISUALIZER),
-        (Role.VISUALIZER, Role.SOLVER),
+    "message", [
+        {"type": "apply_moves", "data": {"moves": ["R", "U", "R'", "U'"]}},
+        {
+            "type": "cube_state",
+            "data": {
+                "dimensions": 2,
+                "state": {
+                    "UP": ["W", "W", "W", "W"],
+                    "DOWN": ["Y", "Y", "Y", "Y"],
+                    "LEFT": ["O", "O", "O", "O"],
+                    "RIGHT": ["R", "R", "R", "R"],
+                    "FRONT": ["G", "G", "G", "G"],
+                    "BACK": ["B", "B", "B", "B"],
+                },
+            },
+        },
     ]
 )
 # fmt: on
 @pytest.mark.asyncio
-async def test_handle_message_success(
-        sender_role: Role, recipient_role: Role, known_clients: dict[Role, DummyWebSocket]
-) -> None:
+async def test_handle_message_success(message: dict, known_clients: dict[Role, DummyWebSocket]) -> None:
     """
-    Tests that handle_message routes the message to the opposite role's websocket.
+    Tests that handle_message routes a valid solver message to the visualizer.
 
-    :param sender_role: The Role enum member sending the message
-    :param recipient_role: The Role enum member expected to receive the message
+    :param message: A valid solver message
     :param known_clients: Fixture mapping roles to websocket stubs
     """
-
-    message = {"message": "test_message"}
 
     # Handle the message
-    await utils.handle_message(message, known_clients, sender_role)
+    await utils.handle_message(message, known_clients, Role.SOLVER)
 
-    # Assert the recipient received the message
-    assert known_clients[recipient_role].sent == [message]
+    # Assert the visualizer received the message
+    assert known_clients[Role.VISUALIZER].sent == [message]
 
-    # Assert the sender did not receive any message
-    assert known_clients[sender_role].sent == []
+    # Assert the solver did not receive any message
+    assert known_clients[Role.SOLVER].sent == []
 
 
-# fmt: off
-@pytest.mark.parametrize(
-    "sender_role, recipient_role", [
-        (Role.SOLVER,     Role.VISUALIZER),
-        (Role.VISUALIZER, Role.SOLVER),
-    ]
-)
-# fmt: on
 @pytest.mark.asyncio
-async def test_handle_message_no_recipient_success(
-        sender_role: Role, recipient_role: Role, known_clients: dict[Role, DummyWebSocket]
-) -> None:
+async def test_handle_message_no_recipient_success(known_clients: dict[Role, DummyWebSocket]) -> None:
     """
-    Tests that handle_message does not route the message if the recipient is not connected.
+    Tests that handle_message does not route the message if the visualizer is not connected.
 
-    :param sender_role: The Role enum member sending the message
-    :param recipient_role: The Role enum member expected to receive the message
     :param known_clients: Fixture mapping roles to websocket stubs
     """
 
-    message = {"message": "test_message"}
+    message = {"type": "apply_moves", "data": {"moves": []}}
 
-    # Remove the recipient to simulate it not being connected
-    del known_clients[recipient_role]
+    # Remove the visualizer to simulate it not being connected
+    del known_clients[Role.VISUALIZER]
 
-    # Handle the message from the sender
-    await utils.handle_message(message, known_clients, sender_role)
+    # Handle the message from the solver
+    await utils.handle_message(message, known_clients, Role.SOLVER)
 
     # Assert no messages were sent
-    assert known_clients[sender_role].sent == []
+    assert known_clients[Role.SOLVER].sent == []
 
 
 @pytest.mark.asyncio
-async def test_handle_message_invalid_role_success(known_clients: dict[Role, DummyWebSocket]) -> None:
+async def test_handle_message_invalid_sender_dropped_success(
+    caplog: pytest.LogCaptureFixture, known_clients: dict[Role, DummyWebSocket]
+) -> None:
     """
-    Tests that handle_message does not route the message for an invalid role.
+    Tests that handle_message drops a message from a non-solver sender, keeping the connection
+    open (no exception raised) and logging a warning naming the sender role.
 
+    :param caplog: Fixture to capture log records
     :param known_clients: Fixture mapping roles to websocket stubs
     """
 
-    message = {"message": "test_message"}
+    message = {"type": "apply_moves", "data": {"moves": []}}
 
-    # Handle the message from an invalid role
-    await utils.handle_message(message, known_clients, "invalid_role")  # type: ignore
+    with caplog.at_level(logging.WARNING):
+        # Handle the message from the visualizer, which is not permitted to send apply_moves
+        await utils.handle_message(message, known_clients, Role.VISUALIZER)
 
     # Assert no messages were sent
     assert known_clients[Role.SOLVER].sent == []
     assert known_clients[Role.VISUALIZER].sent == []
+
+    # Assert a warning was logged naming the sender role
+    assert any("VISUALIZER" in record.message for record in caplog.records)
+
+
+@pytest.mark.asyncio
+async def test_handle_message_invalid_payload_dropped_success(
+    caplog: pytest.LogCaptureFixture, known_clients: dict[Role, DummyWebSocket]
+) -> None:
+    """
+    Tests that handle_message drops a malformed solver message, keeping the connection open
+    (no exception raised) so nothing invalid reaches the visualizer.
+
+    :param caplog: Fixture to capture log records
+    :param known_clients: Fixture mapping roles to websocket stubs
+    """
+
+    message = {"type": "apply_moves", "data": {"moves": "not-a-list"}}
+
+    with caplog.at_level(logging.WARNING):
+        # Handle the malformed message from the solver
+        await utils.handle_message(message, known_clients, Role.SOLVER)
+
+    # Assert no messages were sent
+    assert known_clients[Role.SOLVER].sent == []
+    assert known_clients[Role.VISUALIZER].sent == []
+
+    # Assert a warning was logged naming the sender role
+    assert any("SOLVER" in record.message for record in caplog.records)
