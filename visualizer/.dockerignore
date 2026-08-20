@@ -1,0 +1,17 @@
+# The API key is passed as a build argument, never copied in from a file
+.env
+.env.*
+*.env
+
+# Installed and built inside the image
+node_modules/
+dist/
+
+# Development-only files, not part of the bundle
+test/
+playwright.config.ts
+test-results/
+videos/
+README.md
+Dockerfile
+.dockerignore

@@ -1,0 +1,23 @@
+# Secrets are passed as environment variables, never baked into the image
+.env
+.env.*
+*.env
+
+# Development-only files, not needed by the running server
+test/
+dev-requirements.txt
+.pre-commit-config.yaml
+.flake8
+Dockerfile
+.dockerignore
+README.md
+
+# Build and cache artefacts
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.egg-info/
+**/*.egg-info/
+.pytest_cache/
+.coverage
+coverage.xml
