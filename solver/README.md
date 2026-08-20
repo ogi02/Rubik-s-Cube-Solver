@@ -84,11 +84,15 @@ so far. Calling `solve()` runs the ordered steps of the method, applies every mo
 returns the complete solution as an `Algorithm` — the cube is left solved and the solution can be
 replayed on a second cube, printed as notation, or sent on to the visualizer or the machine.
 
+`create_solver` is the entry point: it takes any cube, reads its size and returns the solver for
+it, so callers never pick a class themselves. A size no solver handles is rejected there and then,
+before any solving starts.
+
 `Solve2x2` solves the 2x2 layer by layer: the first layer, then the orientation of the last layer,
 then its permutation. `Solve3x3` follows CFOP: the cross, the first two layers, the orientation of
 the last layer and its permutation. Both are human methods rather than searches, so the solutions
-are the ones a person would recognize rather than the shortest ones. Each solver accepts only its
-own cube size and rejects anything else on construction.
+are the ones a person would recognize rather than the shortest ones. Either can still be
+constructed directly, and each accepts only its own cube size.
 
 Cubes of 4x4 and larger are fully supported by every other part of the library — representation,
 turning, scrambling and validation — but no solver exists for them yet.
@@ -109,8 +113,8 @@ python examples/01_create_cube.py
 | [`03_algorithms.py`](examples/03_algorithms.py) | Parsing an `Algorithm` from notation, applying it, the notation round trip, and building an algorithm from `Move` objects. |
 | [`04_scrambling.py`](examples/04_scrambling.py) | Generating random scrambles with `Scrambler` for cubes of different sizes and applying one to a cube. |
 | [`05_validating.py`](examples/05_validating.py) | Validating reachable states with `Validator`, and the errors raised by a miscounted color, a twisted corner, and a swapped pair of edges. |
-| [`06_solve_2x2.py`](examples/06_solve_2x2.py) | Solving a 2x2 with `Solve2x2`, replaying the returned solution on a second cube, and the size check. |
-| [`07_solve_3x3.py`](examples/07_solve_3x3.py) | Solving a 3x3 with `Solve3x3`, reading the solution back, and the size check. |
+| [`06_solve_2x2.py`](examples/06_solve_2x2.py) | Solving a 2x2 through `create_solver`, replaying the returned solution on a second cube, and a size no solver handles. |
+| [`07_solve_3x3.py`](examples/07_solve_3x3.py) | Solving a 3x3 through `create_solver`, reading the solution back, and a size no solver handles. |
 
 ## Development Setup
 

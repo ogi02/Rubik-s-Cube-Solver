@@ -1,9 +1,11 @@
 """
 Solving a 2x2 cube.
 
-`Solve2x2` is a human, layer-by-layer solver: it builds the yellow first layer on DOWN, then
-orients the last layer and permutes it, each step recognising a case and looking up an algorithm
-rather than searching. The solution it returns is therefore not the shortest one.
+`create_solver` is the entry point for solving any cube: it reads the cube's size and returns the
+solver for it, so nothing here names `Solve2x2` directly. For a 2x2 that solver is a human,
+layer-by-layer one: it builds the yellow first layer on DOWN, then orients the last layer and
+permutes it, each step recognising a case and looking up an algorithm rather than searching. The
+solution it returns is therefore not the shortest one.
 
 `solve()` mutates the cube it was given, so afterwards the same object is solved and the returned
 `Algorithm` is what got it there. A 2x2 has no centers, so nothing on the cube says which face is
@@ -21,7 +23,7 @@ from typing import Callable
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.cube_rotation.algorithm import Algorithm
 from rubik_cube_solver.cube_rotation.rotator import Rotator
-from rubik_cube_solver.solve.cube_2x2.solve_2x2 import Solve2x2
+from rubik_cube_solver.solve.solver import create_solver
 
 # A fixed scramble, so that the output of this example is the same on every run
 SCRAMBLE = "R U' F2 R2 U R' F U2 R' U'"
@@ -41,7 +43,10 @@ def solve_a_scrambled_cube() -> None:
     print("Scrambled 2x2:")
     print(cube)
 
-    solution = Solve2x2(cube).solve()
+    solver = create_solver(cube)
+    print(f"create_solver picked: {type(solver).__name__}")
+
+    solution = solver.solve()
 
     print(f"Solution ({len(solution.moves)} moves): {solution}")
     print("Solved 2x2:")
@@ -63,7 +68,7 @@ def replay_the_solution() -> None:
 
     solving_cube = Cube(size=2)
     Rotator(solving_cube).apply(Algorithm.from_str(SCRAMBLE))
-    solution = Solve2x2(solving_cube).solve()
+    solution = create_solver(solving_cube).solve()
 
     replay_cube = Cube(size=2)
     replay_rotator = Rotator(replay_cube)
@@ -73,24 +78,24 @@ def replay_the_solution() -> None:
     print(f"Replaying the solution on a second cube solves it: {replay_cube.layers == Cube(size=2).layers}")
 
 
-def reject_the_wrong_size() -> None:
+def reject_a_cube_with_no_solver() -> None:
     """
-    Shows that `Solve2x2` refuses anything that is not a 2x2, at construction time.
+    Shows that `create_solver` refuses a size no solver handles, before any solving starts.
 
     :return: None
     """
 
     try:
-        Solve2x2(Cube(size=3))
+        create_solver(Cube(size=4))
     except ValueError as error:
-        print(f"A 3x3 is rejected: {error}")
+        print(f"A 4x4 is rejected: {error}")
 
 
 # The sections of this example, in the order `main` runs them
 SECTIONS: list[tuple[str, Callable[[], None]]] = [
     ("Solving a scrambled 2x2", solve_a_scrambled_cube),
     ("Replaying the solution on a second cube", replay_the_solution),
-    ("The size check", reject_the_wrong_size),
+    ("Cubes with no solver", reject_a_cube_with_no_solver),
 ]
 
 

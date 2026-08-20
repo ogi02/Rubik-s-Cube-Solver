@@ -1,10 +1,11 @@
 """
 Solving a 3x3 cube.
 
-`Solve3x3` is a human, CFOP-style solver: cross, first two layers, orientation of the last layer,
-then permutation of the last layer. Every step recognises a case with the piece searches and looks
-up an algorithm for it, rather than searching for a move sequence, so the solution it returns is not
-the shortest one.
+`create_solver` is the entry point for solving any cube: it reads the cube's size and returns the
+solver for it, so nothing here names `Solve3x3` directly. For a 3x3 that solver is a human,
+CFOP-style one: cross, first two layers, orientation of the last layer, then permutation of the last
+layer. Every step recognises a case with the piece searches and looks up an algorithm for it, rather
+than searching for a move sequence, so the solution it returns is not the shortest one.
 
 `solve()` mutates the cube it was given, so afterwards the same object is solved and the returned
 `Algorithm` is what got it there. The cross is built on DOWN around whichever center is yellow, so a
@@ -24,7 +25,7 @@ from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.cube_rotation.algorithm import Algorithm
 from rubik_cube_solver.cube_rotation.rotator import Rotator
 from rubik_cube_solver.enums.Layer import Layer
-from rubik_cube_solver.solve.cube_3x3.solve_3x3 import Solve3x3
+from rubik_cube_solver.solve.solver import create_solver
 
 # A fixed scramble, so that the output of this example is the same on every run
 SCRAMBLE = "D2 F2 D B' L2 B R F U L2 B2 F' L' D2 L2 F' R2 L' B' R2"
@@ -44,7 +45,10 @@ def solve_a_scrambled_cube() -> None:
     print("Scrambled 3x3:")
     print(cube)
 
-    solution = Solve3x3(cube).solve()
+    solver = create_solver(cube)
+    print(f"create_solver picked: {type(solver).__name__}")
+
+    solution = solver.solve()
 
     print(f"Solution ({len(solution.moves)} moves): {solution}")
     print("Solved 3x3:")
@@ -64,7 +68,7 @@ def read_the_solution_back() -> None:
 
     cube = Cube(size=3)
     Rotator(cube).apply(Algorithm.from_str(SCRAMBLE))
-    solution = Solve3x3(cube).solve()
+    solution = create_solver(cube).solve()
 
     print(f"First ten moves of the solution: {Algorithm(solution.moves[:10])}")
 
@@ -72,15 +76,15 @@ def read_the_solution_back() -> None:
         print(f"  {layer.name:<6} ended up {cube.layers[layer][0].name}")
 
 
-def reject_the_wrong_size() -> None:
+def reject_a_cube_with_no_solver() -> None:
     """
-    Shows that `Solve3x3` refuses anything that is not a 3x3, at construction time.
+    Shows that `create_solver` refuses a size no solver handles, before any solving starts.
 
     :return: None
     """
 
     try:
-        Solve3x3(Cube(size=4))
+        create_solver(Cube(size=4))
     except ValueError as error:
         print(f"A 4x4 is rejected: {error}")
 
@@ -89,7 +93,7 @@ def reject_the_wrong_size() -> None:
 SECTIONS: list[tuple[str, Callable[[], None]]] = [
     ("Solving a scrambled 3x3", solve_a_scrambled_cube),
     ("Reading the solution back", read_the_solution_back),
-    ("The size check", reject_the_wrong_size),
+    ("Cubes with no solver", reject_a_cube_with_no_solver),
 ]
 
 
