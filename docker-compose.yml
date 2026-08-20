@@ -39,6 +39,9 @@ services:
     build:
       context: ./playground
     image: rubik-cube-playground
+    # `docker compose run` reuses an existing image, and the `demo` profile keeps the service out of
+    # `up --build`, so without this an edited demo script would keep running from a stale image
+    pull_policy: build
     profiles:
       - demo
     environment:

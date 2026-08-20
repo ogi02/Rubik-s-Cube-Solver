@@ -34,7 +34,7 @@ from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.cube_rotation.algorithm import Algorithm
 from rubik_cube_solver.cube_rotation.rotator import Rotator
 from rubik_cube_solver.scramble.scrambler import Scrambler
-from rubik_cube_solver.solve.cube_2x2.solve_2x2 import Solve2x2
+from rubik_cube_solver.solve.solver import create_solver
 from rubik_cube_websocket_client.client import WebSocketClient
 from rubik_cube_websocket_client.messages import apply_moves, cube_state, disconnect
 
@@ -46,7 +46,7 @@ SECURE = False
 # The API key the server issues solver tokens for
 API_KEY = os.getenv("SOLVER_API_KEY", "solver")
 
-CUBE_SIZE = 2
+CUBE_SIZE = 3
 
 if not API_KEY:
     raise SystemExit("SOLVER_API_KEY is not set")
@@ -55,7 +55,7 @@ if not API_KEY:
 CONNECT_DELAY = 1.0
 
 # Seconds to pause after each step, so the visualizer has time to show what it was sent
-STEP_DELAY = 5.0
+STEP_DELAY = 2.0
 
 # Numbers the step headers in the order they are actually printed, so they cannot drift
 _step_numbers = itertools.count(start=1)
@@ -132,7 +132,7 @@ async def run_demo() -> None:
     await asyncio.sleep(STEP_DELAY)
 
     announce("Solving the cube")
-    solution = Solve2x2(cube).solve()
+    solution = create_solver(cube).solve()
     print(f"Solution ({len(solution.moves)} moves): {solution}")
     print(f"Solved {CUBE_SIZE}x{CUBE_SIZE}:")
     print(cube)

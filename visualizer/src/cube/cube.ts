@@ -5,6 +5,7 @@ import { turnX, turnY, turnZ } from "./turn.ts";
 import { roundToDecimal } from "../utils/mathUtils.ts";
 import type { CubeSettings } from "../utils/cubeSettings.ts";
 import { mapColor } from "../utils/colorUtils.ts";
+import type { MoveListener } from "./moveListener.ts";
 
 /**
  * Class representing a Rubik's Cube
@@ -15,6 +16,9 @@ import { mapColor } from "../utils/colorUtils.ts";
  * @property {Animation | null} currentAnimation - The current animation being performed on the cube
  * @property {string[]} moveQueue - Queue of moves to be performed
  * @property {boolean} isPerformingMoves - Flag indicating if the cube is currently performing moves
+ * @property {string[]} batch - Every move of the batch currently being applied
+ * @property {number} batchIndex - Index within that batch of the move being applied
+ * @property {MoveListener | null} moveListener - Listener notified as the batch progresses
  */
 export class Cube {
     settings: CubeSettings;
@@ -22,6 +26,9 @@ export class Cube {
     currentAnimation: Animation | null = null;
     moveQueue: string[] = [];
     isPerformingMoves: boolean = false;
+    batch: string[] = [];
+    batchIndex: number = -1;
+    moveListener: MoveListener | null = null;
 
     /**
      * Constructor for the Cube class
@@ -168,6 +175,19 @@ export class Cube {
     }
 
     /**
+     * Set the listener notified as the cube works through a batch of moves
+     *
+     * @param moveListener - The listener to notify, or null to detach the current one
+     * @returns {void}
+     *
+     * @example
+     * cube.setMoveListener(messageBox);
+     */
+    setMoveListener(moveListener: MoveListener | null) : void {
+        this.moveListener = moveListener;
+    }
+
+    /**
      * Add moves from an array to the move queue and start performing them
      *
      * @param movesArray - An array of move strings to add to the queue
@@ -176,6 +196,12 @@ export class Cube {
      * cube.addMovesFromArray(["R", "U", "R'", "U'"]);
      */
     addMovesFromArray(movesArray: string[]) : void {
+        // Start a new batch when the cube is idle, otherwise extend the running one
+        if (!this.isPerformingMoves) {
+            this.batch = [];
+            this.batchIndex = -1;
+        }
+        this.batch.push(...movesArray);
         // Add each move to the move queue
         this.moveQueue.push(...movesArray);
         if (!this.isPerformingMoves) {
@@ -208,6 +234,9 @@ export class Cube {
         while (this.moveQueue.length > 0) {
             // Get the next move from the queue
             const nextMove = this.moveQueue.shift()!;
+            // Report the position in the batch before the move is animated
+            this.batchIndex++;
+            this.moveListener?.onMoveStarted(this.batch, this.batchIndex);
             // Perform the turn
             this.turn(nextMove);
             // Wait until the current animation is finished
@@ -227,6 +256,8 @@ export class Cube {
             }
         }
         this.isPerformingMoves = false;
+        // Report that the whole batch has been applied
+        this.moveListener?.onMovesCompleted();
     }
 
     /**
