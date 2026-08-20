@@ -5,3 +5,46 @@ html, body {
     height: 100%;
     overflow: hidden;
 }
+
+/* Message box overlaying the sketch, hidden until there is something to report */
+#message-box {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 4px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    background: rgba(34, 34, 34, 0.8);
+    color: #eeeeee;
+    font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
+    font-size: 18px;
+    line-height: 1;
+    white-space: nowrap;
+    /* Never swallow a drag, so orbit control keeps working over the box */
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+#message-box.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* One slot per move, wide enough that the columns hold still as the moves scroll */
+#message-box .move {
+    min-width: 3.5ch;
+    padding: 3px 4px;
+    border-radius: 4px;
+    text-align: center;
+}
+
+/* The move currently being applied, always the middle slot */
+#message-box .move.current {
+    background: #eeeeee;
+    color: #222222;
+    font-weight: bold;
+}

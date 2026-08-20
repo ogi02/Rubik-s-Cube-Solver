@@ -2,6 +2,7 @@ import p5 from "p5";
 
 import { Cube } from "../cube/cube.ts";
 import { authenticate } from "../client/authenticate.ts";
+import { MessageBox } from "./messageBox.ts";
 import { setBackground, setupCanvas, windowResized } from "./canvas.ts";
 import { loadCubeSettings, type CubeSettings } from "../utils/cubeSettings.ts";
 import { handleApplyMovesMessage, handleCubeStateMessage } from "../client/messageHandlers.ts";
@@ -18,6 +19,7 @@ export const cubeSketch = (p: p5) => {
     let settings: CubeSettings;
     let cube: Cube;
     let socket: WebSocket;
+    let messageBox: MessageBox;
 
     /**
      * Setup function for the p5 sketch
@@ -35,9 +37,13 @@ export const cubeSketch = (p: p5) => {
             0, 1, 0       // up vector
         );
 
+        // Set up the message box overlaying the canvas
+        messageBox = new MessageBox(document.getElementById("message-box") as HTMLElement);
+
         // Create a default 3x3 cube
         settings = loadCubeSettings(3, p);
         cube = new Cube(settings);
+        cube.setMoveListener(messageBox);
 
         // Set up server connection if needed
         if (import.meta.env.VITE_CONNECT_TO_SERVER === "true") {
@@ -100,8 +106,12 @@ export const cubeSketch = (p: p5) => {
 
                 // Handle cube state message
                 if (data.type === MESSAGE_TYPES.CUBE_STATE) {
+                    // Detach the replaced cube, so a batch it is still running cannot hide the box
+                    cube.setMoveListener(null);
                     cube = handleCubeStateMessage(data, p);
+                    cube.setMoveListener(messageBox);
                     settings = cube.settings;
+                    messageBox.showCubeState(settings.cubeDimensions);
                 }
 
                 // Handle apply moves message
