@@ -17,6 +17,23 @@ npm install
 npm run dev
 ```
 
+## Run with Docker
+
+The image builds the bundle with Vite and serves it with nginx. Vite inlines the `VITE_*` values
+into the bundle, so they are build arguments rather than runtime environment variables:
+
+```bash
+docker build -t rubik-cube-visualizer visualizer/ \
+  --build-arg VITE_SERVER_URL=http://localhost:8080 \
+  --build-arg VITE_API_KEY=<key> \
+  --build-arg VITE_CONNECT_TO_SERVER=true
+docker run --rm -p 5173:80 rubik-cube-visualizer
+```
+
+Port `5173` is the origin the server's CORS configuration allows, and changing any of the build
+arguments requires rebuilding the image. To run the visualizer together with the server, use the
+`docker-compose.yml` at the repository root instead.
+
 ## Example Usage
 
 The visualizer is designed to work with websocket messages to visualize cube states and apply moves.
