@@ -1,7 +1,7 @@
 r"""
 End-to-end demo of the solver driving the visualizer through the WebSocket server.
 
-It creates a 3x3 cube, scrambles it, sends the scrambled state to the server as a `cube_state`
+It creates a cube, scrambles it, sends the scrambled state to the server as a `cube_state`
 message, solves the cube and sends the solution as an `apply_moves` message, then disconnects.
 Every step prints a numbered header and pauses afterwards, so the output can be read alongside the
 animation in the visualizer.
@@ -34,7 +34,7 @@ from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.cube_rotation.algorithm import Algorithm
 from rubik_cube_solver.cube_rotation.rotator import Rotator
 from rubik_cube_solver.scramble.scrambler import Scrambler
-from rubik_cube_solver.solve.cube_3x3.solve_3x3 import Solve3x3
+from rubik_cube_solver.solve.cube_2x2.solve_2x2 import Solve2x2
 from rubik_cube_websocket_client.client import WebSocketClient
 from rubik_cube_websocket_client.messages import apply_moves, cube_state, disconnect
 
@@ -44,7 +44,9 @@ PORT = int(os.getenv("PORT", "8080"))
 SECURE = False
 
 # The API key the server issues solver tokens for
-API_KEY = os.getenv("SOLVER_API_KEY")
+API_KEY = os.getenv("SOLVER_API_KEY", "solver")
+
+CUBE_SIZE = 2
 
 if not API_KEY:
     raise SystemExit("SOLVER_API_KEY is not set")
@@ -75,12 +77,12 @@ def announce(title: str) -> None:
 
 def scramble_a_cube() -> tuple[Cube, Algorithm]:
     """
-    Creates a 3x3 cube and applies a randomly generated scramble to it.
+    Creates a cube and applies a randomly generated scramble to it.
 
     :return: The scrambled cube and the scramble that was applied
     """
 
-    cube = Cube(size=3)
+    cube = Cube(size=CUBE_SIZE)
     scramble = Algorithm(Scrambler().generate_scramble(cube.size))
     Rotator(cube).apply(scramble)
 
@@ -110,10 +112,10 @@ async def run_demo() -> None:
     :return: None
     """
 
-    announce("Creating and scrambling a 3x3 cube")
+    announce(f"Creating and scrambling a {CUBE_SIZE}x{CUBE_SIZE} cube")
     cube, scramble = scramble_a_cube()
     print(f"Scramble ({len(scramble.moves)} moves): {scramble}")
-    print("Scrambled 3x3:")
+    print(f"Scrambled {CUBE_SIZE}x{CUBE_SIZE}:")
     print(cube)
     await asyncio.sleep(STEP_DELAY)
 
@@ -130,9 +132,9 @@ async def run_demo() -> None:
     await asyncio.sleep(STEP_DELAY)
 
     announce("Solving the cube")
-    solution = Solve3x3(cube).solve()
+    solution = Solve2x2(cube).solve()
     print(f"Solution ({len(solution.moves)} moves): {solution}")
-    print("Solved 3x3:")
+    print(f"Solved {CUBE_SIZE}x{CUBE_SIZE}:")
     print(cube)
     await asyncio.sleep(STEP_DELAY)
 
