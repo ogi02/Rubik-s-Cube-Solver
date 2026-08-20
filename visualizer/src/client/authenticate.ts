@@ -7,7 +7,7 @@
 export const authenticate = async () : Promise<string> => {
     try {
         // Make a GET request to the authentication endpoint
-        const response = await fetch(import.meta.env.VITE_TOKEN_URL, {
+        const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/token`, {
             method: "GET",
             headers: {
                 "X-API-KEY": import.meta.env.VITE_API_KEY

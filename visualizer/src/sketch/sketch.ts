@@ -85,7 +85,7 @@ export const cubeSketch = (p: p5) => {
         const token: string = await authenticate();
 
         // Create socket connection with token
-        socket = new WebSocket(`${import.meta.env.VITE_WEBSOCKET_URL}?token=${token}`);
+        socket = new WebSocket(`${import.meta.env.VITE_SERVER_URL}/ws?token=${token}`);
 
         // WebSocket open event handler
         socket.onopen = () : void => {
