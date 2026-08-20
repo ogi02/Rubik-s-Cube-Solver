@@ -4,16 +4,16 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rubik-cube-websocket-client"
-version = "0.0.4"
+version = "0.0.5"
 authors = [
     { name = "Ognian Baruh", email = "ognian@baruh.net" }
 ]
 description = "A Websocket client for supporting communication with a Rubik's Cube solver server."
 readme = "README.md"
 requires-python = ">=3.13"
+license = "MIT"
 classifiers = [
     "Programming Language :: Python :: 3.13",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
 dependencies = [
