@@ -1,0 +1,11 @@
+# The API key is passed as an environment variable, never baked into the image
+.env
+.env.*
+*.env
+
+__pycache__/
+**/__pycache__/
+*.py[cod]
+
+Dockerfile
+.dockerignore

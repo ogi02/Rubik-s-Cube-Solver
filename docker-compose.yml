@@ -1,0 +1,51 @@
+services:
+  # The WebSocket relay between the solver client and the visualizer
+  server:
+    build:
+      context: ./server
+    image: rubik-cube-server
+    ports:
+      - "8080:8080"
+    environment:
+      # Development defaults, overridden by a .env file at the repository root or by the shell
+      JWT_SECRET: ${JWT_SECRET:-dev-secret}
+      SOLVER_API_KEY: ${SOLVER_API_KEY:-solver}
+      VISUALIZER_API_KEY: ${VISUALIZER_API_KEY:-visualizer}
+      HOST: 0.0.0.0
+      PORT: "8080"
+    restart: unless-stopped
+
+  # The static visualizer bundle, served by nginx
+  visualizer:
+    build:
+      context: ./visualizer
+      args:
+        # The browser runs on the host, so it reaches the server through the published port
+        VITE_SERVER_URL: ${VITE_SERVER_URL:-http://localhost:8080}
+        # Vite inlines these at build time, so a changed key needs `docker compose build visualizer`
+        VITE_API_KEY: ${VISUALIZER_API_KEY:-visualizer}
+        VITE_CONNECT_TO_SERVER: "true"
+    image: rubik-cube-visualizer
+    # Published on 5173, the only origin the server's CORS configuration allows
+    ports:
+      - "5173:80"
+    depends_on:
+      - server
+    restart: unless-stopped
+
+  # The demo client: scrambles a cube, solves it and drives the visualizer, then exits.
+  # It is behind the `demo` profile because it must not start before the visualizer page is open.
+  playground:
+    build:
+      context: ./playground
+    image: rubik-cube-playground
+    profiles:
+      - demo
+    environment:
+      # Inside the compose network the server is reached by its service name
+      HOST: server
+      PORT: "8080"
+      SOLVER_API_KEY: ${SOLVER_API_KEY:-solver}
+    depends_on:
+      - server
+    restart: "no"

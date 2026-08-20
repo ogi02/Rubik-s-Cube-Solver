@@ -35,6 +35,22 @@ cd src
 python server.py
 ```
 
+## Run the Server with Docker
+
+Build the image and run it, passing the secrets the server requires as environment variables:
+
+```bash
+docker build -t rubik-cube-server server/
+docker run --rm -p 8080:8080 \
+  -e JWT_SECRET=<secret> \
+  -e SOLVER_API_KEY=<key> \
+  -e VISUALIZER_API_KEY=<key> \
+  rubik-cube-server
+```
+
+The image binds `0.0.0.0:8080` so the published port reaches the server. To run the server together
+with the visualizer, use the `docker-compose.yml` at the repository root instead.
+
 ## Server Setup
 
 The server is a FastAPI application, which consists of an HTTP authorization endpoint and a WebSocket communication endpoint.
