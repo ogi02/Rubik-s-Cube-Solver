@@ -10,9 +10,9 @@ authors = [
 ]
 description = "A Websocket client for supporting communication with a Rubik's Cube solver server."
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 classifiers = [
-    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
@@ -26,7 +26,7 @@ where = ["src"]
 
 [tool.black]
 line-length = 120
-target-version = ["py312"]
+target-version = ["py313"]
 include = '\.py$'
 
 [tool.isort]
