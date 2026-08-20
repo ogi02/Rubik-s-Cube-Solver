@@ -13,7 +13,7 @@ and the 3x3 the way a human does.
 ## Installation
 
 The package is published to the [Test PyPI repository](https://test.pypi.org/project/rubik-cube-solver/)
-and requires Python 3.12 or newer:
+and requires Python 3.13 or newer:
 
 ```bash
 pip install -i https://test.pypi.org/simple/ rubik-cube-solver
