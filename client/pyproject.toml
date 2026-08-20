@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rubik-cube-websocket-client"
-version = "0.0.3"
+version = "0.0.4"
 authors = [
     { name = "Ognian Baruh", email = "ognian@baruh.net" }
 ]
@@ -15,6 +15,10 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
+]
+dependencies = [
+    "requests>=2.31.0",
+    "websockets>=15.0.1",
 ]
 
 [project.urls]

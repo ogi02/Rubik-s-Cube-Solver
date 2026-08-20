@@ -1,2 +1,2 @@
 rubik-cube-solver
-rubik-cube-websocket-client
+rubik-cube-websocket-client>=0.0.4
