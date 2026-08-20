@@ -10,10 +10,10 @@ authors = [
 ]
 description = "A Rubik's Cube solver and scrambler."
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 license = "MIT"
 classifiers = [
-    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Operating System :: OS Independent",
     "Topic :: Games/Entertainment :: Puzzle Games"
 ]
@@ -33,7 +33,7 @@ addopts = "--import-mode=importlib"
 
 [tool.black]
 line-length = 120
-target-version = ["py312"]
+target-version = ["py313"]
 include = '\.py$'
 
 [tool.isort]
