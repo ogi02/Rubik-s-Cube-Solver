@@ -15,6 +15,7 @@ from rubik_cube_solver.solve.center_search import CenterSearchResult
 from rubik_cube_solver.solve.cube_nxn.centers import (
     CENTERS_BUILD_TABLE,
     CENTERS_GREEN_FRONT_TABLE,
+    CENTERS_IMPORT_TABLE,
     CENTERS_SOURCE_LAYER,
     CENTERS_STAGING_LAYER,
     CENTERS_WHITE_UP_TABLE,
@@ -40,7 +41,7 @@ from rubik_cube_solver.solve.cube_nxn.centers import (
     preserved_line,
     row_transfer,
     solved_lines,
-    source_hop,
+    staging_hop,
     target_extraction,
     target_line,
     turn_notation,
@@ -579,16 +580,20 @@ class TestBarImport:
     # fmt: off
     @pytest.mark.parametrize("cube_size", SIZES)
     @pytest.mark.parametrize("bar_col", [1, 2])
+    @pytest.mark.parametrize("giver", list(CENTERS_IMPORT_TABLE))
     # fmt: on
-    def test_success(self, generate_cube: Callable[[int, str], Cube], cube_size: int, bar_col: int) -> None:
+    def test_success(
+        self, generate_cube: Callable[[int, str], Cube], cube_size: int, bar_col: int, giver: Layer
+    ) -> None:
         """
-        Tests that a piece lying anywhere on the source face is turned onto the cell the bar wants
-        and handed to the staging face, whichever of the four cells of its position type it starts
-        on, and that the pieces already in the bar are still there afterwards.
+        Tests that a piece lying on any of the three faces that reach the staging face is turned
+        onto the cell the bar wants and handed over in one algorithm, whichever of the four cells of
+        its position type it starts on.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :param cube_size: The cube size
         :param bar_col: The staging column the bar is assembled in
+        :param giver: The face the piece is imported from
         :return: None
         """
 
@@ -596,11 +601,11 @@ class TestBarImport:
         for row in bar_rows(cube_size, bar_col):
             for start in center_positions(cube_size, row, bar_col):
                 cube = generate_cube(cube_size, "")
-                paint(cube, CENTERS_SOURCE_LAYER, center_cells(cube_size), Color.BLUE)
-                paint(cube, CENTERS_SOURCE_LAYER, [start], Color.RED)
+                paint(cube, giver, center_cells(cube_size), Color.BLUE)
+                paint(cube, giver, [start], Color.RED)
                 paint(cube, CENTERS_STAGING_LAYER, center_cells(cube_size), Color.BLUE)
 
-                result = CenterSearchResult(CENTERS_SOURCE_LAYER, *start)
+                result = CenterSearchResult(giver, *start)
                 apply(cube, bar_import(cube_size, row, bar_col, result))
 
                 assert cell_color(cube, CENTERS_STAGING_LAYER, row, bar_col) is Color.RED
@@ -813,33 +818,30 @@ class TestHopEvict:
         assert hop_evict(cube, CENTERS_SOURCE_LAYER, Color.RED, (2, 1)) != "2"
 
 
-class TestSourceHop:
+class TestStagingHop:
     # fmt: off
     @pytest.mark.parametrize("cube_size", SIZES)
-    @pytest.mark.parametrize("layer", [Layer.FRONT, CENTERS_STAGING_LAYER])
     # fmt: on
-    def test_success(self, generate_cube: Callable[[int, str], Cube], cube_size: int, layer: Layer) -> None:
+    def test_success(self, generate_cube: Callable[[int, str], Cube], cube_size: int) -> None:
         """
-        Tests that a piece anywhere but the source face is moved onto it, and that the hop off the
-        staging face leaves the bar assembled there untouched.
+        Tests that a piece on the staging face is put out to the source face, where the import can
+        pick it up again, and that the bar assembled on the staging face survives the trip.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :param cube_size: The cube size
-        :param layer: The face the piece lies on
         :return: None
         """
 
         # Generate the cube with a piece to fetch and a bar to protect
         bar_col = 1
         cube = generate_cube(cube_size, "")
-        paint(cube, layer, center_cells(cube_size), Color.BLUE)
-        paint(cube, layer, [(1, 2)], Color.RED)
+        paint(cube, CENTERS_STAGING_LAYER, center_cells(cube_size), Color.BLUE)
+        paint(cube, CENTERS_STAGING_LAYER, [(1, 2)], Color.RED)
         paint(cube, CENTERS_STAGING_LAYER, [(row, bar_col) for row in bar_rows(cube_size, bar_col)], Color.GREEN)
 
         # Hop the piece
-        result = CenterSearchResult(layer, 1, 2)
-        algorithm = source_hop(cube, Color.RED, Layer.RIGHT, bar_col, result)
-        apply(cube, algorithm)
+        result = CenterSearchResult(CENTERS_STAGING_LAYER, 1, 2)
+        apply(cube, staging_hop(cube, Color.RED, bar_col, result))
 
         # Assert
         assert any(cell_color(cube, CENTERS_SOURCE_LAYER, *cell) is Color.RED for cell in center_cells(cube_size))
@@ -859,7 +861,7 @@ class TestSourceHop:
         # Assert
         result = CenterSearchResult(CENTERS_STAGING_LAYER, 1, 2)
 
-        assert source_hop(generate_cube(6, ""), Color.RED, Layer.RIGHT, 2, result) == ""
+        assert staging_hop(generate_cube(6, ""), Color.RED, 2, result) == ""
 
 
 class TestFinishedKind:
