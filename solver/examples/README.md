@@ -27,3 +27,4 @@ the output they produce, so every block of output can be traced back to the func
 | [`05_validating.py`](05_validating.py) | Validating reachable states with `Validator`, and the errors raised by a miscounted color, a twisted corner, and a swapped pair of edges. |
 | [`06_solve_2x2.py`](06_solve_2x2.py) | Solving a 2x2 through `create_solver`, replaying the returned solution on a second cube, and a size no solver handles. |
 | [`07_solve_3x3.py`](07_solve_3x3.py) | Solving a 3x3 through `create_solver`, reading the solution back, and a size no solver handles. |
+| [`08_solve_big_cube.py`](08_solve_big_cube.py) | Building the first four centers of a 4x4 and a 5x5 through `create_solver`, and reading the faces they end up on. |
