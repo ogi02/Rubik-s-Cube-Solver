@@ -44,19 +44,31 @@ CENTERS_BUILD_TABLE: tuple[tuple[Color, str, Layer], ...] = (
 # The notation of one, two and three clockwise turns of a face.
 CENTERS_QUARTER_TABLE: dict[int, str] = {1: "", 2: "2", 3: "'"}
 
-# The face the bar is assembled on, and the face pieces are routed through on their way to it.
+# The face the bar is assembled on, and the face a piece that cannot be imported is routed through.
 CENTERS_STAGING_LAYER: Layer = Layer.BACK
 CENTERS_SOURCE_LAYER: Layer = Layer.LEFT
 
-# How many transfers a piece is away from the source face, keyed by the face it lies on. The face
-# being built is farther than this says, since fetching a piece off it costs an extraction first.
-CENTERS_HOP_RANK: dict[Layer, int] = {
+# The direction of the slice that hands a face's row straight to the staging face, keyed by the face
+# the row comes from. A row slice cycles FRONT, LEFT, BACK and RIGHT, so LEFT and RIGHT reach the
+# staging face in one slice either way round and FRONT reaches it with a half one. A piece on any of
+# the three therefore goes into the bar in a single algorithm, rather than being walked around the
+# cube one face at a time first.
+CENTERS_IMPORT_TABLE: dict[Layer, str] = {
+    Layer.LEFT: "",
+    Layer.RIGHT: "'",
+    Layer.FRONT: "2",
+}
+
+# How many algorithms a piece is away from the bar, keyed by the face it lies on. A piece on the
+# staging face itself has to leave it before it can be imported back into the bar, and one on the
+# face being built is farther still, since fetching it off costs an extraction first.
+CENTERS_FETCH_RANK: dict[Layer, int] = {
     Layer.LEFT: 0,
-    Layer.FRONT: 1,
+    Layer.FRONT: 0,
+    Layer.RIGHT: 0,
     Layer.BACK: 1,
-    Layer.RIGHT: 2,
-    Layer.DOWN: 3,
-    Layer.UP: 3,
+    Layer.DOWN: 2,
+    Layer.UP: 2,
 }
 
 
@@ -353,23 +365,29 @@ def pole_eviction(cube: Cube, color: Color) -> str:
 
 def bar_import(size: int, row: int, bar_col: int, result: CenterSearchResult) -> str:
     """
-    Returns the algorithm putting a piece that lies on the source face into the bar.
+    Returns the algorithm putting a piece into the bar, straight off the face it lies on.
 
-    The source face is turned until the piece sits on the very cell of it that the bar cell is
-    waiting for, and the row it lies in is then handed to the staging face. The turn of the staging
+    That face is turned until the piece sits on the very cell of it the bar cell is waiting for, and
+    the row it lies in is then handed to the staging face. Which slice does the handing depends on
+    where the face is around the cube, and the half turn that fetches from FRONT restores LEFT and
+    RIGHT just as the quarter ones restore the two faces they pass through. The turn of the staging
     face is chosen so that the row it displaces leaves along a column, which crosses the bar
     nowhere, rather than along the row that would take a bar piece with it.
 
     :param size: The size of the cube
     :param row: The row of the bar cell being filled
     :param bar_col: The staging column the bar is assembled in
-    :param result: The location of the piece on the source face
+    :param result: The location of the piece
     :return: The algorithm of the import
     """
 
     turns = center_positions(size, result.row, result.col).index((row, bar_col))
     evict = "" if row != bar_col else "'"
-    moves = [turn_notation(CENTERS_SOURCE_LAYER, turns), row_transfer(size, CENTERS_STAGING_LAYER, row, "", evict)]
+    direction = CENTERS_IMPORT_TABLE[result.layer]
+    moves = [
+        turn_notation(result.layer, turns),
+        row_transfer(size, CENTERS_STAGING_LAYER, row, direction, evict),
+    ]
 
     return " ".join(move for move in moves if move)
 
@@ -568,46 +586,32 @@ def hop_evict(cube: Cube, receiver: Layer, color: Color, arrival: tuple[int, int
     )
 
 
-def source_hop(cube: Cube, color: Color, target: Layer, bar_col: int, result: CenterSearchResult) -> str:
+def staging_hop(cube: Cube, color: Color, bar_col: int, result: CenterSearchResult) -> str:
     """
-    Returns the algorithm moving a piece one face closer to the source face.
+    Returns the algorithm moving a piece off the staging face and onto the source face.
 
-    A piece is only ever imported into the bar from the source face, so a piece anywhere else is
-    walked around the cube until it gets there. The hop off the staging face turns it a quarter
-    first, so the row the transfer overwrites is a column of the bar's face and the pieces already
-    in the bar stay where they are.
+    Every other face hands a piece straight to the bar, but the staging face cannot hand one to
+    itself, so a piece already lying on it is put out to the source face and imported back from
+    there. The transfer is turned a quarter first, so the row it overwrites is a column of the bar's
+    face and the pieces already in the bar stay where they are.
 
     :param cube: The Cube instance to read
     :param color: The color of the center being built
-    :param target: The face being built
     :param bar_col: The staging column the bar is assembled in
-    :param result: The location of the piece
-    :return: The algorithm of the hop, or an empty string when the piece cannot be moved on
+    :param result: The location of the piece on the staging face
+    :return: The algorithm of the hop, or an empty string when the piece is in the bar's own column
     """
 
     size = cube.size
 
-    if result.layer is CENTERS_STAGING_LAYER:
-        if result.col == bar_col:
-            return ""
+    if result.col == bar_col:
+        return ""
 
-        arrival = (result.col, size - 1 - result.row)
-        evict = hop_evict(cube, CENTERS_SOURCE_LAYER, color, arrival)
-        transfer = row_transfer(size, CENTERS_SOURCE_LAYER, result.col, "'", evict)
+    arrival = (result.col, size - 1 - result.row)
+    evict = hop_evict(cube, CENTERS_SOURCE_LAYER, color, arrival)
+    transfer = row_transfer(size, CENTERS_SOURCE_LAYER, result.col, "'", evict)
 
-        return f"{turn_notation(CENTERS_STAGING_LAYER, 1)} {transfer} {turn_notation(CENTERS_STAGING_LAYER, 3)}"
-
-    if result.layer is Layer.FRONT:
-        evict = hop_evict(cube, CENTERS_SOURCE_LAYER, color, (result.row, result.col))
-
-        return row_transfer(size, CENTERS_SOURCE_LAYER, result.row, "", evict)
-
-    if result.layer is Layer.RIGHT and target is not Layer.RIGHT:
-        evict = hop_evict(cube, Layer.FRONT, color, (result.row, result.col))
-
-        return row_transfer(size, Layer.FRONT, result.row, "", evict)
-
-    return ""
+    return f"{turn_notation(CENTERS_STAGING_LAYER, 1)} {transfer} {turn_notation(CENTERS_STAGING_LAYER, 3)}"
 
 
 def finished_kind(size: int, target: Layer, bar_col: int) -> str:
@@ -659,11 +663,12 @@ def bar_move(cube: Cube, color: Color, target: Layer, bar_col: int) -> str:
     """
     Returns the next algorithm bringing a center piece of the color into the bar.
 
-    A bar cell is filled from the source face, so the pieces of the type it is waiting for are
-    looked for there first; anywhere else they are moved one face closer and looked for again. Only
-    when nothing else is left is a piece fetched off the face being built, and then the one whose
-    extraction costs the bar the least. The cube is searched afresh every time, since the previous
-    locations are stale as soon as an algorithm has run.
+    Three of the six faces hand a row straight to the staging face, so a piece on any of them goes
+    into the bar in one algorithm and those are looked at first. A piece on the staging face itself
+    is put out to the source face and imported back from there. Only when nothing else is left is
+    one fetched off the face being built, and then the one whose extraction costs the bar the least.
+    The cube is searched afresh every time, since the previous locations are stale as soon as an
+    algorithm has run.
 
     :param cube: The Cube instance to read
     :param color: The color of the center being built
@@ -685,16 +690,17 @@ def bar_move(cube: Cube, color: Color, target: Layer, bar_col: int) -> str:
         for result in search_center(cube, color, row, bar_col)
         if not is_placed(cube, color, target, result, kind)
     ]
-    wanted.sort(key=lambda entry: CENTERS_HOP_RANK[entry[1].layer])
+    wanted.sort(key=lambda entry: CENTERS_FETCH_RANK[entry[1].layer])
 
     for row, result in wanted:
-        if result.layer is CENTERS_SOURCE_LAYER:
+        if result.layer in CENTERS_IMPORT_TABLE and result.layer is not target:
             return bar_import(size, row, bar_col, result)
 
-        algorithm = source_hop(cube, color, target, bar_col, result)
+        if result.layer is CENTERS_STAGING_LAYER:
+            algorithm = staging_hop(cube, color, bar_col, result)
 
-        if algorithm:
-            return algorithm
+            if algorithm:
+                return algorithm
 
     extractions = [
         target_extraction(cube, color, target, bar_col, result) for _, result in wanted if result.layer is target
