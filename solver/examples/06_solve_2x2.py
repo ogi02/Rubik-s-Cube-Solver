@@ -86,9 +86,9 @@ def reject_a_cube_with_no_solver() -> None:
     """
 
     try:
-        create_solver(Cube(size=4))
+        create_solver(Cube(size=1))
     except ValueError as error:
-        print(f"A 4x4 is rejected: {error}")
+        print(f"A 1x1 is rejected: {error}")
 
 
 # The sections of this example, in the order `main` runs them

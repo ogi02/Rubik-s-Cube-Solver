@@ -7,6 +7,7 @@ import pytest
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.solve.cube_2x2.solve_2x2 import Solve2x2
 from rubik_cube_solver.solve.cube_3x3.solve_3x3 import Solve3x3
+from rubik_cube_solver.solve.cube_nxn.solve_nxn import SolveNxN
 from rubik_cube_solver.solve.solve import Solve
 from rubik_cube_solver.solve.solver import create_solver
 
@@ -21,6 +22,8 @@ class TestCreateSolver:
         [
             (2, Solve2x2),
             (3, Solve3x3),
+            (4, SolveNxN),
+            (5, SolveNxN),
         ],
     )
     # fmt: on
@@ -78,7 +81,29 @@ class TestCreateSolver:
         assert solver.solution == solution
 
     # fmt: off
-    @pytest.mark.parametrize("cube_size", [1, 4, 5])
+    @pytest.mark.parametrize("cube_size", [4, 5])
+    # fmt: on
+    def test_reduces_a_big_cube(self, generate_cube: Callable[[int, str], Cube], cube_size: int) -> None:
+        """
+        Tests that a big cube goes through the reduction solver, which builds the first four centers
+        and so leaves the cube unsolved until the rest of the reduction is written.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :param cube_size: The cube size
+        :return: None
+        """
+
+        # Generate the cube
+        cube = generate_cube(cube_size, SCRAMBLE_3X3)
+        solver = create_solver(cube)
+        solution = solver.solve()
+
+        # Assert
+        assert str(cube) != str(Cube(cube_size))
+        assert solver.solution == solution
+
+    # fmt: off
+    @pytest.mark.parametrize("cube_size", [0, 1])
     # fmt: on
     def test_invalid_size(self, generate_cube: Callable[[int, str], Cube], cube_size: int) -> None:
         """

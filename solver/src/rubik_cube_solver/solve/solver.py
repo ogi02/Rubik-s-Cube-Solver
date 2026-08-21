@@ -2,6 +2,7 @@
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.solve.cube_2x2.solve_2x2 import Solve2x2
 from rubik_cube_solver.solve.cube_3x3.solve_3x3 import Solve3x3
+from rubik_cube_solver.solve.cube_nxn.solve_nxn import SolveNxN
 from rubik_cube_solver.solve.solve import Solve
 
 
@@ -14,6 +15,10 @@ def create_solver(cube: Cube) -> Solve:
     returned solver is an ordinary `Solve`, so the cube being solved and the solution collected so
     far stay reachable through it, and `solve()` is called on it as usual.
 
+    A 2x2 and a 3x3 are solved completely. A cube of 4x4 and up is solved by reduction, and only
+    the first four centers of it are built so far, so `solve()` returns an algorithm that leaves
+    such a cube unsolved.
+
     :param cube: The cube to solve
     :return: The solver for the cube's size
     """
@@ -23,5 +28,7 @@ def create_solver(cube: Cube) -> Solve:
             return Solve2x2(cube)
         case 3:
             return Solve3x3(cube)
+        case size if size >= 4:
+            return SolveNxN(cube)
         case _:
-            raise ValueError(f"No solver for cubes of size {cube.size}, only 2x2 and 3x3 are supported")
+            raise ValueError(f"No solver for cubes of size {cube.size}, only 2x2 and bigger are supported")

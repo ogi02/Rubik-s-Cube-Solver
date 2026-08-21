@@ -46,7 +46,7 @@ SECURE = False
 # The API key the server issues solver tokens for
 API_KEY = os.getenv("SOLVER_API_KEY", "solver")
 
-CUBE_SIZE = 3
+CUBE_SIZE = 4
 
 if not API_KEY:
     raise SystemExit("SOLVER_API_KEY is not set")
@@ -134,7 +134,7 @@ async def run_demo() -> None:
     announce("Solving the cube")
     solution = create_solver(cube).solve()
     print(f"Solution ({len(solution.moves)} moves): {solution}")
-    print(f"Solved {CUBE_SIZE}x{CUBE_SIZE}:")
+    print(f"The {CUBE_SIZE}x{CUBE_SIZE} after the solution:")
     print(cube)
     await asyncio.sleep(STEP_DELAY)
 
