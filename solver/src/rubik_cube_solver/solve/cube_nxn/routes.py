@@ -2,6 +2,7 @@
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.cube_rotation.algorithm import Algorithm
 from rubik_cube_solver.cube_rotation.move import Move
+from rubik_cube_solver.cube_rotation.move_cancellation import combine
 from rubik_cube_solver.cube_rotation.rotator import Rotator
 from rubik_cube_solver.enums.Color import Color
 from rubik_cube_solver.enums.Direction import Direction
@@ -68,6 +69,39 @@ def quarter_direction(quarters: int) -> Direction:
             raise ValueError(f"Invalid value {quarters} for a number of quarter turns")
 
 
+def deep_move(size: int, face: Layer, direction: Direction, depth: int) -> str:
+    """
+    Returns the turn of the block of `depth` layers from a face, at any depth.
+
+    A block of at most half the cube is an ordinary wide move. A deeper one cannot be written as
+    one move, so it is written as the whole-cube rotation that turns like the face, followed by the
+    block of the opposite face that stays behind, turned the same way to undo the rotation there.
+    This is how the middle slice of an odd cube is turned.
+
+    Example, on a 5x5:
+
+        >>> deep_move(5, Layer.RIGHT, Direction.CW, 2)
+        'Rw'
+        >>> deep_move(5, Layer.RIGHT, Direction.CW, 3)
+        'x Lw'
+        >>> deep_move(5, Layer.DOWN, Direction.CCW, 3)
+        "y Uw'"
+
+    :param size: The size of the cube
+    :param face: The face the block is reached from
+    :param direction: The direction of the turn, as seen from the face
+    :param depth: The number of layers in the block, from 1 to `size - 1`
+    :return: The turn, in standard notation
+    """
+
+    if depth <= size // 2:
+        return str(Move(face, direction, depth))
+
+    rotation = Move(face.axis(), direction if face.turns_with_axis() else direction.inverse(), 1)
+
+    return f"{rotation} {Move(face.opposite(), direction, size - depth)}"
+
+
 def column_slice(size: int, col: int, direction: Direction) -> str:
     """
     Returns the turn of the single layer holding the inner column `col` of FRONT, reached from the
@@ -76,9 +110,10 @@ def column_slice(size: int, col: int, direction: Direction) -> str:
     The block ending at the layer is turned and the block in front of it is turned back. The two
     turns share an axis, so only the one layer moves: no other column of FRONT, and not the center
     on RIGHT or LEFT. The direction is as seen from RIGHT, so it is inverted when the layer is
-    reached from LEFT.
+    reached from LEFT. The middle column of an odd cube is reached from RIGHT with a `deep_move`,
+    and it carries the fixed centers of FRONT, UP, BACK and DOWN with it.
 
-    Example, on a 6x6:
+    Example, on a 6x6 and on a 5x5:
 
         >>> column_slice(6, 4, Direction.CW)
         "Rw R'"
@@ -86,6 +121,8 @@ def column_slice(size: int, col: int, direction: Direction) -> str:
         "3Lw' Lw"
         >>> column_slice(6, 1, Direction.DOUBLE)
         'Lw2 L2'
+        >>> column_slice(5, 2, Direction.CW)
+        "x Lw Rw'"
 
     :param size: The size of the cube
     :param col: The column of FRONT, from 1 to `size - 2`
@@ -98,7 +135,7 @@ def column_slice(size: int, col: int, direction: Direction) -> str:
     else:
         face, depth = Layer.RIGHT, size - col
 
-    return f"{Move(face, direction, depth)} {Move(face, direction.inverse(), depth - 1)}"
+    return f"{deep_move(size, face, direction, depth)} {Move(face, direction.inverse(), depth - 1)}"
 
 
 def align_turn(size: int, cell: tuple[int, int], piece: CenterSearchResult) -> str:
@@ -178,24 +215,29 @@ def direct_route(size: int, cell: tuple[int, int], piece: CenterSearchResult, re
     return " ".join(part for part in parts if part)
 
 
-def extraction(size: int, side: Layer, row: int) -> str:
+def extraction(size: int, side: Layer, row: int, over: Direction) -> str:
     """
     Returns the conjugate that moves a piece from LEFT or RIGHT onto BACK.
 
-    The block reaching in from the nearer of UP and DOWN carries the piece round to BACK, a half turn
-    of BACK takes it out of the block, and the block goes back. Only BACK and the side face the piece
-    came from are changed.
+    The block reaching in from the nearer of UP and DOWN carries the piece round to BACK, a turn of
+    BACK takes it out of the block, and the block goes back. Only BACK and the side face the piece
+    came from are changed. A half turn keeps a piece in the middle row of an odd cube inside the
+    block, so that piece needs a quarter turn of BACK; the middle row itself is reached from DOWN
+    with a `deep_move`.
 
-    Example, on a 6x6:
+    Example, on a 6x6 and on a 5x5:
 
-        >>> extraction(6, Layer.LEFT, 1)
+        >>> extraction(6, Layer.LEFT, 1, Direction.DOUBLE)
         "Uw B2 Uw'"
-        >>> extraction(6, Layer.RIGHT, 3)
+        >>> extraction(6, Layer.RIGHT, 3, Direction.DOUBLE)
         "3Dw B2 3Dw'"
+        >>> extraction(5, Layer.LEFT, 2, Direction.CW)
+        "y Uw' B Uw y'"
 
     :param size: The size of the cube
     :param side: The face the piece is on, LEFT or RIGHT
     :param row: The row the piece is in
+    :param over: The direction BACK is turned
     :return: The conjugate, in standard notation
     """
 
@@ -204,25 +246,28 @@ def extraction(size: int, side: Layer, row: int) -> str:
     depth = row + 1 if top else size - row
     direction = Direction.CW if (side is Layer.LEFT) == top else Direction.CCW
 
-    over = Move(Layer.BACK, Direction.DOUBLE, 1)
+    there = deep_move(size, pole, direction, depth)
 
-    return f"{Move(pole, direction, depth)} {over} {Move(pole, direction.inverse(), depth)}"
+    return f"{there} {Move(Layer.BACK, over, 1)} {inverse_of(there)}"
 
 
 def across_routes(cube: Cube, color: Color, cell: tuple[int, int], piece: CenterSearchResult) -> list[str]:
     """
     Returns the routes that bring a piece on LEFT or RIGHT into the bar.
 
-    The piece is moved onto BACK with `extraction` and brought in from there with a bare
-    `direct_route`, one route for each piece of the colour on BACK. Where the piece lands on BACK is
-    read off the cube rather than worked out.
+    The piece is moved onto BACK with `extraction`, with a half turn of BACK first and then the
+    quarter turns, and brought in from there with `direct_route`, bare and restoring, one pair of
+    routes for each piece of the colour on BACK. Where the piece lands on BACK is read off the cube
+    rather than worked out.
 
-    Example, on a 4x4 turned with `z' Dw`, filling FRONT (2, 1) from RIGHT (1, 1):
+    Example, on a 4x4 turned with `z' Dw`, filling FRONT (2, 1) from RIGHT (1, 1). The first two
+    routes are the bare and restoring ones from the first piece on BACK after `Uw' B2 Uw`:
 
         >>> cube = Cube(4)
         >>> Rotator(cube).apply(Algorithm.from_str("z' Dw"))
-        >>> across_routes(cube, Color.YELLOW, (2, 1), CenterSearchResult(Layer.RIGHT, 1, 1))
-        ["Uw' B2 Uw B2 Lw2 L2", "Uw' B2 Uw B' Lw2 L2"]
+        >>> routes = across_routes(cube, Color.YELLOW, (2, 1), CenterSearchResult(Layer.RIGHT, 1, 1))
+        >>> len(routes), routes[:2]
+        (12, ["Uw' B2 Uw B2 Lw2 L2", "Uw' B2 Uw B2 Lw2 L2 F' L2 Lw2 F"])
 
     :param cube: The cube
     :param color: The colour being built
@@ -231,41 +276,51 @@ def across_routes(cube: Cube, color: Color, cell: tuple[int, int], piece: Center
     :return: The candidate routes, in standard notation
     """
 
-    moved = extraction(cube.size, piece.layer, piece.row)
-    parked = trial(cube, moved)
+    routes = []
 
-    return [
-        f"{moved} {direct_route(cube.size, cell, back, False)}"
-        for back in search_center(parked, color, *cell)
-        if back.layer is Layer.BACK
-    ]
+    for over in (Direction.DOUBLE, Direction.CW, Direction.CCW):
+        moved = extraction(cube.size, piece.layer, piece.row, over)
+        parked = trial(cube, moved)
+        routes += [
+            f"{moved} {direct_route(cube.size, cell, back, restore)}"
+            for back in search_center(parked, color, *cell)
+            if back.layer is Layer.BACK
+            for restore in (False, True)
+        ]
+
+    return routes
 
 
-def lift(size: int, col: int) -> str:
+def lift(size: int, col: int, over: Direction) -> str:
     """
     Returns the conjugate that moves a piece from DOWN onto UP.
 
-    The block reaching in from the nearer of LEFT and RIGHT is turned twice, UP is turned twice and
-    the block is turned twice again. The block turns cancel on every face except UP and DOWN.
+    The block reaching in from the nearer of LEFT and RIGHT is turned twice, UP is turned and the
+    block is turned twice again. The block turns cancel on every face except UP and DOWN. A half turn
+    of UP keeps a piece in the middle column of an odd cube inside the block, so that piece needs a
+    quarter turn; the middle column itself is reached from RIGHT with a `deep_move`.
 
-    Example, on a 6x6:
+    Example, on a 6x6 and on a 5x5:
 
-        >>> lift(6, 1)
+        >>> lift(6, 1, Direction.DOUBLE)
         'Lw2 U2 Lw2'
-        >>> lift(6, 3)
+        >>> lift(6, 3, Direction.DOUBLE)
         '3Rw2 U2 3Rw2'
+        >>> lift(5, 2, Direction.CW)
+        'x2 Lw2 U x2 Lw2'
 
     :param size: The size of the cube
     :param col: The column of DOWN the piece is in
+    :param over: The direction UP is turned
     :return: The conjugate, in standard notation
     """
 
     if in_first_half(size, col):
-        block = Move(Layer.LEFT, Direction.DOUBLE, col + 1)
+        block = deep_move(size, Layer.LEFT, Direction.DOUBLE, col + 1)
     else:
-        block = Move(Layer.RIGHT, Direction.DOUBLE, size - col)
+        block = deep_move(size, Layer.RIGHT, Direction.DOUBLE, size - col)
 
-    return f"{block} {Move(Layer.UP, Direction.DOUBLE, 1)} {block}"
+    return f"{block} {Move(Layer.UP, over, 1)} {block}"
 
 
 def target_routes(cube: Cube, color: Color, cell: tuple[int, int], piece: CenterSearchResult) -> list[str]:
@@ -273,8 +328,9 @@ def target_routes(cube: Cube, color: Color, cell: tuple[int, int], piece: Center
     Returns the routes that bring a piece on DOWN into the bar while the center is built on DOWN.
 
     A column slice fetching from DOWN would take a column of the center being built, so the piece is
-    first moved onto UP with `lift` and brought in from there with `direct_route`, bare and
-    restoring. Where it lands on UP is read off the cube rather than worked out.
+    first moved onto UP with `lift`, with a half turn of UP first and then the quarter turns, and
+    brought in from there with `direct_route`, bare and restoring. Where it lands on UP is read off
+    the cube rather than worked out.
 
     :param cube: The cube
     :param color: The colour being built
@@ -283,15 +339,19 @@ def target_routes(cube: Cube, color: Color, cell: tuple[int, int], piece: Center
     :return: The candidate routes, in standard notation
     """
 
-    moved = lift(cube.size, piece.col)
-    lifted = trial(cube, moved)
+    routes = []
 
-    return [
-        f"{moved} {direct_route(cube.size, cell, up, restore)}"
-        for up in search_center(lifted, color, *cell)
-        if up.layer is Layer.UP
-        for restore in (False, True)
-    ]
+    for over in (Direction.DOUBLE, Direction.CW, Direction.CCW):
+        moved = lift(cube.size, piece.col, over)
+        lifted = trial(cube, moved)
+        routes += [
+            f"{moved} {direct_route(cube.size, cell, up, restore)}"
+            for up in search_center(lifted, color, *cell)
+            if up.layer is Layer.UP
+            for restore in (False, True)
+        ]
+
+    return routes
 
 
 def staging_routes(size: int) -> list[str]:
@@ -379,3 +439,144 @@ def insertion(size: int, row: int, target: Layer) -> str:
     moves = stand + [Move(block, carry, depth), over, Move(block, carry.inverse(), depth), over]
 
     return " ".join(str(move) for move in moves)
+
+
+def face_turns(face: Layer) -> list[Move | None]:
+    """
+    Returns the ways a face can be turned before a wide move: not at all, or by one of the three
+    turns.
+
+    Example:
+
+        >>> [str(turn) for turn in face_turns(Layer.RIGHT)]
+        ['None', 'R', "R'", 'R2']
+
+    :param face: The face
+    :return: None for no turn, then the three turns of the face
+    """
+
+    return [None] + [Move(face, direction, 1) for direction in Direction]
+
+
+def wide_depth(size: int, cell: tuple[int, int]) -> int:
+    """
+    Returns the depth of the block that reaches a cell of the middle line from the nearer side, and
+    no deeper.
+
+    The block never reaches the middle of the face, so it leaves the fixed center and the far half of
+    the line alone, and an inner cell's block leaves the outer cells beyond it free.
+
+    Example, on a 7x7, the inner cells of a horizontal and a vertical line, then an outer one:
+
+        >>> [wide_depth(7, cell) for cell in [(3, 2), (3, 4), (4, 3), (3, 1)]]
+        [3, 3, 3, 2]
+
+    :param size: The size of the cube, odd
+    :param cell: The cell of the middle line
+    :return: The depth of the block
+    """
+
+    middle = size // 2
+
+    return middle + 1 - abs(cell[0] - middle) - abs(cell[1] - middle)
+
+
+def wide_moves(size: int, cell: tuple[int, int], target: Layer, source: Layer | None) -> list[str]:
+    """
+    Returns the wide moves that can carry a piece into a cell of the target's middle line.
+
+    Only the faces off the target's axis carry anything onto the target, and a piece on another face
+    is carried only by the faces off that face's axis too. Every block is as deep as `wide_depth`.
+
+    Example, on a 5x5, filling RIGHT (2, 1) from FRONT, and from RIGHT itself:
+
+        >>> wide_moves(5, (2, 1), Layer.RIGHT, Layer.FRONT)
+        ['Uw', "Uw'", 'Uw2', 'Dw', "Dw'", 'Dw2']
+        >>> len(wide_moves(5, (2, 1), Layer.RIGHT, None))
+        12
+
+    :param size: The size of the cube, odd
+    :param cell: The cell of the middle line
+    :param target: The face the center is built on
+    :param source: The face the piece is on, or None for a piece on the target
+    :return: The wide moves, in standard notation
+    """
+
+    axes = {target, target.opposite()}
+
+    if source is not None:
+        axes |= {source, source.opposite()}
+
+    depth = wide_depth(size, cell)
+
+    return [str(Move(face, direction, depth)) for face in Layer if face not in axes for direction in Direction]
+
+
+def line_routes(size: int, cell: tuple[int, int], piece: CenterSearchResult, target: Layer) -> list[str]:
+    """
+    Returns the routes that bring a piece on another face into a cell of the target's middle line.
+
+    Every route turns the target to stand the cell in the block, turns the source face to stand the
+    piece in the block too, and makes the wide move. A bare route then turns the target back. A
+    restoring route first turns the target to lift the line out of the block and undoes the wide
+    move, so that every face the block carried returns, and then turns the target back to the line's
+    orientation. The source face is never turned back: it holds nothing built yet.
+
+    The bare routes come first, since they are shorter. Which one fills the cell without breaking
+    anything is left to the cube.
+
+    Example, on a 5x5, filling RIGHT (2, 1) from FRONT (1, 2):
+
+        >>> routes = line_routes(5, (2, 1), CenterSearchResult(Layer.FRONT, 1, 2), Layer.RIGHT)
+        >>> len(routes), routes[0], routes[-1]
+        (384, 'Uw', 'R2 F2 Dw2 R2 Dw2')
+
+    :param size: The size of the cube, odd
+    :param cell: The cell of the middle line
+    :param piece: The piece, on a face other than the target
+    :param target: The face the center is built on
+    :return: The candidate routes, in standard notation
+    """
+
+    wides = wide_moves(size, cell, target, piece.layer)
+    bare, restoring = [], []
+
+    for stand in face_turns(target):
+        for collect in face_turns(piece.layer):
+            for wide in wides:
+                opening = [str(turn) for turn in (stand, collect) if turn] + [wide]
+                bare.append(" ".join(opening + ([str(stand.inverse())] if stand else [])))
+
+                for lift_turn in Direction:
+                    raised = Move(target, lift_turn, 1)
+                    settled = combine(stand, raised) if stand else raised
+                    back = [str(settled.inverse())] if settled else []
+                    restoring.append(" ".join(opening + [str(raised), inverse_of(wide)] + back))
+
+    return bare + restoring
+
+
+def line_target_routes(size: int, cell: tuple[int, int], target: Layer) -> list[str]:
+    """
+    Returns the routes that move a piece already on the target into a cell of its middle line.
+
+    The target is turned to stand the piece on the cell, the wide move carries it off, the target is
+    turned back, and the wide move is undone, bringing the piece back onto the cell. The piece must
+    be of the cell's position type, since only a turn of the target moves it.
+
+    Example, on a 5x5, filling RIGHT (2, 1):
+
+        >>> line_target_routes(5, (2, 1), Layer.RIGHT)[:3]
+        ["R Uw R' Uw'", "R Uw' R' Uw", "R Uw2 R' Uw2"]
+
+    :param size: The size of the cube, odd
+    :param cell: The cell of the middle line
+    :param target: The face the center is built on
+    :return: The candidate routes, in standard notation
+    """
+
+    return [
+        f"{stand} {wide} {stand.inverse()} {inverse_of(wide)}"
+        for stand in face_turns(target)[1:]
+        for wide in wide_moves(size, cell, target, None)
+    ]

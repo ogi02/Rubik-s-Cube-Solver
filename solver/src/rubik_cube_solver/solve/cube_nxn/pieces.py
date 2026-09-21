@@ -84,8 +84,8 @@ def bar_rows(size: int) -> list[int]:
 
     Bars are staged in the lower half of FRONT, innermost row first, and every row is used twice: an
     insertion carries the bar already on the target to the mirror line before laying the new one
-    down, so two bars from one row fill two lines of the target. Only even cubes are built this way;
-    an odd cube's middle line cannot be staged as a bar.
+    down, so two bars from one row fill two lines of the target. On an odd cube the middle row is
+    left out, since the middle line of the target is built before the bars.
 
     Example:
 
@@ -93,18 +93,42 @@ def bar_rows(size: int) -> list[int]:
         [2, 2]
         >>> bar_rows(6)
         [3, 3, 4, 4]
-        >>> bar_rows(5)
-        Traceback (most recent call last):
-        ValueError: Bars are staged only on even cubes of size 4 or more, got size 5
+        >>> bar_rows(7)
+        [4, 4, 5, 5]
 
-    :param size: The size of the cube, even and at least 4
+    :param size: The size of the cube, at least 4
     :return: The staging rows, one per bar
     """
 
-    if size < 4 or size % 2:
-        raise ValueError(f"Bars are staged only on even cubes of size 4 or more, got size {size}")
+    if size < 4:
+        raise ValueError(f"Bars are staged only on cubes of size 4 or more, got size {size}")
 
-    return [row for row in range(size // 2, size - 1) for _ in (0, 1)]
+    return [row for row in range(size // 2 + size % 2, size - 1) for _ in (0, 1)]
+
+
+def line_cells(size: int, vertical: bool) -> list[tuple[int, int]]:
+    """
+    Returns the cells of an odd cube's middle line, in the order they are filled: inner to outer,
+    and in each pair the left (upper) cell first.
+
+    The line runs through the fixed center, which is not one of its cells.
+
+    Example, on a 7x7:
+
+        >>> line_cells(7, False)
+        [(3, 2), (3, 4), (3, 1), (3, 5)]
+        >>> line_cells(7, True)
+        [(2, 3), (4, 3), (1, 3), (5, 3)]
+
+    :param size: The size of the cube, odd
+    :param vertical: Whether the line is a column of the face rather than a row
+    :return: The cells of the line, in filling order
+    """
+
+    middle = size // 2
+    order = [index for index in fill_order(size) if index != middle]
+
+    return [(index, middle) if vertical else (middle, index) for index in order]
 
 
 def built_cells(size: int, target: Layer, inserted: list[int]) -> set[tuple[int, int]]:
@@ -269,3 +293,26 @@ def finished_centers(cube: Cube, done: list[Color]) -> list[CenterSticker]:
             keep += [CenterSticker(face, row, col, color) for row, col in cells]
 
     return keep
+
+
+def fixed_centers(cube: Cube) -> list[CenterSticker]:
+    """
+    Returns the fixed center of every face of an odd cube, tagged with the colour it holds.
+
+    The middle slice carries four of them round with it, which would put the next centers' colours
+    on other faces, so the routes that turn it must turn it back.
+
+    Example, on a solved 5x5:
+
+        >>> fixed_centers(Cube(5))[:2]
+        [CenterSticker(layer=<Layer.UP: 'U'>, row=2, col=2, color=<Color.WHITE: 'W'>),
+         CenterSticker(layer=<Layer.DOWN: 'D'>, row=2, col=2, color=<Color.YELLOW: 'Y'>)]
+
+    :param cube: The cube, of odd size
+    :return: The fixed center of every face, with its colour
+    """
+
+    middle = cube.size // 2
+    index = middle * cube.size + middle
+
+    return [CenterSticker(face, middle, middle, cube.layers[face][index]) for face in Layer]

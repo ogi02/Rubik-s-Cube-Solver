@@ -24,9 +24,7 @@ def create_solver(cube: Cube) -> Solve:
             return Solve2x2(cube)
         case 3:
             return Solve3x3(cube)
-        case size if size >= 4 and size % 2 == 0:
+        case size if size >= 4:
             return SolveNxN(cube)
         case _:
-            raise ValueError(
-                f"No solver for cubes of size {cube.size}, only 2x2, 3x3 and even cubes of size 4 or more are supported"
-            )
+            raise ValueError(f"No solver for cubes of size {cube.size}, only cubes of size 2 or more are supported")
