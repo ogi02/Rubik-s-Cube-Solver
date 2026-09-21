@@ -11,6 +11,7 @@ from rubik_cube_solver.solve.center_search import CenterSearchResult
 from rubik_cube_solver.solve.cube_nxn.centers import CENTERS_PLAN
 from rubik_cube_solver.solve.cube_nxn.pieces import (
     CenterSticker,
+    bar_columns,
     bar_rows,
     built_cells,
     fill_order,
@@ -21,6 +22,7 @@ from rubik_cube_solver.solve.cube_nxn.pieces import (
     orbit_cells,
     protected,
     rank_candidates,
+    right_cells,
 )
 from rubik_cube_solver.solve.cube_nxn.routes import trial
 
@@ -415,3 +417,53 @@ class TestFixedCenters:
             CenterSticker(Layer.FRONT, 2, 2, Color.YELLOW),
             CenterSticker(Layer.BACK, 2, 2, Color.WHITE),
         ]
+
+
+class TestBarColumns:
+    # fmt: off
+    @pytest.mark.parametrize(
+        "size, expected", [
+            (4, [1]),
+            (5, [1]),
+            (6, [2, 1]),
+            (7, [2, 1]),
+            (8, [3, 2, 1]),
+        ]
+    )
+    # fmt: on
+    def test_success(self, size: int, expected: list[int]) -> None:
+        """
+        Tests that the columns of FRONT's left half come innermost first, and that an odd cube's
+        middle column is not one of them.
+
+        :param size: The cube size
+        :param expected: The columns
+        :return: None
+        """
+
+        # Assert
+        assert bar_columns(size) == expected
+
+
+class TestRightCells:
+    # fmt: off
+    @pytest.mark.parametrize(
+        "size, expected", [
+            (4, [(1, 2), (2, 2)]),
+            (5, [(1, 3), (2, 3), (3, 3)]),
+            (6, [(1, 3), (2, 3), (3, 3), (4, 3), (1, 4), (2, 4), (3, 4), (4, 4)]),
+        ]
+    )
+    # fmt: on
+    def test_success(self, size: int, expected: list[tuple[int, int]]) -> None:
+        """
+        Tests that the cells of FRONT's right half come column by column from the middle outward, each
+        column top to bottom, and that an odd cube's middle column is not among them.
+
+        :param size: The cube size
+        :param expected: The cells
+        :return: None
+        """
+
+        # Assert
+        assert right_cells(size) == expected

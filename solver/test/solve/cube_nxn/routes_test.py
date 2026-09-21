@@ -14,16 +14,21 @@ from rubik_cube_solver.solve.cube_nxn.routes import (
     across_routes,
     align_turn,
     column_slice,
+    commutator_routes,
+    cycle_routes,
     deep_move,
     direct_route,
     extraction,
     face_turns,
+    front_insertion,
     insertion,
     inverse_of,
     lift,
+    line_lift_routes,
     line_routes,
     line_target_routes,
     quarter_direction,
+    staging_middle_routes,
     staging_routes,
     target_routes,
     trial,
@@ -965,3 +970,281 @@ class TestLineTargetRoutes:
                 trial(cube, route).layers[Layer.RIGHT][cell[0] * 7 + cell[1]] is Color.ORANGE
                 for route in line_target_routes(7, cell, Layer.RIGHT)
             )
+
+
+class TestLineLiftRoutes:
+    def test_success(self) -> None:
+        """
+        Tests that UP is turned to stand the piece above the cell, and that FRONT is turned both ways
+        between the slice and its undo.
+
+        :return: None
+        """
+
+        # Assert
+        assert line_lift_routes(5, (2, 1), CenterSearchResult(Layer.UP, 1, 2)) == [
+            "U' Lw L' F L Lw' F'",
+            "U' Lw L' F' L Lw' F",
+        ]
+
+    def test_no_turn_of_up(self) -> None:
+        """
+        Tests that a piece already standing above the cell needs no turn of UP.
+
+        :return: None
+        """
+
+        # Assert
+        assert line_lift_routes(5, (2, 3), CenterSearchResult(Layer.UP, 2, 3)) == [
+            "Rw' R F R' Rw F'",
+            "Rw' R F' R' Rw F",
+        ]
+
+    # fmt: off
+    @pytest.mark.parametrize("cell", [(3, 2), (3, 4), (3, 1), (3, 5)])
+    # fmt: on
+    def test_delivers_the_piece(self, cell: tuple[int, int]) -> None:
+        """
+        Tests that a piece painted on any cell of its type on UP is brought into the cell of a 7x7's
+        middle row by both routes, with the rest of the middle row in place and no center outside
+        FRONT and UP changed.
+
+        :param cell: The cell of the middle row
+        :return: None
+        """
+
+        marked = _marked_cube(7)
+        line = [(3, col) for col in range(1, 6) if (3, col) != cell]
+
+        for row, col in orbit_cells(7, cell):
+            # Paint one piece of UP with the colour of BACK, which no route changes
+            cube = Cube(7)
+            cube.layers[Layer.UP][row * 7 + col] = Color.BLUE
+
+            for route in line_lift_routes(7, cell, CenterSearchResult(Layer.UP, row, col)):
+                result = trial(marked, route)
+
+                # Assert
+                assert trial(cube, route).layers[Layer.FRONT][cell[0] * 7 + cell[1]] is Color.BLUE
+                assert set(_changed_centers(marked, result)) <= {Layer.FRONT, Layer.UP}
+                assert all(
+                    result.layers[Layer.FRONT][r * 7 + c] is marked.layers[Layer.FRONT][r * 7 + c] for r, c in line
+                )
+
+
+class TestStagingMiddleRoutes:
+    # fmt: off
+    @pytest.mark.parametrize(
+        "size, cell, piece, expected", [
+            (5, (3, 2), CenterSearchResult(Layer.UP, 1, 2),    ["U2"]),
+            (5, (3, 2), CenterSearchResult(Layer.FRONT, 2, 1), ["Lw' U' Lw"]),
+            (5, (3, 2), CenterSearchResult(Layer.FRONT, 2, 3), ["Rw U Rw'"]),
+            (7, (5, 3), CenterSearchResult(Layer.FRONT, 3, 1), ["Lw' U' Lw"]),
+            (7, (4, 3), CenterSearchResult(Layer.FRONT, 3, 4), ["3Rw U 3Rw'"]),
+        ]
+    )
+    # fmt: on
+    def test_success(self, size: int, cell: tuple[int, int], piece: CenterSearchResult, expected: list[str]) -> None:
+        """
+        Tests that a piece on UP only needs UP turned, and that a piece on FRONT is raised by the
+        block from its nearer side, as deep as its column.
+
+        :param size: The cube size
+        :param cell: The middle cell of the staging row
+        :param piece: The piece
+        :param expected: The routes
+        :return: None
+        """
+
+        # Assert
+        assert staging_middle_routes(size, cell, piece) == expected
+
+    # fmt: off
+    @pytest.mark.parametrize("cell, col", [((4, 3), 2), ((4, 3), 4), ((5, 3), 1), ((5, 3), 5)])
+    # fmt: on
+    def test_raises_a_front_piece(self, cell: tuple[int, int], col: int) -> None:
+        """
+        Tests that a piece painted in the middle row of a 7x7's FRONT lands on the middle cell of the
+        staging row, and that FRONT's middle column and every center outside FRONT and UP stay put.
+
+        :param cell: The middle cell of the staging row
+        :param col: The column of FRONT the piece is in
+        :return: None
+        """
+
+        # Paint the piece with the colour of BACK, which no route changes
+        cube = Cube(7)
+        cube.layers[Layer.FRONT][3 * 7 + col] = Color.BLUE
+        marked = _marked_cube(7)
+        route = staging_middle_routes(7, cell, CenterSearchResult(Layer.FRONT, 3, col))[0]
+        result = trial(marked, route)
+
+        # Assert
+        assert trial(cube, route).layers[Layer.UP][cell[0] * 7 + cell[1]] is Color.BLUE
+        assert set(_changed_centers(marked, result)) <= {Layer.FRONT, Layer.UP}
+        assert all(
+            result.layers[Layer.FRONT][row * 7 + 3] is marked.layers[Layer.FRONT][row * 7 + 3] for row in range(1, 6)
+        )
+
+
+class TestCommutatorRoutes:
+    def test_success(self) -> None:
+        """
+        Tests that the upward slice of every column holding the target's position type is paired with
+        every turn of UP in both orders, and that the conjugated forms follow the plain ones.
+
+        :return: None
+        """
+
+        # Build the routes
+        routes = commutator_routes(7, (4, 2))
+
+        # Assert
+        assert len(routes) == 2 * 3 * 2 * 4 == len(set(routes))
+        assert routes[:2] == ["3Lw' Lw U Lw' 3Lw U'", "U 3Lw' Lw U' Lw' 3Lw"]
+        assert routes[12] == "U 3Lw' Lw U Lw' 3Lw U' U'"
+
+    def test_middle_column_left_out(self) -> None:
+        """
+        Tests that the middle column of an odd cube, which carries the fixed centers, is never
+        sliced, even when a cell of the position type lies in it.
+
+        :return: None
+        """
+
+        # Build the routes: the position type of (3, 2) on a 5x5 lies in columns 1, 2 and 3
+        routes = commutator_routes(5, (3, 2))
+
+        # Assert
+        assert len(routes) == 2 * 3 * 2 * 4
+        assert not any("x" in route for route in routes)
+
+    # fmt: off
+    @pytest.mark.parametrize("size, cell", [(4, (2, 1)), (6, (3, 2)), (7, (5, 1))])
+    # fmt: on
+    def test_changes_only_front_and_up(self, size: int, cell: tuple[int, int]) -> None:
+        """
+        Tests that no route changes a center outside FRONT and UP.
+
+        :param size: The cube size
+        :param cell: The cell of the staging row
+        :return: None
+        """
+
+        marked = _marked_cube(size)
+
+        # Assert
+        for route in commutator_routes(size, cell):
+            assert set(_changed_centers(marked, trial(marked, route))) <= {Layer.FRONT, Layer.UP}
+
+
+class TestFrontInsertion:
+    # fmt: off
+    @pytest.mark.parametrize(
+        "size, col, expected", [
+            (4, 1, "U Lw F2 Lw' F2"),
+            (7, 2, "U 3Lw F2 3Lw' F2"),
+            (7, 1, "U Lw F2 Lw' F2"),
+            (8, 3, "U 4Lw F2 4Lw' F2"),
+        ]
+    )
+    # fmt: on
+    def test_success(self, size: int, col: int, expected: str) -> None:
+        """
+        Tests that the block from LEFT reaches as far as the column.
+
+        :param size: The cube size
+        :param col: The column of FRONT
+        :param expected: The algorithm
+        :return: None
+        """
+
+        # Assert
+        assert front_insertion(size, col) == expected
+
+    # fmt: off
+    @pytest.mark.parametrize("size, col", [(4, 1), (6, 2), (6, 1), (7, 2), (7, 1)])
+    # fmt: on
+    def test_bar_lands_in_its_column(self, size: int, col: int) -> None:
+        """
+        Tests that a bar painted in its staging row of UP lands in the column of FRONT, that the
+        columns of FRONT between it and its mirror stay put, and that no center outside FRONT and UP
+        changes.
+
+        :param size: The cube size
+        :param col: The column of FRONT
+        :return: None
+        """
+
+        # Paint the bar with the colour of BACK, which the insertion never changes
+        cube = Cube(size)
+        for index in range(1, size - 1):
+            cube.layers[Layer.UP][(size - 1 - col) * size + index] = Color.BLUE
+        marked = _marked_cube(size)
+        landed = trial(cube, front_insertion(size, col))
+        result = trial(marked, front_insertion(size, col))
+        kept = [(row, index) for row in range(1, size - 1) for index in range(col + 1, size - 1 - col)]
+
+        # Assert
+        assert all(landed.layers[Layer.FRONT][row * size + col] is Color.BLUE for row in range(1, size - 1))
+        assert all(
+            result.layers[Layer.FRONT][r * size + c] is marked.layers[Layer.FRONT][r * size + c] for r, c in kept
+        )
+        assert set(_changed_centers(marked, result)) <= {Layer.FRONT, Layer.UP}
+
+
+class TestCycleRoutes:
+    def test_success(self) -> None:
+        """
+        Tests the commutator for a cell whose quarter turn one way keeps it in its column: only the
+        other way is used.
+
+        :return: None
+        """
+
+        # Assert
+        assert cycle_routes(7, (2, 4), CenterSearchResult(Layer.UP, 2, 4)) == [
+            "3Rw' Rw F' 3Lw Lw' F Rw' 3Rw F' Lw 3Lw' F"
+        ]
+
+    def test_both_turns(self) -> None:
+        """
+        Tests that a cell off the diagonals gets a route for each quarter turn, with UP turned first.
+
+        :return: None
+        """
+
+        # Assert
+        assert cycle_routes(6, (1, 3), CenterSearchResult(Layer.UP, 3, 4)) == [
+            "U' 3Rw' Rw F Rw' R F' Rw' 3Rw F R' Rw F'",
+            "U' 3Rw' Rw F' Lw L' F Rw' 3Rw F' L Lw' F",
+        ]
+
+    # fmt: off
+    @pytest.mark.parametrize("size", [4, 5, 6, 7])
+    # fmt: on
+    def test_changes_only_the_cell(self, size: int) -> None:
+        """
+        Tests that for every cell of FRONT's right half and every piece of its type on UP, each route
+        brings the piece in, and changes no other cell of FRONT and no center outside FRONT and UP.
+
+        :param size: The cube size
+        :return: None
+        """
+
+        marked = _marked_cube(size)
+        columns = [col for col in range(1, size - 1) if 2 * col > size - 1]
+
+        for cell in [(row, col) for col in columns for row in range(1, size - 1)]:
+            for row, col in orbit_cells(size, cell):
+                # Paint one piece of UP with the colour of BACK, which no route changes
+                cube = Cube(size)
+                cube.layers[Layer.UP][row * size + col] = Color.BLUE
+
+                for route in cycle_routes(size, cell, CenterSearchResult(Layer.UP, row, col)):
+                    changed = _changed_centers(marked, trial(marked, route))
+
+                    # Assert
+                    assert trial(cube, route).layers[Layer.FRONT][cell[0] * size + cell[1]] is Color.BLUE
+                    assert set(changed) <= {Layer.FRONT, Layer.UP}
+                    assert changed.get(Layer.FRONT, set()) <= {cell}

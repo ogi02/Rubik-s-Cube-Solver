@@ -15,6 +15,7 @@ from rubik_cube_solver.scramble.scrambler import Scrambler
 from rubik_cube_solver.solve.cube_nxn.solve_nxn import SolveNxN
 
 FIRST_FOUR: set[Color] = {Color.YELLOW, Color.WHITE, Color.GREEN, Color.RED}
+ALL_SIX: set[Color] = set(Color)
 
 
 def _built_centers(cube: Cube) -> set[Color]:
@@ -77,7 +78,7 @@ class TestSolveNxNInit:
 class TestSolveNxNSteps:
     def test_returns_the_steps_in_order(self, generate_cube: Callable[[int, str], Cube]) -> None:
         """
-        Tests that `_steps` returns the first-four-centers step and nothing else.
+        Tests that `_steps` returns the first-four-centers step, then the last-two-centers step.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :return: None
@@ -88,7 +89,7 @@ class TestSolveNxNSteps:
         solve = SolveNxN(cube)
 
         # Assert
-        assert solve._steps() == [solve._first_four_centers]
+        assert solve._steps() == [solve._first_four_centers, solve._last_two_centers]
 
 
 class TestSolveNxNFirstFourCenters:
@@ -115,13 +116,38 @@ class TestSolveNxNFirstFourCenters:
         assert replay.layers == cube.layers
 
 
+class TestSolveNxNLastTwoCenters:
+    def test_builds_the_centers(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that the step, run after the first four centers, turns the cube until every center is
+        built, and records every move it makes in the solution.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube
+        cube = generate_cube(5, "Rw U2 Lw' F Dw")
+        solve = SolveNxN(cube)
+
+        # Run the steps
+        solve._first_four_centers()
+        solve._last_two_centers()
+
+        # Assert
+        replay = generate_cube(5, "Rw U2 Lw' F Dw")
+        Rotator(replay).apply(solve.solution)
+        assert _built_centers(cube) == ALL_SIX
+        assert replay.layers == cube.layers
+
+
 class TestSolveNxNSolve:
     # fmt: off
     @pytest.mark.parametrize("cube_size", [4, 5, 6, 7])
     # fmt: on
     def test_solves_random_scrambles(self, generate_cube: Callable[[int, str], Cube], cube_size: int) -> None:
         """
-        Tests that solving builds the four centers, and that the returned solution holds no whole-cube
+        Tests that solving builds every center, and that the returned solution holds no whole-cube
         rotation and builds them again when replayed on the scramble.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
@@ -144,6 +170,6 @@ class TestSolveNxNSolve:
             Rotator(replay).apply(solution)
 
             # Assert
-            assert FIRST_FOUR <= _built_centers(cube), scramble
-            assert FIRST_FOUR <= _built_centers(replay), scramble
+            assert _built_centers(cube) == ALL_SIX, scramble
+            assert _built_centers(replay) == ALL_SIX, scramble
             assert not any(isinstance(move.layer, Rotation) for move in solution.moves)
