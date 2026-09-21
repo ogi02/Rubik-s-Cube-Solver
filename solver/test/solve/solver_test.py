@@ -7,6 +7,7 @@ import pytest
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.solve.cube_2x2.solve_2x2 import Solve2x2
 from rubik_cube_solver.solve.cube_3x3.solve_3x3 import Solve3x3
+from rubik_cube_solver.solve.cube_nxn.solve_nxn import SolveNxN
 from rubik_cube_solver.solve.solve import Solve
 from rubik_cube_solver.solve.solver import create_solver
 
@@ -21,6 +22,8 @@ class TestCreateSolver:
         [
             (2, Solve2x2),
             (3, Solve3x3),
+            (4, SolveNxN),
+            (6, SolveNxN),
         ],
     )
     # fmt: on
@@ -78,7 +81,7 @@ class TestCreateSolver:
         assert solver.solution == solution
 
     # fmt: off
-    @pytest.mark.parametrize("cube_size", [1, 4, 5])
+    @pytest.mark.parametrize("cube_size", [1, 5, 7])
     # fmt: on
     def test_invalid_size(self, generate_cube: Callable[[int, str], Cube], cube_size: int) -> None:
         """

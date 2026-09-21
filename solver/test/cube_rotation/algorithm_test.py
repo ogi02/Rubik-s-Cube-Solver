@@ -120,6 +120,52 @@ class TestAlgorithmStr:
         assert str(algorithm) == algorithm_str
 
 
+class TestAlgorithmInverse:
+    # fmt: off
+    @pytest.mark.parametrize(
+        "algorithm_str, expected_str", [
+            ("",            ""),
+            ("R U R'",      "R U' R'"),
+            ("3Rw Rw' F2",  "F2 Rw 3Rw'"),
+            ("x U",         "U' x'"),
+        ]
+    )
+    # fmt: on
+    def test_success(self, algorithm_str: str, expected_str: str) -> None:
+        """
+        Tests that the inverse takes the moves back in reverse order, each turned the other way, and
+        leaves the algorithm itself as it was.
+
+        :param algorithm_str: The algorithm to invert
+        :param expected_str: The inverse
+        :return: None
+        """
+
+        # Mock the algorithm
+        algorithm = Algorithm.from_str(algorithm_str)
+
+        # Assert
+        assert str(algorithm.inverse()) == expected_str
+        assert str(algorithm) == algorithm_str
+
+    def test_undoes_the_algorithm(self) -> None:
+        """
+        Tests that applying an algorithm and then its inverse leaves a cube as it was.
+
+        :return: None
+        """
+
+        # Apply an algorithm and its inverse
+        cube = Cube(6)
+        algorithm = Algorithm.from_str("Rw U2 3Fw' L x D'")
+        rotator = Rotator(cube)
+        rotator.apply(algorithm)
+        rotator.apply(algorithm.inverse())
+
+        # Assert
+        assert cube.layers == Cube(6).layers
+
+
 class TestAlgorithmEq:
     # fmt: off
     @pytest.mark.parametrize(
