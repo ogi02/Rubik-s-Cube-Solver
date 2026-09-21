@@ -94,10 +94,11 @@ the last layer and its permutation. Both are human methods rather than searches,
 are the ones a person would recognize rather than the shortest ones. Either can still be
 constructed directly, and each accepts only its own cube size.
 
-`SolveNxN` handles even cubes of 4x4 and larger, but only partly: it builds the yellow, white,
-green and red centers and leaves the rest of the cube as it found it, so the cube does not come back
-solved. Odd cubes of 5x5 and larger have no solver yet. Every other part of the library —
-representation, turning, scrambling and validation — supports cubes of any size.
+`SolveNxN` handles cubes of 4x4 and larger, even and odd, but only partly: it builds the yellow,
+white, green and red centers and leaves the rest of the cube as it found it, so the cube does not
+come back solved. On an odd cube each center's middle line, through the fixed center, is built
+before the rest of it. Every other part of the library — representation, turning, scrambling and
+validation — supports cubes of any size.
 
 ## Examples
 
