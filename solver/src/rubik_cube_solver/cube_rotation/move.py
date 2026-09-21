@@ -92,6 +92,18 @@ class Move:
 
         self.__layer_amount = layer_amount
 
+    def inverse(self) -> "Move":
+        """
+        Return the move that undoes this one.
+
+        The same layer is turned by the same amount in the opposite direction, so a double turn is
+        its own inverse.
+
+        :return: The inverse move
+        """
+
+        return Move(self.__layer, self.__direction.inverse(), self.__layer_amount)
+
     def __str__(self) -> str:
         """
         String representation of the Move.

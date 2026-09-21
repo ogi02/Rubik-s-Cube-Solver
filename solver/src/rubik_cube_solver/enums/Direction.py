@@ -1,6 +1,5 @@
 # Python imports
 from enum import Enum
-from typing import Self
 
 
 class Direction(Enum):
@@ -8,8 +7,25 @@ class Direction(Enum):
     CCW = "'"
     DOUBLE = "2"
 
+    def inverse(self) -> "Direction":
+        """
+        Return the direction that undoes this one.
+
+        A double turn undoes itself, so it is its own inverse.
+
+        :return: The opposite direction
+        """
+
+        match self:
+            case Direction.CW:
+                return Direction.CCW
+            case Direction.CCW:
+                return Direction.CW
+            case _:
+                return Direction.DOUBLE
+
     @classmethod
-    def from_value(cls, value: str) -> Self:
+    def from_value(cls, value: str) -> "Direction":
         """
         Return an enumeration value from string.
 

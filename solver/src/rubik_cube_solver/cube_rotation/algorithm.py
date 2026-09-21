@@ -67,6 +67,20 @@ class Algorithm:
 
         return self.moves == other.moves
 
+    def inverse(self) -> "Algorithm":
+        """
+        Return the algorithm that undoes this one.
+
+        Every move is inverted and the order is reversed, so the last move performed is the first
+        one taken back. This algorithm is left untouched.
+
+        Example: `R U R'` becomes `R U' R'`.
+
+        :return: The inverse algorithm
+        """
+
+        return Algorithm([move.inverse() for move in reversed(self.__moves)])
+
     def remove_rotations(self) -> None:
         """
         Removes all whole-cube rotations from the algorithm.

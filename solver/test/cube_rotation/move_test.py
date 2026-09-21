@@ -49,6 +49,45 @@ class TestMoveStr:
         assert str(move) == move_str
 
 
+class TestMoveInverse:
+    # fmt: off
+    @pytest.mark.parametrize(
+        "layer, direction, layer_amount, expected_str", [
+            (Layer.UP,    Direction.CW,     1, "U'"),
+            (Layer.FRONT, Direction.CCW,    2, "Fw"),
+            (Layer.LEFT,  Direction.DOUBLE, 3, "3Lw2"),
+            (Rotation.X,  Direction.CW,     1, "x'"),
+        ]
+    )
+    # fmt: on
+    def test_success(
+        self,
+        generate_move: Callable[[Layer | Rotation, Direction, int], Move],
+        layer: Layer | Rotation,
+        direction: Direction,
+        layer_amount: int,
+        expected_str: str,
+    ) -> None:
+        """
+        Tests that the inverse turns the same layers the opposite way, and leaves the move itself as
+        it was.
+
+        :param generate_move: Fixture to generate a move
+        :param layer: The layer to turn or the axis to rotate around
+        :param direction: The direction of the turn
+        :param layer_amount: The amount of layers to turn
+        :param expected_str: The string representation of the inverse
+        :return: None
+        """
+
+        # Mock the move
+        move = generate_move(layer, direction, layer_amount)
+
+        # Assert
+        assert str(move.inverse()) == expected_str
+        assert move == generate_move(layer, direction, layer_amount)
+
+
 class TestMoveEq:
     # fmt: off
     @pytest.mark.parametrize(

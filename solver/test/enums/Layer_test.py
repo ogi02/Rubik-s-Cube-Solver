@@ -3,6 +3,7 @@ import pytest
 
 # Project imports
 from rubik_cube_solver.enums.Layer import Layer
+from rubik_cube_solver.enums.Rotation import Rotation
 
 
 class TestLayerFromValue:
@@ -50,3 +51,82 @@ class TestLayerFromValue:
         # Assert
         with pytest.raises(ValueError, match=f"Invalid value {value} for the Layer enumeration"):
             Layer.from_value(value)
+
+
+class TestLayerOpposite:
+    # fmt: off
+    @pytest.mark.parametrize(
+        "layer, expected", [
+            (Layer.UP,    Layer.DOWN),
+            (Layer.DOWN,  Layer.UP),
+            (Layer.LEFT,  Layer.RIGHT),
+            (Layer.RIGHT, Layer.LEFT),
+            (Layer.FRONT, Layer.BACK),
+            (Layer.BACK,  Layer.FRONT),
+        ]
+    )
+    # fmt: on
+    def test_success(self, layer: Layer, expected: Layer) -> None:
+        """
+        Tests that every face is paired with the face on the other side of the cube.
+
+        :param layer: The face
+        :param expected: The opposite face
+        :return: None
+        """
+
+        # Assert
+        assert layer.opposite() is expected
+
+
+class TestLayerAxis:
+    # fmt: off
+    @pytest.mark.parametrize(
+        "layer, expected", [
+            (Layer.UP,    Rotation.Y),
+            (Layer.DOWN,  Rotation.Y),
+            (Layer.LEFT,  Rotation.X),
+            (Layer.RIGHT, Rotation.X),
+            (Layer.FRONT, Rotation.Z),
+            (Layer.BACK,  Rotation.Z),
+        ]
+    )
+    # fmt: on
+    def test_success(self, layer: Layer, expected: Rotation) -> None:
+        """
+        Tests that every face is paired with the rotation about its own axis.
+
+        :param layer: The face
+        :param expected: The rotation axis
+        :return: None
+        """
+
+        # Assert
+        assert layer.axis() is expected
+
+
+class TestLayerTurnsWithAxis:
+    # fmt: off
+    @pytest.mark.parametrize(
+        "layer, expected", [
+            (Layer.UP,    True),
+            (Layer.DOWN,  False),
+            (Layer.LEFT,  False),
+            (Layer.RIGHT, True),
+            (Layer.FRONT, True),
+            (Layer.BACK,  False),
+        ]
+    )
+    # fmt: on
+    def test_success(self, layer: Layer, expected: bool) -> None:
+        """
+        Tests that RIGHT, UP and FRONT turn with their axis's rotation, and their opposite faces
+        against it.
+
+        :param layer: The face
+        :param expected: Whether a clockwise turn of the face turns like the rotation
+        :return: None
+        """
+
+        # Assert
+        assert layer.turns_with_axis() is expected

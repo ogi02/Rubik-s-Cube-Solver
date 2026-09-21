@@ -46,3 +46,27 @@ class TestDirectionFromValue:
         # Assert
         with pytest.raises(ValueError, match=f"Invalid value {value} for the Direction enumeration"):
             Direction.from_value(value)
+
+
+class TestDirectionInverse:
+    # fmt: off
+    @pytest.mark.parametrize(
+        "direction, expected", [
+            (Direction.CW,     Direction.CCW),
+            (Direction.CCW,    Direction.CW),
+            (Direction.DOUBLE, Direction.DOUBLE),
+        ]
+    )
+    # fmt: on
+    def test_success(self, direction: Direction, expected: Direction) -> None:
+        """
+        Tests that a quarter turn is undone by the quarter turn the other way, and a double turn by
+        itself.
+
+        :param direction: The direction to invert
+        :param expected: The direction that undoes it
+        :return: None
+        """
+
+        # Assert
+        assert direction.inverse() is expected
