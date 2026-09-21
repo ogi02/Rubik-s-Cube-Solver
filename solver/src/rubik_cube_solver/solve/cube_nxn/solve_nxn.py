@@ -5,6 +5,7 @@ from typing import Callable
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.cube_rotation.algorithm import Algorithm
 from rubik_cube_solver.solve.cube_nxn.centers import build_first_four_centers
+from rubik_cube_solver.solve.cube_nxn.last_centers import build_last_two_centers
 from rubik_cube_solver.solve.solve import Solve
 
 
@@ -12,8 +13,8 @@ class SolveNxN(Solve):
     """
     Solver for big cubes, of size 4 and up.
 
-    Its only step so far is the first four centers - yellow, white, green and red - so a cube comes
-    back with those four centers built and the rest of it untouched, not solved.
+    Its steps so far build the centers: first yellow, white, green and red, then blue and orange, so
+    a cube comes back with every center built and its edges and corners not solved.
     """
 
     def __init__(self, cube: Cube) -> None:
@@ -36,7 +37,7 @@ class SolveNxN(Solve):
         :return: The ordered solving steps
         """
 
-        return [self._first_four_centers]
+        return [self._first_four_centers, self._last_two_centers]
 
     def _first_four_centers(self) -> None:
         """
@@ -46,3 +47,12 @@ class SolveNxN(Solve):
         """
 
         self._apply(Algorithm.from_str(" ".join(build_first_four_centers(self.cube))))
+
+    def _last_two_centers(self) -> None:
+        """
+        Builds the blue and orange centers, once the first four are built.
+
+        :return: None
+        """
+
+        self._apply(Algorithm.from_str(" ".join(build_last_two_centers(self.cube))))

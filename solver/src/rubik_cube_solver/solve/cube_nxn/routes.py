@@ -580,3 +580,185 @@ def line_target_routes(size: int, cell: tuple[int, int], target: Layer) -> list[
         for stand in face_turns(target)[1:]
         for wide in wide_moves(size, cell, target, None)
     ]
+
+
+def line_lift_routes(size: int, cell: tuple[int, int], piece: CenterSearchResult) -> list[str]:
+    """
+    Returns the routes that bring a piece on UP into a cell of FRONT's middle row.
+
+    UP is turned to stand the piece above the cell, the column slice through the cell carries it
+    down, FRONT is turned to lift the middle row out of the slice's column, the slice goes back and
+    FRONT is turned back. Only FRONT and UP change, and the cells of the middle row filled before
+    stay put. FRONT is turned both ways, and which one fills the cell is left to the cube.
+
+    Example, on a 5x5, filling FRONT (2, 1) from UP (1, 2):
+
+        >>> line_lift_routes(5, (2, 1), CenterSearchResult(Layer.UP, 1, 2))
+        ["U' Lw L' F L Lw' F'", "U' Lw L' F' L Lw' F"]
+
+    :param size: The size of the cube, odd
+    :param cell: The cell of FRONT's middle row
+    :param piece: The piece, on UP
+    :return: The candidate routes, in standard notation
+    """
+
+    down = column_slice(size, cell[1], Direction.CCW)
+    align = align_turn(size, cell, piece)
+    routes = []
+
+    for over in (Direction.CW, Direction.CCW):
+        turn = Move(Layer.FRONT, over, 1)
+        parts = [align, down, str(turn), inverse_of(down), str(turn.inverse())]
+        routes.append(" ".join(part for part in parts if part))
+
+    return routes
+
+
+def staging_middle_routes(size: int, cell: tuple[int, int], piece: CenterSearchResult) -> list[str]:
+    """
+    Returns the route that brings a piece into the middle cell of a bar staged on UP.
+
+    A piece on UP only needs UP turned. A piece on FRONT is raised by the block reaching in from the
+    nearer of LEFT and RIGHT as far as the piece's column: the block carries it up, a quarter turn of
+    UP takes it out of the block onto the middle cell, and the block goes back. The block ends before
+    FRONT's middle column, so the middle line stays put.
+
+    Example, on a 5x5, filling UP (3, 2) from UP (1, 2), from FRONT (2, 1) and from FRONT (2, 3):
+
+        >>> staging_middle_routes(5, (3, 2), CenterSearchResult(Layer.UP, 1, 2))
+        ['U2']
+        >>> staging_middle_routes(5, (3, 2), CenterSearchResult(Layer.FRONT, 2, 1))
+        ["Lw' U' Lw"]
+        >>> staging_middle_routes(5, (3, 2), CenterSearchResult(Layer.FRONT, 2, 3))
+        ["Rw U Rw'"]
+
+    :param size: The size of the cube, odd
+    :param cell: The middle cell of the staging row on UP
+    :param piece: The piece, on UP or FRONT
+    :return: The candidate routes, in standard notation
+    """
+
+    if piece.layer is Layer.UP:
+        return [align_turn(size, cell, piece)]
+
+    if in_first_half(size, piece.col):
+        block, over = deep_move(size, Layer.LEFT, Direction.CCW, piece.col + 1), Direction.CCW
+    else:
+        block, over = deep_move(size, Layer.RIGHT, Direction.CW, size - piece.col), Direction.CW
+
+    return [f"{block} {Move(Layer.UP, over, 1)} {inverse_of(block)}"]
+
+
+def commutator_routes(size: int, cell: tuple[int, int]) -> list[str]:
+    """
+    Returns the commutators that can bring a piece into a cell of a bar staged on UP.
+
+    Each is built from a single-layer column slice turning FRONT up into UP and a turn of UP,
+    `[slice, turn]` or `[turn, slice]`, and each is then also listed conjugated by a turn of UP. The
+    slice goes back, so DOWN and BACK are restored and only FRONT and UP change. The slices are those
+    whose column holds a cell of the target's position type on UP; the middle column of an odd cube
+    is left out, since it carries the fixed centers. The plain commutators come first, since they
+    are shorter. Which one fills the cell without breaking anything is left to the cube.
+
+    Example, on a 7x7, for UP (4, 2), whose position type lies in columns 2 and 4:
+
+        >>> routes = commutator_routes(7, (4, 2))
+        >>> len(routes), routes[0], routes[-1]
+        (48, "3Lw' Lw U Lw' 3Lw U'", "U2 U2 3Rw Rw' U2 Rw 3Rw' U2")
+
+    :param size: The size of the cube
+    :param cell: The cell of the staging row on UP
+    :return: The candidate routes, in standard notation
+    """
+
+    columns = sorted({index for orbit_cell in orbit_cells(size, cell) for index in orbit_cell})
+    middle = size // 2 if size % 2 else None
+    turns = [str(Move(Layer.UP, direction, 1)) for direction in Direction]
+    plain = []
+
+    for col in columns:
+        if col == middle:
+            continue
+
+        cut = column_slice(size, col, Direction.CW)
+        for turn in turns:
+            plain.append(f"{cut} {turn} {inverse_of(cut)} {inverse_of(turn)}")
+            plain.append(f"{turn} {cut} {inverse_of(turn)} {inverse_of(cut)}")
+
+    return plain + [f"{turn} {route} {inverse_of(turn)}" for turn in turns for route in plain]
+
+
+def front_insertion(size: int, col: int) -> str:
+    """
+    Returns the algorithm that moves the bar staged on UP into a column of FRONT's left half.
+
+    The bar is staged in row `size - 1 - col` of UP, so a turn of UP stands it in column `col`. The
+    block reaching in from LEFT as far as the column carries it onto FRONT, a half turn of FRONT parks
+    it in the mirror column, out of the block, the block goes back and FRONT is turned back. LEFT,
+    DOWN and BACK are restored, and FRONT's columns beyond the block, with the middle line and the bars
+    already inserted, come back where they were.
+
+    Example, on a 7x7:
+
+        >>> front_insertion(7, 2)
+        "U 3Lw F2 3Lw' F2"
+
+    :param size: The size of the cube
+    :param col: The column of FRONT the bar goes to, in its left half
+    :return: The algorithm, in standard notation
+    """
+
+    block = deep_move(size, Layer.LEFT, Direction.CW, col + 1)
+
+    return f"U {block} F2 {inverse_of(block)} F2"
+
+
+def cycle_routes(size: int, cell: tuple[int, int], piece: CenterSearchResult) -> list[str]:
+    """
+    Returns the commutators that bring a piece on UP into a cell of FRONT, changing no other cell of
+    FRONT.
+
+    UP is turned to stand the piece above the cell. The commutator is `[slice, F slice' F']` on the
+    single-layer column slices through the cell's column and through the column a quarter turn of
+    FRONT moves the cell to: the first slice brings the piece down, the quarter turn moves it to the
+    second column, the second slice takes it off FRONT, and undoing all of it in order brings it back
+    into the cell. Only the cell and two cells of UP change. A quarter turn that leaves the cell in
+    its own column cannot be used, so it is skipped.
+
+    Example, on a 7x7, filling FRONT (2, 4) from UP (2, 4). `F` would keep the cell in column 4, so
+    only `F'` is used:
+
+        >>> cycle_routes(7, (2, 4), CenterSearchResult(Layer.UP, 2, 4))
+        ["3Rw' Rw F' 3Lw Lw' F Rw' 3Rw F' Lw 3Lw' F"]
+
+    :param size: The size of the cube
+    :param cell: The cell of FRONT
+    :param piece: The piece, on UP
+    :return: The candidate routes, in standard notation
+    """
+
+    row, col = cell
+    align = align_turn(size, cell, piece)
+    first = column_slice(size, col, Direction.CCW)
+    routes = []
+
+    for over, moved in ((Direction.CW, size - 1 - row), (Direction.CCW, row)):
+        if moved == col:
+            continue
+
+        turn, back = Move(Layer.FRONT, over, 1), Move(Layer.FRONT, over.inverse(), 1)
+        second = column_slice(size, moved, Direction.CCW)
+        parts = [
+            align,
+            first,
+            str(turn),
+            second,
+            str(back),
+            inverse_of(first),
+            str(turn),
+            inverse_of(second),
+            str(back),
+        ]
+        routes.append(" ".join(part for part in parts if part))
+
+    return routes

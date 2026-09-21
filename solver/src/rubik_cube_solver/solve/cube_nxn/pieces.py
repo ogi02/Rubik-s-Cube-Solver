@@ -316,3 +316,46 @@ def fixed_centers(cube: Cube) -> list[CenterSticker]:
     index = middle * cube.size + middle
 
     return [CenterSticker(face, middle, middle, cube.layers[face][index]) for face in Layer]
+
+
+def bar_columns(size: int) -> list[int]:
+    """
+    Returns the columns of FRONT's left half that bars are inserted into, innermost first.
+
+    On an odd cube the middle column holds the middle line, so the left half ends before it.
+
+    Example:
+
+        >>> bar_columns(4)
+        [1]
+        >>> bar_columns(7)
+        [2, 1]
+        >>> bar_columns(8)
+        [3, 2, 1]
+
+    :param size: The size of the cube
+    :return: The columns, in the order their bars are built
+    """
+
+    return [col for col in range(size - 2, 0, -1) if in_first_half(size, col)]
+
+
+def right_cells(size: int) -> list[tuple[int, int]]:
+    """
+    Returns the cells of FRONT's right half in the order they are filled: column by column from the
+    middle outward, each column top to bottom.
+
+    Example:
+
+        >>> right_cells(4)
+        [(1, 2), (2, 2)]
+        >>> right_cells(5)
+        [(1, 3), (2, 3), (3, 3)]
+
+    :param size: The size of the cube
+    :return: The cells, in filling order
+    """
+
+    columns = [col for col in range(1, size - 1) if not in_first_half(size, col) and 2 * col != size - 1]
+
+    return [(row, col) for col in columns for row in range(1, size - 1)]
