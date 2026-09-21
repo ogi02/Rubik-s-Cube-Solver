@@ -23,7 +23,9 @@ class TestCreateSolver:
             (2, Solve2x2),
             (3, Solve3x3),
             (4, SolveNxN),
+            (5, SolveNxN),
             (6, SolveNxN),
+            (7, SolveNxN),
         ],
     )
     # fmt: on
@@ -81,7 +83,7 @@ class TestCreateSolver:
         assert solver.solution == solution
 
     # fmt: off
-    @pytest.mark.parametrize("cube_size", [1, 5, 7])
+    @pytest.mark.parametrize("cube_size", [1])
     # fmt: on
     def test_invalid_size(self, generate_cube: Callable[[int, str], Cube], cube_size: int) -> None:
         """

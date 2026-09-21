@@ -37,11 +37,11 @@ def _built_centers(cube: Cube) -> set[Color]:
 
 class TestSolveNxNInit:
     # fmt: off
-    @pytest.mark.parametrize("cube_size", [4, 6, 8])
+    @pytest.mark.parametrize("cube_size", [4, 5, 6, 7, 8])
     # fmt: on
     def test_success(self, generate_cube: Callable[[int, str], Cube], cube_size: int) -> None:
         """
-        Tests that an even cube of size 4 or more is accepted without error.
+        Tests that a cube of size 4 or more, even or odd, is accepted without error.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :param cube_size: The cube size
@@ -55,11 +55,11 @@ class TestSolveNxNInit:
         assert SolveNxN(cube).cube is cube
 
     # fmt: off
-    @pytest.mark.parametrize("cube_size", [2, 3, 5, 7])
+    @pytest.mark.parametrize("cube_size", [2, 3])
     # fmt: on
     def test_invalid_size(self, generate_cube: Callable[[int, str], Cube], cube_size: int) -> None:
         """
-        Tests that an odd cube, or one smaller than 4, raises a ValueError naming its size.
+        Tests that a cube smaller than 4 raises a ValueError naming its size.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :param cube_size: The cube size
@@ -70,9 +70,7 @@ class TestSolveNxNInit:
         cube = generate_cube(cube_size, "")
 
         # Assert
-        with pytest.raises(
-            ValueError, match=f"SolveNxN supports only even cubes of size 4 or more, got size {cube_size}"
-        ):
+        with pytest.raises(ValueError, match=f"SolveNxN supports only cubes of size 4 or more, got size {cube_size}"):
             SolveNxN(cube)
 
 
@@ -119,7 +117,7 @@ class TestSolveNxNFirstFourCenters:
 
 class TestSolveNxNSolve:
     # fmt: off
-    @pytest.mark.parametrize("cube_size", [4, 6])
+    @pytest.mark.parametrize("cube_size", [4, 5, 6, 7])
     # fmt: on
     def test_solves_random_scrambles(self, generate_cube: Callable[[int, str], Cube], cube_size: int) -> None:
         """

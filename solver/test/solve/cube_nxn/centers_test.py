@@ -8,6 +8,7 @@ import pytest
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.cube_rotation.algorithm import Algorithm
 from rubik_cube_solver.enums.Color import Color
+from rubik_cube_solver.enums.Direction import Direction
 from rubik_cube_solver.enums.Layer import Layer
 from rubik_cube_solver.scramble.scrambler import Scrambler
 from rubik_cube_solver.solve.center_search import CenterSearchResult
@@ -17,10 +18,13 @@ from rubik_cube_solver.solve.cube_nxn.centers import (
     build_bar,
     build_center,
     build_first_four_centers,
+    build_middle_line,
     fetch,
+    fetch_line_piece,
+    first_route,
 )
-from rubik_cube_solver.solve.cube_nxn.pieces import CenterSticker
-from rubik_cube_solver.solve.cube_nxn.routes import lift, staging_routes, trial
+from rubik_cube_solver.solve.cube_nxn.pieces import CenterSticker, fixed_centers
+from rubik_cube_solver.solve.cube_nxn.routes import lift, line_target_routes, staging_routes, trial
 
 YELLOW_PRIORITY: tuple[tuple[Layer, ...], ...] = CENTERS_PLAN[0].priority
 
@@ -149,6 +153,171 @@ class TestFetch:
         assert fetch(cube, Color.YELLOW, (2, 1), CenterSearchResult(Layer.BACK, 2, 1), Layer.RIGHT, protect) is None
 
 
+class TestFirstRoute:
+    def test_success(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that routes that leave the goal cell empty or break a protected cell are passed over, and
+        that the cube returned is the given one with the route applied.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube: column 1 of FRONT is carried off
+        cube = generate_cube(4, "Lw L'")
+        goal = CenterSticker(Layer.FRONT, 2, 1, Color.GREEN)
+        protect = [CenterSticker(Layer.FRONT, 1, 2, Color.GREEN)]
+
+        # Take the first surviving route
+        route, result = first_route(cube, ["U", "F2", "Lw' L"], goal, protect)
+
+        # Assert
+        assert route == "Lw' L"
+        assert result.layers == trial(cube, route).layers
+
+    def test_no_route(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that None is returned when no route fills the goal cell.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube
+        cube = generate_cube(4, "Lw L'")
+
+        # Assert
+        assert first_route(cube, ["U", "D"], CenterSticker(Layer.FRONT, 2, 1, Color.GREEN), []) is None
+
+
+class TestFetchLinePiece:
+    def test_success(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that a piece on another face is carried into the cell of the middle line, and that the
+        returned cube is the given one with the returned route applied.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube: yellow is on RIGHT, and the left cell of its middle line is turned away on DOWN
+        cube = generate_cube(5, "z' Fw D")
+
+        # Fetch
+        route, result = fetch_line_piece(
+            cube, Color.YELLOW, (2, 1), CenterSearchResult(Layer.DOWN, 2, 3), Layer.RIGHT, []
+        )
+
+        # Assert
+        assert route == "D' Fw'"
+        assert result.layers == trial(cube, route).layers
+        assert result.layers[Layer.RIGHT][2 * 5 + 1] is Color.YELLOW
+
+    def test_piece_on_target(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that a piece already on the target is moved within it onto the cell of the middle line.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube: yellow is on RIGHT, and the left cell of its middle line is painted over
+        cube = generate_cube(5, "z'")
+        cube.layers[Layer.RIGHT][2 * 5 + 1] = Color.WHITE
+
+        # Fetch
+        route, result = fetch_line_piece(
+            cube, Color.YELLOW, (2, 1), CenterSearchResult(Layer.RIGHT, 1, 2), Layer.RIGHT, []
+        )
+
+        # Assert
+        assert route in line_target_routes(5, (2, 1), Layer.RIGHT)
+        assert result.layers[Layer.RIGHT][2 * 5 + 1] is Color.YELLOW
+
+    def test_no_route(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that None is returned when every route breaks a protected cell.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube and protect the cell being filled with a colour it can never hold
+        cube = generate_cube(5, "z' Fw D")
+        protect = [CenterSticker(Layer.RIGHT, 2, 1, Color.GREEN)]
+        piece = CenterSearchResult(Layer.DOWN, 2, 3)
+
+        # Assert
+        assert fetch_line_piece(cube, Color.YELLOW, (2, 1), piece, Layer.RIGHT, protect) is None
+
+
+class TestBuildMiddleLine:
+    # fmt: off
+    @pytest.mark.parametrize(
+        "algorithm, color, target, vertical", [
+            ("z' Uw R Fw' D Bw2 L", Color.YELLOW, Layer.RIGHT, False),
+            ("x' Rw U Lw' B Fw2 D", Color.GREEN,  Layer.DOWN,  True),
+        ]
+    )
+    # fmt: on
+    def test_success(
+        self, generate_cube: Callable[[int, str], Cube], algorithm: str, color: Color, target: Layer, vertical: bool
+    ) -> None:
+        """
+        Tests that every cell of the line ends up in the colour, across the face or down it, and that
+        the fixed centers kept are where they were.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :param algorithm: The algorithm applied to a solved 7x7
+        :param color: The colour being built
+        :param target: The face the center is built on
+        :param vertical: Whether the line runs down the face
+        :return: None
+        """
+
+        # Generate the cube
+        cube = generate_cube(7, algorithm)
+
+        # Build the line
+        _, result = build_middle_line(cube, color, target, vertical, fixed_centers(cube))
+        line = [(3, col) for col in (1, 2, 4, 5)] if not vertical else [(row, 3) for row in (1, 2, 4, 5)]
+
+        # Assert
+        assert all(result.layers[target][row * 7 + col] is color for row, col in line)
+        assert fixed_centers(result) == fixed_centers(cube)
+
+    def test_already_filled(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that a line already in the colour needs no moves.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube: yellow is on RIGHT
+        cube = generate_cube(5, "z'")
+
+        # Assert
+        assert build_middle_line(cube, Color.YELLOW, Layer.RIGHT, False, []) == ([], cube)
+
+    def test_invalid_no_route(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that a cell no candidate can fill raises a ValueError naming the face, the cell and the
+        colour.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube and keep the cell in a colour it can never hold
+        cube = generate_cube(5, "z' Fw D")
+        keep = [CenterSticker(Layer.RIGHT, 2, 1, Color.GREEN)]
+
+        # Assert
+        with pytest.raises(ValueError, match=r"No route fills RIGHT \(2, 1\) of the YELLOW middle line"):
+            build_middle_line(cube, Color.YELLOW, Layer.RIGHT, False, keep)
+
+
 class TestBuildBar:
     def test_success(self, generate_cube: Callable[[int, str], Cube]) -> None:
         """
@@ -240,7 +409,7 @@ class TestBuildCenter:
         cube = generate_cube(4, "z' Dw")
 
         # Build the center
-        moves, result = build_center(cube, Color.YELLOW, Layer.RIGHT, YELLOW_PRIORITY, [])
+        moves, result = build_center(cube, CENTERS_PLAN[0], [])
 
         # Assert
         assert moves == ["B2 Lw2 L2", "Rw2 R2", "Dw R2 Dw' R2", "Dw R2 Dw' R2"]
@@ -256,15 +425,36 @@ class TestBuildCenter:
 
         # Generate the cube and build yellow on RIGHT
         cube = generate_cube(4, "z' Rw U2 Lw' F Dw")
-        _, cube = build_center(cube, Color.YELLOW, Layer.RIGHT, YELLOW_PRIORITY, [])
+        _, cube = build_center(cube, CENTERS_PLAN[0], [])
         keep = [CenterSticker(Layer.RIGHT, row, col, Color.YELLOW) for row in (1, 2) for col in (1, 2)]
 
         # Build white on LEFT
-        _, result = build_center(cube, Color.WHITE, Layer.LEFT, CENTERS_PLAN[1].priority, keep)
+        _, result = build_center(cube, CENTERS_PLAN[1], keep)
 
         # Assert
         assert _center_is(result, Layer.LEFT, Color.WHITE)
         assert _center_is(result, Layer.RIGHT, Color.YELLOW)
+
+    def test_odd_cube(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that on an odd cube the middle line is built first and then the bars, and that every
+        fixed center is where it was once the center is built.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube: yellow is on RIGHT, then scattered
+        cube = generate_cube(5, "z' Uw R Fw' D Bw2 L")
+
+        # Build the center
+        moves, result = build_center(cube, CENTERS_PLAN[0], [])
+        line_moves, _ = build_middle_line(cube, Color.YELLOW, Layer.RIGHT, False, fixed_centers(cube))
+
+        # Assert
+        assert moves[: len(line_moves)] == line_moves
+        assert _center_is(result, Layer.RIGHT, Color.YELLOW)
+        assert fixed_centers(result) == fixed_centers(cube)
 
 
 class TestBuildFirstFourCenters:
@@ -290,7 +480,7 @@ class TestBuildFirstFourCenters:
         assert cube.layers == generate_cube(4, "Rw U2 Lw' F Dw").layers
 
     # fmt: off
-    @pytest.mark.parametrize("size", [4, 6, 8])
+    @pytest.mark.parametrize("size", [4, 5, 6, 7, 8])
     # fmt: on
     def test_random_scrambles(self, generate_cube: Callable[[int, str], Cube], size: int) -> None:
         """
@@ -327,4 +517,4 @@ class TestBuildFirstFourCenters:
         cube = generate_cube(6, str(Algorithm(Scrambler().generate_scramble(6))))
 
         # Assert
-        assert any(move.startswith(f"{lift(6, 2)} ") for move in build_first_four_centers(cube))
+        assert any(move.startswith(f"{lift(6, 2, Direction.DOUBLE)} ") for move in build_first_four_centers(cube))

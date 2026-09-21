@@ -15,7 +15,9 @@ from rubik_cube_solver.solve.cube_nxn.pieces import (
     built_cells,
     fill_order,
     finished_centers,
+    fixed_centers,
     in_first_half,
+    line_cells,
     orbit_cells,
     protected,
     rank_candidates,
@@ -129,14 +131,17 @@ class TestBarRows:
     @pytest.mark.parametrize(
         "size, expected", [
             (4, [2, 2]),
+            (5, [3, 3]),
             (6, [3, 3, 4, 4]),
+            (7, [4, 4, 5, 5]),
             (8, [4, 4, 5, 5, 6, 6]),
         ]
     )
     # fmt: on
     def test_success(self, size: int, expected: list[int]) -> None:
         """
-        Tests that every lower-half row is staged in twice, innermost first.
+        Tests that every lower-half row is staged in twice, innermost first, and that an odd cube's
+        middle row is left out.
 
         :param size: The cube size
         :param expected: The staging rows, one per bar
@@ -147,19 +152,45 @@ class TestBarRows:
         assert bar_rows(size) == expected
 
     # fmt: off
-    @pytest.mark.parametrize("size", [2, 3, 5, 7])
+    @pytest.mark.parametrize("size", [2, 3])
     # fmt: on
     def test_invalid_size(self, size: int) -> None:
         """
-        Tests that a cube that is odd or smaller than 4 raises a ValueError naming its size.
+        Tests that a cube smaller than 4 raises a ValueError naming its size.
 
         :param size: The cube size
         :return: None
         """
 
         # Assert
-        with pytest.raises(ValueError, match=f"Bars are staged only on even cubes of size 4 or more, got size {size}"):
+        with pytest.raises(ValueError, match=f"Bars are staged only on cubes of size 4 or more, got size {size}"):
             bar_rows(size)
+
+
+class TestLineCells:
+    # fmt: off
+    @pytest.mark.parametrize(
+        "size, vertical, expected", [
+            (5, False, [(2, 1), (2, 3)]),
+            (5, True,  [(1, 2), (3, 2)]),
+            (7, False, [(3, 2), (3, 4), (3, 1), (3, 5)]),
+            (7, True,  [(2, 3), (4, 3), (1, 3), (5, 3)]),
+        ]
+    )
+    # fmt: on
+    def test_success(self, size: int, vertical: bool, expected: list[tuple[int, int]]) -> None:
+        """
+        Tests that the line runs through the middle of the face, across it or down it, without the
+        fixed center, and is filled inner pair first and the left (upper) cell of each pair first.
+
+        :param size: The cube size
+        :param vertical: Whether the line runs down the face
+        :param expected: The cells, in filling order
+        :return: None
+        """
+
+        # Assert
+        assert line_cells(size, vertical) == expected
 
 
 class TestBuiltCells:
@@ -360,3 +391,27 @@ class TestFinishedCenters:
 
         # Assert
         assert finished_centers(cube, done) == []
+
+
+class TestFixedCenters:
+    def test_success(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that the middle cell of every face is returned with the colour it holds, whichever
+        colours have been moved there.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube: `x` carries each fixed center of the slice cycle one face on
+        cube = generate_cube(5, "x")
+
+        # Assert
+        assert fixed_centers(cube) == [
+            CenterSticker(Layer.UP, 2, 2, Color.GREEN),
+            CenterSticker(Layer.DOWN, 2, 2, Color.BLUE),
+            CenterSticker(Layer.LEFT, 2, 2, Color.ORANGE),
+            CenterSticker(Layer.RIGHT, 2, 2, Color.RED),
+            CenterSticker(Layer.FRONT, 2, 2, Color.YELLOW),
+            CenterSticker(Layer.BACK, 2, 2, Color.WHITE),
+        ]
