@@ -2,6 +2,7 @@
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.solve.cube_2x2.solve_2x2 import Solve2x2
 from rubik_cube_solver.solve.cube_3x3.solve_3x3 import Solve3x3
+from rubik_cube_solver.solve.cube_nxn.solve_nxn import SolveNxN
 from rubik_cube_solver.solve.solve import Solve
 
 
@@ -23,5 +24,9 @@ def create_solver(cube: Cube) -> Solve:
             return Solve2x2(cube)
         case 3:
             return Solve3x3(cube)
+        case size if size >= 4 and size % 2 == 0:
+            return SolveNxN(cube)
         case _:
-            raise ValueError(f"No solver for cubes of size {cube.size}, only 2x2 and 3x3 are supported")
+            raise ValueError(
+                f"No solver for cubes of size {cube.size}, only 2x2, 3x3 and even cubes of size 4 or more are supported"
+            )
