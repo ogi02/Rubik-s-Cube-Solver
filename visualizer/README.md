@@ -35,6 +35,10 @@ after changing one.
 VITE_ANIMATION_SPEED=15 VITE_MOVE_DELAY=0 VITE_SHOW_SUBTITLES=false npm run dev
 ```
 
+`npm run dev` and `npm run build` also read them from `visualizer/.env`. The Docker image never
+copies that file in, so with `docker compose` set them in the `.env` at the repository root, next to
+`docker-compose.yml`, and rebuild with `docker compose up --build`.
+
 ## Run with Docker
 
 The image builds the bundle with Vite and serves it with nginx. Vite inlines the `VITE_*` values
