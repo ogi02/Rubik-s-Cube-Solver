@@ -24,6 +24,7 @@ from rubik_cube_solver.solve.cube_nxn.parity import (
     permutation_parities_differ,
     pll_parity,
 )
+from rubik_cube_solver.solve.cube_nxn.reduced_3x3 import as_3x3
 from rubik_cube_solver.solve.cube_nxn.routes import trial
 from rubik_cube_solver.validator.validator import Validator
 
@@ -89,23 +90,6 @@ def _corners(cube: Cube) -> dict[Layer, list[Color]]:
     return {
         face: [cube.layers[face][row * cube.size + col] for row in (0, last) for col in (0, last)] for face in Layer
     }
-
-
-def _as_3x3(cube: Cube) -> Cube:
-    """
-    Returns the 3x3 a reduced big cube stands for, built from its corners, its outer wings and a center
-    sticker of each face.
-
-    :param cube: The big cube, with every center built and every edge paired
-    :return: The 3x3
-    """
-
-    size = cube.size
-    small = Cube(3)
-    cells = (0, 1, size - 1)
-    small.layers = {face: [cube.layers[face][row * size + col] for row in cells for col in cells] for face in Layer}
-
-    return small
 
 
 def _reduce_to_last_edge(generate_cube: Callable[[int, str], Cube], size: int, scramble: str) -> Cube:
@@ -372,7 +356,7 @@ class TestBuildParity:
         # Assert
         assert moves == [PARITY_SETUP] + fixes
         assert all(_paired(result, slot) for slot in EdgeSlot)
-        Validator().validate(_as_3x3(result))
+        Validator().validate(as_3x3(result))
 
     # fmt: off
     @pytest.mark.parametrize("size", [4, 5, 6, 7])
@@ -400,4 +384,4 @@ class TestBuildParity:
             # Assert
             assert all(_paired(result, slot) for slot in EdgeSlot), scramble
             assert all(len(set(stickers)) == 1 for stickers in _centers(result).values()), scramble
-            Validator().validate(_as_3x3(result))
+            Validator().validate(as_3x3(result))

@@ -6,10 +6,8 @@ server as a `cube_state` message, solves the cube and sends the solution as an `
 then disconnects. Every step prints a numbered header and pauses afterwards, so the output can be read
 alongside the animation in the visualizer.
 
-A 2x2 or a 3x3 ends up solved. A 4x4 or larger cube ends up reduced to a 3x3 - all six centers built
-and all twelve edges paired, with the parities fixed - but the corners and the edges are not put in
-place, since the big-cube solver does not go beyond the parity step yet. For those sizes the demo
-also prints which centers are built and which edges are paired.
+Every size ends up solved. A 4x4 or larger cube is first reduced to a 3x3 - all six centers built and
+all twelve edges paired, with the parities fixed - and then solved as a 3x3, all within one solution.
 
 The server must be running and a visualizer must be connected to it, otherwise the messages are
 relayed nowhere.
@@ -47,10 +45,7 @@ import os
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.cube_rotation.algorithm import Algorithm
 from rubik_cube_solver.cube_rotation.rotator import Rotator
-from rubik_cube_solver.enums.EdgeSlot import EdgeSlot
-from rubik_cube_solver.enums.Layer import Layer
 from rubik_cube_solver.scramble.scrambler import Scrambler
-from rubik_cube_solver.solve.cube_nxn.edges import is_paired
 from rubik_cube_solver.solve.solver import create_solver
 from rubik_cube_websocket_client.client import WebSocketClient
 from rubik_cube_websocket_client.messages import apply_moves, cube_state, disconnect
@@ -65,9 +60,6 @@ API_KEY = os.getenv("SOLVER_API_KEY", "solver")
 
 # The size of the cube to scramble and solve: 2, 3, or 4 and up for the big-cube solver
 CUBE_SIZE = int(os.getenv("CUBE_SIZE", "3"))
-
-# The smallest cube the big-cube solver handles, which only reduces the cube to a 3x3
-BIG_CUBE_SIZE = 4
 
 if not API_KEY:
     raise SystemExit("SOLVER_API_KEY is not set")
@@ -113,52 +105,6 @@ def scramble_a_cube() -> tuple[Cube, Algorithm]:
     return cube, scramble
 
 
-def built_centers(cube: Cube) -> dict[Layer, str]:
-    """
-    Returns the faces whose whole center is a single colour, with that colour's name.
-
-    :param cube: The cube
-    :return: The name of the colour of every finished center, by face
-    """
-
-    size = cube.size
-    built = {}
-
-    for face in Layer:
-        colors = {cube.layers[face][row * size + col] for row in range(1, size - 1) for col in range(1, size - 1)}
-        if len(colors) == 1:
-            built[face] = colors.pop().name
-
-    return built
-
-
-def paired_edges(cube: Cube) -> list[EdgeSlot]:
-    """
-    Returns the edge slots whose wings all show the same two colours.
-
-    :param cube: The cube
-    :return: The slots holding a paired edge
-    """
-
-    return [slot for slot in EdgeSlot if is_paired(cube, slot)]
-
-
-def print_reduction(cube: Cube) -> None:
-    """
-    Prints which centers of a big cube are built and which of its edges are paired.
-
-    :param cube: The big cube, after the big-cube solver has run
-    :return: None
-    """
-
-    print("Centers built:")
-    for face, color in built_centers(cube).items():
-        print(f"  {face.name:<6} {color}")
-
-    paired = paired_edges(cube)
-    print(f"Edges paired ({len(paired)}): {' '.join(slot.name for slot in paired)}")
-
-
 def connect_to_server() -> WebSocketClient:
     """
     Builds a solver client and authenticates it with the server.
@@ -182,8 +128,6 @@ async def run_demo() -> None:
     :return: None
     """
 
-    is_big_cube = CUBE_SIZE >= BIG_CUBE_SIZE
-
     announce(f"Creating and scrambling a {CUBE_SIZE}x{CUBE_SIZE} cube")
     cube, scramble = scramble_a_cube()
     print(f"Scramble ({len(scramble.moves)} moves): {scramble}")
@@ -203,15 +147,13 @@ async def run_demo() -> None:
     print("Sent a cube_state message with the scrambled cube")
     await asyncio.sleep(STEP_DELAY)
 
-    announce("Reducing the cube to a 3x3" if is_big_cube else "Solving the cube")
+    announce("Solving the cube")
     solver = create_solver(cube)
     solution = solver.solve()
     print(f"Solver: {type(solver).__name__}")
     print(f"Solution ({len(solution.moves)} moves): {solution}")
-    print(f"{CUBE_SIZE}x{CUBE_SIZE} {'reduced to a 3x3' if is_big_cube else 'solved'}:")
+    print(f"Solved {CUBE_SIZE}x{CUBE_SIZE}:")
     print(cube)
-    if is_big_cube:
-        print_reduction(cube)
     await asyncio.sleep(STEP_DELAY)
 
     announce("Sending the solution")
