@@ -1,3 +1,6 @@
+# Python imports
+from typing import Callable
+
 # Project imports
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.cube_rotation.move import Move
@@ -386,23 +389,25 @@ def front_left_stickers(size: int, row: int, front: Color, left: Color) -> tuple
     return Sticker(front_layer, front_row, front_col, front), Sticker(left_layer, left_row, left_col, left)
 
 
-def build_edge(cube: Cube) -> tuple[list[str], Cube]:
+def build_edge(cube: Cube, routes: Callable[[int, int, EdgeSlot, int], list[str]]) -> tuple[list[str], Cube]:
     """
     Pairs every wing of the edge in FL with its pivot, one row at a time in `edge_rows` order.
 
-    For each row, both wings of the pivot's colours that could fill it are found, and the first route
-    of `wing_routes` that fills it the pivot's way round while keeping the pivot and the rows before it
-    is taken. Each route is tried on a copy of the cube.
+    For each row, both wings of the pivot's colours that could fill it are found, and the first of the
+    routes given for them that fills it the pivot's way round while keeping the pivot and the rows
+    before it is taken. Each route is tried on a copy of the cube.
 
     Example, on a 4x4 turned with `Uw`. The pivot is the wing `Uw` carried into FL from FR, so the lower
     wing of FR is brought after it:
 
         >>> cube = Cube(4)
         >>> Rotator(cube).apply(Algorithm.from_str("Uw"))
-        >>> build_edge(cube)[0]
+        >>> build_edge(cube, wing_routes)[0]
         ["Dw'"]
 
     :param cube: The cube
+    :param routes: Returns the routes that bring a wing into FL's row, as `wing_routes` does, from the
+        size of the cube, the row, and the slot and index of the wing
     :return: The routes used and the cube with the edge in FL paired
     """
 
@@ -419,7 +424,7 @@ def build_edge(cube: Cube) -> tuple[list[str], Cube]:
             fetched = None
 
             for slot, index in find_wings(cube, {front, left}, row):
-                if fetched := first_route(cube, wing_routes(size, row, slot, index), goal, keep):
+                if fetched := first_route(cube, routes(size, row, slot, index), goal, keep):
                     break
 
             if fetched is None:
@@ -560,7 +565,7 @@ def build_first_eight_edges(cube: Cube) -> list[str]:
     cube = trial(cube, EDGES_REGRIP)
 
     while open_slot(cube) is not None:
-        edge_moves, cube = build_edge(cube)
+        edge_moves, cube = build_edge(cube, wing_routes)
         moves += edge_moves
 
         if (slot := open_slot(cube)) is not None:
