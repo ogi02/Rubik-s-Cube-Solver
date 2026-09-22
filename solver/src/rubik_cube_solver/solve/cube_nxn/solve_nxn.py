@@ -4,6 +4,7 @@ from typing import Callable
 # Project imports
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.cube_rotation.algorithm import Algorithm
+from rubik_cube_solver.enums.Layer import Layer
 from rubik_cube_solver.solve.cube_3x3.solve_3x3 import Solve3x3
 from rubik_cube_solver.solve.cube_nxn.centers import build_first_four_centers
 from rubik_cube_solver.solve.cube_nxn.edges import build_first_eight_edges
@@ -11,6 +12,7 @@ from rubik_cube_solver.solve.cube_nxn.last_centers import build_last_two_centers
 from rubik_cube_solver.solve.cube_nxn.last_edges import build_last_four_edges
 from rubik_cube_solver.solve.cube_nxn.parity import build_parity
 from rubik_cube_solver.solve.cube_nxn.reduced_3x3 import as_3x3
+from rubik_cube_solver.solve.cube_nxn.view import held_in_view
 from rubik_cube_solver.solve.solve import Solve
 
 
@@ -58,10 +60,14 @@ class SolveNxN(Solve):
         """
         Builds the yellow, white, green and red centers.
 
+        With the grips kept, each center is built with the cube held so the face it is being built on
+        faces a viewer, since white is built on LEFT and green and red on DOWN, all of which point
+        away from one. The pieces turned are the same either way.
+
         :return: None
         """
 
-        self._apply(Algorithm.from_str(" ".join(build_first_four_centers(self.cube))))
+        self._apply(Algorithm.from_str(" ".join(build_first_four_centers(self.cube, in_view=self._keep_grips))))
 
     def _last_two_centers(self) -> None:
         """
@@ -79,7 +85,7 @@ class SolveNxN(Solve):
         :return: None
         """
 
-        self._apply(Algorithm.from_str(" ".join(build_first_eight_edges(self.cube))))
+        self._apply(Algorithm.from_str(" ".join(self._in_view(build_first_eight_edges(self.cube)))))
 
     def _last_four_edges(self) -> None:
         """
@@ -89,7 +95,20 @@ class SolveNxN(Solve):
         :return: None
         """
 
-        self._apply(Algorithm.from_str(" ".join(build_last_four_edges(self.cube))))
+        self._apply(Algorithm.from_str(" ".join(self._in_view(build_last_four_edges(self.cube)))))
+
+    def _in_view(self, moves: list[str]) -> list[str]:
+        """
+        Holds an edge step's algorithms so the edge being paired can be seen, when grips are kept.
+
+        Both edge steps pair into FL, whose left half points away from a viewer, so the cube is turned
+        to bring that half forward and turned back afterwards. The same wings are paired either way.
+
+        :param moves: The algorithms of the step
+        :return: The algorithms, held to be seen if the grips are kept
+        """
+
+        return held_in_view(moves, Layer.LEFT) if self._keep_grips else moves
 
     def _parity(self) -> None:
         """

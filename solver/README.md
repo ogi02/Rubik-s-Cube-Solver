@@ -95,6 +95,13 @@ by left in, so the solution regrips the way a person does: a quarter turn betwee
 different face brought to the front for each center. That is the form to send to the visualizer,
 which can turn the whole cube as well as a single layer.
 
+Kept grips also turn a big cube to where it can be watched. The method builds the white center on
+the left of the cube and the green and red ones underneath it, and pairs its edges into the front
+left slot, all of which point away from anyone looking at the front. So each of those is built with
+the cube held to bring that face forward and turned back afterwards — the same pieces in the same
+order, only held the way a person holds a cube to see what they are doing. Without the grips the
+solution is unchanged, since taking the rotations out gives exactly the moves it had before.
+
 `create_solver` is the entry point: it takes any cube, reads its size and returns the solver for
 it, so callers never pick a class themselves. A size no solver handles is rejected there and then,
 before any solving starts.

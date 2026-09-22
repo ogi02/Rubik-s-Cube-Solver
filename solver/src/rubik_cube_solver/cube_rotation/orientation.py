@@ -79,20 +79,42 @@ class Orientation:
 
         return Orientation({layer: self.__layers[translation[layer]] for layer in Layer})
 
+    def inverse(self) -> "Orientation":
+        """
+        Return the orientation read the other way round: the name each layer is called by.
+
+        Where this orientation answers "which layer is this name pointing at", the inverted one
+        answers "what is this layer called now", which is what renaming a move into a grip needs.
+
+        :return: The inverted orientation
+        """
+
+        return Orientation({layer: name for name, layer in self.__layers.items()})
+
     def to_moves(self) -> list[Move]:
         """
         Return the shortest sequence of whole-cube rotations that holds a cube this way.
-
-        Every orientation is reached from the identity one by a breadth-first walk over the nine
-        rotations, so the first sequence that arrives at this orientation is a shortest one. No
-        orientation needs more than two rotations.
 
         Example: the orientation of `x` followed by `x` is written as `x2`.
 
         :return: The shortest sequence of whole-cube rotations
         """
 
-        sequences: dict[Orientation, list[Move]] = {Orientation(): []}
+        return self.shortest_sequences()[self]
+
+    @classmethod
+    def shortest_sequences(cls) -> dict["Orientation", list[Move]]:
+        """
+        Return every orientation a cube can be held in, with the shortest rotation sequence reaching it.
+
+        The orientations are walked breadth-first from the identity one over the nine rotations, so
+        the first sequence that arrives at an orientation is a shortest one. There are twenty-four of
+        them and none needs more than two rotations.
+
+        :return: The shortest rotation sequence for every orientation
+        """
+
+        sequences: dict[Orientation, list[Move]] = {cls(): []}
         queue: deque[Orientation] = deque(sequences)
 
         while queue:
@@ -105,7 +127,7 @@ class Orientation:
                         sequences[rotated] = sequences[orientation] + [move]
                         queue.append(rotated)
 
-        return sequences[self]
+        return sequences
 
     @classmethod
     def from_moves(cls, rotations: list[Move]) -> Self:

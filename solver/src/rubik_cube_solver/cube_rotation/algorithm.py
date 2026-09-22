@@ -5,6 +5,7 @@ from typing import Self
 from rubik_cube_solver.cube_rotation.move import Move
 from rubik_cube_solver.cube_rotation.move_cancellation import can_combine, combine
 from rubik_cube_solver.cube_rotation.orientation import Orientation
+from rubik_cube_solver.enums.Layer import Layer
 from rubik_cube_solver.enums.Rotation import Rotation
 
 
@@ -102,6 +103,36 @@ class Algorithm:
                 orientation = orientation.rotate(move)
             else:
                 moves.append(Move(orientation.layers[move.layer], move.direction, move.layer_amount))
+
+        self.__moves = moves
+
+    def rename(self, grip: "Algorithm") -> None:
+        """
+        Renames every move to the face it is called by once the cube is held in the given grip.
+
+        The algorithm then turns exactly the same pieces of the same cube as before, provided the
+        grip's rotations are performed first: only the name each layer goes by has changed, because
+        the cube has been turned. Performing the grip, this algorithm and then the grip's inverse
+        therefore does the very same work, on a face the grip has brought into view, and
+        `remove_rotations` over the three takes them straight back to what they were.
+
+        Example: `L U L'` renamed for the grip `y'` becomes `F U F'`, since a cube turned by `y'`
+        calls its left face the front one.
+
+        :param grip: The whole-cube rotations the cube is held in
+        :return: None
+        """
+
+        names = Orientation.from_moves(grip.moves).inverse().layers
+        moves: list[Move] = []
+
+        for move in self.__moves:
+            if isinstance(move.layer, Rotation):
+                face = names[Layer.from_axis(move.layer)]
+                direction = move.direction if face.turns_with_axis() else move.direction.inverse()
+                moves.append(Move(face.axis(), direction, move.layer_amount))
+            else:
+                moves.append(Move(names[move.layer], move.direction, move.layer_amount))
 
         self.__moves = moves
 
