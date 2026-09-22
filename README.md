@@ -27,8 +27,8 @@ The cube is a 3x3 unless `CUBE_SIZE` says otherwise, and it can be set for a sin
 docker compose run --rm -e CUBE_SIZE=5 playground
 ```
 
-A 2x2 or a 3x3 is solved. A 4x4 or larger cube is reduced to a 3x3 - centers built, edges paired and
-parities fixed - but not solved further, since the big-cube solver stops at the parity step.
+Every size is solved. A 4x4 or larger cube is first reduced to a 3x3 - centers built, edges paired and
+parities fixed - and then solved as a 3x3.
 
 The demo client sits behind the `demo` profile, so `docker compose up` never starts it before the
 visualizer page is open.

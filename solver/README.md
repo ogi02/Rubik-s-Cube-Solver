@@ -94,9 +94,9 @@ the last layer and its permutation. Both are human methods rather than searches,
 are the ones a person would recognize rather than the shortest ones. Either can still be
 constructed directly, and each accepts only its own cube size.
 
-`SolveNxN` handles cubes of 4x4 and larger, even and odd, but only partly: it builds all six
-centers, pairs eight of the edges and stores them on the white and yellow faces, pairs three of the
-last four, then fixes the parities, so the cube comes back reduced to a 3x3 but not solved. On an odd cube each center's middle line,
+`SolveNxN` handles cubes of 4x4 and larger, even and odd, by reduction: it builds all six centers,
+pairs eight of the edges and stores them on the white and yellow faces, pairs three of the last four,
+then fixes the parities, and finally solves the reduced cube as a 3x3. On an odd cube each center's middle line,
 through the fixed center, is built before the rest of it. The edges are paired with a free slice:
 the edge between FRONT and LEFT is built from its middle outwards with wide turns of the rows, and
 the rows of the side centers that this turns are put back once the eight edges are stored. The last
@@ -104,7 +104,9 @@ four edges have no free slice left, so every row turned to pair them is turned b
 and the twelfth edge is left with all its pieces in one place but not necessarily paired. The parity
 step pairs it with the OLL parity algorithm, flipping its wings from the middle outwards. An even
 cube has no fixed middle wing, so it is then checked for an odd number of flipped edges, fixed by
-flipping one edge whole, and for two swapped edges, fixed by the PLL parity algorithm. Every
+flipping one edge whole, and for two swapped edges, fixed by the PLL parity algorithm. The reduced
+cube is then read as a 3x3 - its corners, one wing of each edge and one sticker of each center - and
+solved with `Solve3x3`, whose outer-face turns are applied to the big cube unchanged. Every
 other part of the library — representation, turning, scrambling and
 validation — supports cubes of any size.
 
