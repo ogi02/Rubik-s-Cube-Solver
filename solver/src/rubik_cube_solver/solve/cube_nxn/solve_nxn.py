@@ -4,11 +4,13 @@ from typing import Callable
 # Project imports
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.cube_rotation.algorithm import Algorithm
+from rubik_cube_solver.solve.cube_3x3.solve_3x3 import Solve3x3
 from rubik_cube_solver.solve.cube_nxn.centers import build_first_four_centers
 from rubik_cube_solver.solve.cube_nxn.edges import build_first_eight_edges
 from rubik_cube_solver.solve.cube_nxn.last_centers import build_last_two_centers
 from rubik_cube_solver.solve.cube_nxn.last_edges import build_last_four_edges
 from rubik_cube_solver.solve.cube_nxn.parity import build_parity
+from rubik_cube_solver.solve.cube_nxn.reduced_3x3 import as_3x3
 from rubik_cube_solver.solve.solve import Solve
 
 
@@ -16,11 +18,11 @@ class SolveNxN(Solve):
     """
     Solver for big cubes, of size 4 and up.
 
-    Its steps so far build the centers: first yellow, white, green and red, then blue and orange. Eight
-    edges are then paired and stored on UP and DOWN, three of the last four are paired between the side
-    faces, and the parity step pairs the twelfth and, on an even cube, fixes the edge flip and
-    permutation parities. A cube comes back reduced, with every center built and every edge paired so it
-    can be solved as a 3x3, but not solved.
+    The cube is reduced to a 3x3 and then solved as one. The centers are built first: yellow, white,
+    green and red, then blue and orange. Eight edges are then paired and stored on UP and DOWN, three of
+    the last four are paired between the side faces, and the parity step pairs the twelfth and, on an
+    even cube, fixes the edge flip and permutation parities. The reduced cube is finally solved like a
+    3x3, with the CFOP method of `Solve3x3`.
     """
 
     def __init__(self, cube: Cube) -> None:
@@ -49,6 +51,7 @@ class SolveNxN(Solve):
             self._first_eight_edges,
             self._last_four_edges,
             self._parity,
+            self._solve_as_3x3,
         ]
 
     def _first_four_centers(self) -> None:
@@ -97,3 +100,15 @@ class SolveNxN(Solve):
         """
 
         self._apply(Algorithm.from_str(" ".join(build_parity(self.cube))))
+
+    def _solve_as_3x3(self) -> None:
+        """
+        Solves the cube like a 3x3, once it is reduced.
+
+        The 3x3 the cube stands for is solved with `Solve3x3`, and its solution is applied to the cube
+        unchanged, since it holds only outer-face turns, which turn a reduced big cube the same way.
+
+        :return: None
+        """
+
+        self._apply(Solve3x3(as_3x3(self.cube)).solve())
