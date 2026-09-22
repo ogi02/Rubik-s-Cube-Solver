@@ -318,6 +318,82 @@ class TestAlgorithmRemoveRotations:
         assert original_cube.layers == rotation_free_cube.layers
 
 
+class TestAlgorithmShortenRotations:
+    # fmt: off
+    @pytest.mark.parametrize(
+        "algorithm_string, expected_string", [
+            ("",                ""),               # Empty algorithm
+            ("R U R' U'",       "R U R' U'"),       # No rotations at all
+            ("R x x L",         "R x2 L"),          # A run that shortens
+            ("R x x' L",        "R L"),             # A run that collapses to nothing
+            ("R x y x' L",      "R z L"),           # A mixed-axis run
+            ("R x y x'",        "R z"),             # A trailing run at the end of the algorithm
+            ("R x x L z z' U",  "R x2 L U"),         # Docstring example: two runs in one algorithm
+        ]
+    )
+    # fmt: on
+    def test_success(self, algorithm_string: str, expected_string: str) -> None:
+        """
+        Tests that shortening the rotations of an algorithm replaces every run of adjacent
+        whole-cube rotations with the shortest sequence that holds the cube the same way, leaving
+        the layer turns exactly where they are.
+
+        :param algorithm_string: The string representation of the algorithm
+        :param expected_string: The string representation of the expected shortened algorithm
+        :return: None
+        """
+
+        # Mock the algorithm
+        algorithm = Algorithm.from_str(algorithm_string)
+
+        # Act
+        algorithm.shorten_rotations()
+
+        # Assert
+        assert algorithm == Algorithm.from_str(expected_string)
+
+    # fmt: off
+    @pytest.mark.parametrize(
+        "algorithm_string", [
+            "R x x L",
+            "R x y x' L",
+            "z' y2 x' U L2 Fw",
+        ]
+    )
+    # fmt: on
+    def test_equivalent_to_the_original(
+        self,
+        generate_cube: Callable[[int], Cube],
+        generate_rotator: Callable[[Cube], Rotator],
+        algorithm_string: str,
+    ) -> None:
+        """
+        Tests that the shortened algorithm leaves the cube in the same state as the original one,
+        since every replaced run holds the cube the same way as the rotations it replaces.
+
+        :param generate_cube: Fixture to generate a cube
+        :param generate_rotator: Fixture to generate a rotator
+        :param algorithm_string: The string representation of the algorithm
+        :return: None
+        """
+
+        # Mock the cubes
+        original_cube = generate_cube(5)
+        shortened_cube = generate_cube(5)
+
+        # Mock the algorithms
+        original = Algorithm.from_str(algorithm_string)
+        shortened = Algorithm.from_str(algorithm_string)
+        shortened.shorten_rotations()
+
+        # Act
+        generate_rotator(original_cube).apply(original)
+        generate_rotator(shortened_cube).apply(shortened)
+
+        # Assert
+        assert original_cube.layers == shortened_cube.layers
+
+
 class TestAlgorithmCancelMoves:
     # fmt: off
     @pytest.mark.parametrize(

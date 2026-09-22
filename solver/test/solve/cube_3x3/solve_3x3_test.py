@@ -667,6 +667,28 @@ class TestSolve3x3Solve:
         # Assert the solution contains no whole-cube rotations
         assert all(not isinstance(move.layer, Rotation) for move in result.moves)
 
+    def test_solves_with_grips_kept(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that `solve(keep_grips=True)` still solves the cube: the returned solution holds
+        whole-cube rotations, and replaying it on a cube scrambled the same way from its original
+        orientation leaves that cube solved too.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube and solve it with grips kept
+        scramble = "x D R F' U L2 D' B R'"
+        cube = generate_cube(3, scramble)
+        result = Solve3x3(cube).solve(keep_grips=True)
+
+        # Assert the solution contains whole-cube rotations
+        assert any(isinstance(move.layer, Rotation) for move in result.moves)
+
+        # Assert the solution solves a cube scrambled the same way, from its original orientation
+        replayed = generate_cube(3, f"{scramble} {result}")
+        assert _cube_is_solved(replayed)
+
     def test_solves_random_scrambles(self, generate_cube: Callable[[int, str], Cube]) -> None:
         """
         Tests that `solve` finishes a hundred randomly scrambled cubes, which reach far more cases

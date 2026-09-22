@@ -332,3 +332,44 @@ class TestSolveSolve:
 
         # Assert
         assert result == Algorithm([])
+
+    def test_keep_grips_keeps_the_rotation_in_the_returned_solution(
+        self, generate_cube: Callable[[int, str], Cube]
+    ) -> None:
+        """
+        Tests that `solve(keep_grips=True)` leaves the whole-cube rotation a step turned the cube
+        by in the returned solution, instead of removing it: `x` is already the shortest sequence
+        that holds the cube the way it is turned to, and no adjacent move combines with it, so it
+        survives cancelling, shortening and cancelling again unchanged.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube
+        cube = generate_cube(3, "")
+        solve = _StubSolve(cube, ["x R U R' U'"])
+        result = solve.solve(keep_grips=True)
+
+        # Assert
+        assert result == Algorithm.from_str("x R U R' U'")
+
+    def test_keep_grips_shortens_a_run_and_cancels_across_it(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that `solve(keep_grips=True)` shortens a run of mixed-axis rotations to the
+        orientation it actually holds, and that the final cancellation reaches across the shortened
+        run: `x y x' z'` holds the cube exactly as it started (`x y x'` is the same orientation as
+        `z`, and the following `z'` undoes it), so shortening collapses the whole run to nothing,
+        which brings the `R` before it and the `R'` after it together and cancels them too.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube
+        cube = generate_cube(3, "")
+        solve = _StubSolve(cube, ["R x y x'", "z' R'"])
+        result = solve.solve(keep_grips=True)
+
+        # Assert
+        assert result == Algorithm([])

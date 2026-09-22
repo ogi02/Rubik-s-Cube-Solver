@@ -314,6 +314,28 @@ class TestSolveNxNSolveAs3x3:
         # Assert
         assert _is_solved(cube)
 
+    def test_keeps_grips_when_the_flag_is_set(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that the step passes `_keep_grips` down to the reduced 3x3's own solve, so the grips
+        its cross, F2L, OLL and PLL steps turn the cube by land in the part of the solution this
+        step contributes.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate a cube already reduced by outer-face turns only, and ask to keep grips
+        cube = generate_cube(6, "R U F' L2 D B' R2 U'")
+        solve = SolveNxN(cube)
+        solve._keep_grips = True
+
+        # Run the step
+        solve._solve_as_3x3()
+
+        # Assert
+        assert _is_solved(cube)
+        assert any(isinstance(move.layer, Rotation) for move in solve.solution.moves)
+
 
 class TestSolveNxNSolve:
     # fmt: off
@@ -347,3 +369,32 @@ class TestSolveNxNSolve:
             assert _is_solved(cube), scramble
             assert _is_solved(replay), scramble
             assert not any(isinstance(move.layer, Rotation) for move in solution.moves)
+
+    # fmt: off
+    @pytest.mark.parametrize("cube_size", [4, 5])
+    # fmt: on
+    def test_solves_with_grips_kept(self, generate_cube: Callable[[int, str], Cube], cube_size: int) -> None:
+        """
+        Tests that `solve(keep_grips=True)` still solves an even and an odd big cube: the returned
+        solution holds whole-cube rotations, and replaying it on a cube scrambled the same way from
+        its original orientation leaves that cube solved too.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :param cube_size: The cube size
+        :return: None
+        """
+
+        random.seed(cube_size)
+
+        for _ in range(2):
+            # Scramble the cube and solve it with grips kept
+            scramble = str(Algorithm(Scrambler().generate_scramble(cube_size)))
+            cube = generate_cube(cube_size, scramble)
+            result = SolveNxN(cube).solve(keep_grips=True)
+
+            # Assert the solution contains whole-cube rotations
+            assert any(isinstance(move.layer, Rotation) for move in result.moves), scramble
+
+            # Assert the solution solves a cube scrambled the same way, from its original orientation
+            replayed = generate_cube(cube_size, f"{scramble} {result}")
+            assert _is_solved(replayed), scramble
