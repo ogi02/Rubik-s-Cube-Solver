@@ -50,6 +50,18 @@ def _paired_edges(cube: Cube, slots: tuple[EdgeSlot, ...]) -> int:
     return sum(is_paired(cube, slot) for slot in slots)
 
 
+def _is_solved(cube: Cube) -> bool:
+    """
+    Returns whether every face of a cube shows one colour, by reading raw stickers. The faces' colours are
+    not checked, since the solution has its regrips removed and so leaves the cube in another grip.
+
+    :param cube: The cube
+    :return: Whether the cube is solved
+    """
+
+    return all(len(set(stickers)) == 1 for stickers in cube.layers.values())
+
+
 class TestSolveNxNInit:
     # fmt: off
     @pytest.mark.parametrize("cube_size", [4, 5, 6, 7, 8])
@@ -93,7 +105,7 @@ class TestSolveNxNSteps:
     def test_returns_the_steps_in_order(self, generate_cube: Callable[[int, str], Cube]) -> None:
         """
         Tests that `_steps` returns the first-four-centers step, the last-two-centers step, the
-        first-eight-edges step, the last-four-edges step, then the parity step.
+        first-eight-edges step, the last-four-edges step, the parity step, then the 3x3 step.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :return: None
@@ -110,6 +122,7 @@ class TestSolveNxNSteps:
             solve._first_eight_edges,
             solve._last_four_edges,
             solve._parity,
+            solve._solve_as_3x3,
         ]
 
 
@@ -250,14 +263,66 @@ class TestSolveNxNParity:
         assert replay.layers == cube.layers
 
 
+class TestSolveNxNSolveAs3x3:
+    # fmt: off
+    @pytest.mark.parametrize("cube_size", [4, 5])
+    # fmt: on
+    def test_solves_the_cube(self, generate_cube: Callable[[int, str], Cube], cube_size: int) -> None:
+        """
+        Tests that the step, run after the parity step, solves the cube, and records every move it makes in
+        the solution.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :param cube_size: The cube size
+        :return: None
+        """
+
+        # Generate the cube
+        cube = generate_cube(cube_size, "Rw U2 Lw' F Dw")
+        solve = SolveNxN(cube)
+
+        # Run the steps
+        solve._first_four_centers()
+        solve._last_two_centers()
+        solve._first_eight_edges()
+        solve._last_four_edges()
+        solve._parity()
+        solve._solve_as_3x3()
+
+        # Assert
+        replay = generate_cube(cube_size, "Rw U2 Lw' F Dw")
+        Rotator(replay).apply(solve.solution)
+        assert _is_solved(cube)
+        assert replay.layers == cube.layers
+
+    def test_outer_turns_only(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that the step alone solves a big cube scrambled by outer-face turns only, which is already
+        reduced.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube
+        cube = generate_cube(6, "R U F' L2 D B' R2 U'")
+        solve = SolveNxN(cube)
+
+        # Run the step
+        solve._solve_as_3x3()
+
+        # Assert
+        assert _is_solved(cube)
+
+
 class TestSolveNxNSolve:
     # fmt: off
     @pytest.mark.parametrize("cube_size", [4, 5, 6, 7])
     # fmt: on
     def test_solves_random_scrambles(self, generate_cube: Callable[[int, str], Cube], cube_size: int) -> None:
         """
-        Tests that solving builds every center and pairs every edge, and that the returned solution holds
-        no whole-cube rotation and does the same when replayed on the scramble.
+        Tests that solving leaves the cube solved, and that the returned solution holds no whole-cube
+        rotation and solves the scramble when replayed on it.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :param cube_size: The cube size
@@ -279,8 +344,6 @@ class TestSolveNxNSolve:
             Rotator(replay).apply(solution)
 
             # Assert
-            assert _built_centers(cube) == ALL_SIX, scramble
-            assert _built_centers(replay) == ALL_SIX, scramble
-            assert _paired_edges(cube, tuple(EdgeSlot)) == 12, scramble
-            assert _paired_edges(replay, tuple(EdgeSlot)) == 12, scramble
+            assert _is_solved(cube), scramble
+            assert _is_solved(replay), scramble
             assert not any(isinstance(move.layer, Rotation) for move in solution.moves)
