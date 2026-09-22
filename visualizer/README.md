@@ -21,8 +21,7 @@ npm run dev
 
 These environment variables override the cube settings for every cube size. An unset or empty
 variable keeps the default of the cube size, and an invalid value stops the visualizer with an
-error naming the variable. Vite inlines them at build time, so restart `npm run dev` or rebuild
-after changing one.
+error naming the variable. Vite inlines them at build time, so rebuild the image after changing one.
 
 | Variable | Value | Default |
 | --- | --- | --- |
@@ -32,12 +31,15 @@ after changing one.
 | `VITE_SHOW_SUBTITLES` | `true` or `false`, whether the message box is shown | `true` |
 
 ```bash
-VITE_ANIMATION_SPEED=15 VITE_MOVE_DELAY=0 VITE_SHOW_SUBTITLES=false npm run dev
+# .env at the repository root
+VITE_ANIMATION_SPEED=15
+VITE_MOVE_DELAY=0
+VITE_SHOW_SUBTITLES=false
 ```
 
-`npm run dev` and `npm run build` also read them from `visualizer/.env`. The Docker image never
-copies that file in, so with `docker compose` set them in the `.env` at the repository root, next to
-`docker-compose.yml`, and rebuild with `docker compose up --build`.
+```bash
+docker compose up --build
+```
 
 ## Run with Docker
 
