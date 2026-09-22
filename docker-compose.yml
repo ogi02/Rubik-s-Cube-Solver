@@ -54,6 +54,8 @@ services:
       HOST: server
       PORT: "8080"
       SOLVER_API_KEY: ${SOLVER_API_KEY:-solver}
+      # The size of the demo cube, overridden by the root .env, the shell or `run -e CUBE_SIZE=5`
+      CUBE_SIZE: ${CUBE_SIZE:-3}
     depends_on:
       - server
     restart: "no"
