@@ -8,6 +8,7 @@ from rubik_cube_solver.solve.cube_nxn.centers import build_first_four_centers
 from rubik_cube_solver.solve.cube_nxn.edges import build_first_eight_edges
 from rubik_cube_solver.solve.cube_nxn.last_centers import build_last_two_centers
 from rubik_cube_solver.solve.cube_nxn.last_edges import build_last_four_edges
+from rubik_cube_solver.solve.cube_nxn.parity import build_parity
 from rubik_cube_solver.solve.solve import Solve
 
 
@@ -16,9 +17,10 @@ class SolveNxN(Solve):
     Solver for big cubes, of size 4 and up.
 
     Its steps so far build the centers: first yellow, white, green and red, then blue and orange. Eight
-    edges are then paired and stored on UP and DOWN, and three of the last four are paired between the
-    side faces, so a cube comes back with every center built, eleven of its edges paired, the wings of
-    the twelfth in one slot but not necessarily paired, and its corners not solved.
+    edges are then paired and stored on UP and DOWN, three of the last four are paired between the side
+    faces, and the parity step pairs the twelfth and, on an even cube, fixes the edge flip and
+    permutation parities. A cube comes back reduced, with every center built and every edge paired so it
+    can be solved as a 3x3, but not solved.
     """
 
     def __init__(self, cube: Cube) -> None:
@@ -41,7 +43,13 @@ class SolveNxN(Solve):
         :return: The ordered solving steps
         """
 
-        return [self._first_four_centers, self._last_two_centers, self._first_eight_edges, self._last_four_edges]
+        return [
+            self._first_four_centers,
+            self._last_two_centers,
+            self._first_eight_edges,
+            self._last_four_edges,
+            self._parity,
+        ]
 
     def _first_four_centers(self) -> None:
         """
@@ -79,3 +87,13 @@ class SolveNxN(Solve):
         """
 
         self._apply(Algorithm.from_str(" ".join(build_last_four_edges(self.cube))))
+
+    def _parity(self) -> None:
+        """
+        Pairs the twelfth edge and fixes the parities an even cube can be left with, once every other
+        edge is paired.
+
+        :return: None
+        """
+
+        self._apply(Algorithm.from_str(" ".join(build_parity(self.cube))))

@@ -21,6 +21,7 @@ from rubik_cube_solver.validator.validator_utils import (
     get_corners,
     get_edges,
     get_wing_edges,
+    permutation_parity,
 )
 
 
@@ -298,16 +299,5 @@ class Validator:
         edges = get_edges(cube)
         edge_perm = [canonical_edges.index(frozenset(edge)) for edge in edges]
 
-        def count_inversions(perm: list[int]) -> int:
-            inversions = 0
-            for i in range(len(perm)):
-                for j in range(i + 1, len(perm)):
-                    if perm[i] > perm[j]:
-                        inversions += 1
-            return inversions
-
-        corner_parity = count_inversions(corner_perm) % 2
-        edge_parity = count_inversions(edge_perm) % 2
-
-        if corner_parity != edge_parity:
+        if permutation_parity(corner_perm) != permutation_parity(edge_perm):
             raise ValueError("Invalid permutation parity: corner and edge permutations have different parities.")
