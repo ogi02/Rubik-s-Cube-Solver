@@ -21,6 +21,15 @@ drives the animation:
 docker compose run --rm playground
 ```
 
+The cube is a 3x3 unless `CUBE_SIZE` says otherwise, and it can be set for a single run:
+
+```bash
+docker compose run --rm -e CUBE_SIZE=5 playground
+```
+
+A 2x2 or a 3x3 is solved. A 4x4 or larger cube is reduced to a 3x3 - centers built, edges paired and
+parities fixed - but not solved further, since the big-cube solver stops at the parity step.
+
 The demo client sits behind the `demo` profile, so `docker compose up` never starts it before the
 visualizer page is open.
 
@@ -36,6 +45,7 @@ docker compose down
 | --- | --- | --- |
 | `JWT_SECRET` | `dev-secret` | server |
 | `SOLVER_API_KEY` | `solver` | server, demo client |
+| `CUBE_SIZE` | `3` | demo client |
 | `VISUALIZER_API_KEY` | `visualizer` | server, visualizer |
 | `VITE_SERVER_URL` | `http://localhost:8080` | visualizer |
 
