@@ -10,7 +10,8 @@ RUN pip install --no-cache-dir -r requirements.txt \
     -i https://test.pypi.org/simple/ \
     --extra-index-url https://pypi.org/simple/
 
-COPY . .
+# Only the demo script goes into the image, never the scratch files that share its folder
+COPY solver_visualizer_demo.py ./
 
 # Unbuffered output, so the numbered demo sections appear in the container log as they are printed
 ENV PYTHONUNBUFFERED=1
