@@ -20,7 +20,7 @@ from rubik_cube_solver.solve.cube_nxn.last_centers import (
     fill_right_half,
     fill_staging_cell,
 )
-from rubik_cube_solver.solve.cube_nxn.pieces import CenterSticker, fixed_centers
+from rubik_cube_solver.solve.cube_nxn.pieces import Sticker, fixed_centers
 from rubik_cube_solver.solve.cube_nxn.routes import inverse_of, line_lift_routes, staging_middle_routes, trial
 
 # The whole-cube rotation that turns a solved cube into the grip the first four centers end in: blue
@@ -69,7 +69,7 @@ def _center_is(cube: Cube, face: Layer, color: Color) -> bool:
     return all(cube.layers[face][row * size + col] is color for row in range(1, size - 1) for col in range(1, size - 1))
 
 
-def _stickers(cube: Cube, face: Layer, cells: list[tuple[int, int]]) -> list[CenterSticker]:
+def _stickers(cube: Cube, face: Layer, cells: list[tuple[int, int]]) -> list[Sticker]:
     """
     Returns cells of a face, each tagged with the colour it holds now.
 
@@ -79,7 +79,7 @@ def _stickers(cube: Cube, face: Layer, cells: list[tuple[int, int]]) -> list[Cen
     :return: The cells with their colours
     """
 
-    return [CenterSticker(face, row, col, cube.layers[face][row * cube.size + col]) for row, col in cells]
+    return [Sticker(face, row, col, cube.layers[face][row * cube.size + col]) for row, col in cells]
 
 
 class TestBuildFrontLine:
@@ -217,8 +217,8 @@ class TestFillStagingCell:
         for line_row in range(1, 6):
             layers[Layer.FRONT][line_row * 7 + 3] = Color.GREEN
         cube = trial(Cube(7, layers), inverse_of(algorithm))
-        protect = [CenterSticker(Layer.UP, 4, 3, Color.RED)]
-        protect += [CenterSticker(Layer.FRONT, line_row, 3, Color.GREEN) for line_row in range(1, 6)]
+        protect = [Sticker(Layer.UP, 4, 3, Color.RED)]
+        protect += [Sticker(Layer.FRONT, line_row, 3, Color.GREEN) for line_row in range(1, 6)]
 
         # Fill the cell
         _, result = fill_staging_cell(cube, Color.BLUE, (4, 2), protect)
@@ -245,7 +245,7 @@ class TestFillStagingCell:
         monkeypatch.setattr(last_centers, "commutator_routes", lambda size, cell: ["Rw R'", "Lw' L", "U"])
 
         # Fill the cell
-        route, result = fill_staging_cell(cube, Color.GREEN, (1, 2), [CenterSticker(Layer.FRONT, 1, 2, Color.GREEN)])
+        route, result = fill_staging_cell(cube, Color.GREEN, (1, 2), [Sticker(Layer.FRONT, 1, 2, Color.GREEN)])
 
         # Assert
         assert route == "Lw' L U"

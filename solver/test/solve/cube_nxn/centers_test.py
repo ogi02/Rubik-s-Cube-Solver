@@ -23,7 +23,7 @@ from rubik_cube_solver.solve.cube_nxn.centers import (
     fetch_line_piece,
     first_route,
 )
-from rubik_cube_solver.solve.cube_nxn.pieces import CenterSticker, fixed_centers
+from rubik_cube_solver.solve.cube_nxn.pieces import Sticker, fixed_centers
 from rubik_cube_solver.solve.cube_nxn.routes import lift, line_target_routes, staging_routes, trial
 
 YELLOW_PRIORITY: tuple[tuple[Layer, ...], ...] = CENTERS_PLAN[0].priority
@@ -147,7 +147,7 @@ class TestFetch:
 
         # Generate the cube and protect the cell being filled with a colour it can never hold
         cube = generate_cube(4, "z' Dw")
-        protect = [CenterSticker(Layer.FRONT, 2, 1, Color.GREEN)]
+        protect = [Sticker(Layer.FRONT, 2, 1, Color.GREEN)]
 
         # Assert
         assert fetch(cube, Color.YELLOW, (2, 1), CenterSearchResult(Layer.BACK, 2, 1), Layer.RIGHT, protect) is None
@@ -165,8 +165,8 @@ class TestFirstRoute:
 
         # Generate the cube: column 1 of FRONT is carried off
         cube = generate_cube(4, "Lw L'")
-        goal = CenterSticker(Layer.FRONT, 2, 1, Color.GREEN)
-        protect = [CenterSticker(Layer.FRONT, 1, 2, Color.GREEN)]
+        goal = Sticker(Layer.FRONT, 2, 1, Color.GREEN)
+        protect = [Sticker(Layer.FRONT, 1, 2, Color.GREEN)]
 
         # Take the first surviving route
         route, result = first_route(cube, ["U", "F2", "Lw' L"], goal, protect)
@@ -187,7 +187,7 @@ class TestFirstRoute:
         cube = generate_cube(4, "Lw L'")
 
         # Assert
-        assert first_route(cube, ["U", "D"], CenterSticker(Layer.FRONT, 2, 1, Color.GREEN), []) is None
+        assert first_route(cube, ["U", "D"], Sticker(Layer.FRONT, 2, 1, Color.GREEN), []) is None
 
 
 class TestFetchLinePiece:
@@ -244,7 +244,7 @@ class TestFetchLinePiece:
 
         # Generate the cube and protect the cell being filled with a colour it can never hold
         cube = generate_cube(5, "z' Fw D")
-        protect = [CenterSticker(Layer.RIGHT, 2, 1, Color.GREEN)]
+        protect = [Sticker(Layer.RIGHT, 2, 1, Color.GREEN)]
         piece = CenterSearchResult(Layer.DOWN, 2, 3)
 
         # Assert
@@ -311,7 +311,7 @@ class TestBuildMiddleLine:
 
         # Generate the cube and keep the cell in a colour it can never hold
         cube = generate_cube(5, "z' Fw D")
-        keep = [CenterSticker(Layer.RIGHT, 2, 1, Color.GREEN)]
+        keep = [Sticker(Layer.RIGHT, 2, 1, Color.GREEN)]
 
         # Assert
         with pytest.raises(ValueError, match=r"No route fills RIGHT \(2, 1\) of the YELLOW middle line"):
@@ -380,7 +380,7 @@ class TestBuildBar:
         # as they are rules out every staging route
         cube = generate_cube(4, "Lw L'")
         keep = [
-            CenterSticker(face, row, col, cube.layers[face][row * 4 + col])
+            Sticker(face, row, col, cube.layers[face][row * 4 + col])
             for face in (Layer.UP, Layer.BACK, Layer.DOWN)
             for row in (1, 2)
             for col in (1, 2)
@@ -426,7 +426,7 @@ class TestBuildCenter:
         # Generate the cube and build yellow on RIGHT
         cube = generate_cube(4, "z' Rw U2 Lw' F Dw")
         _, cube = build_center(cube, CENTERS_PLAN[0], [])
-        keep = [CenterSticker(Layer.RIGHT, row, col, Color.YELLOW) for row in (1, 2) for col in (1, 2)]
+        keep = [Sticker(Layer.RIGHT, row, col, Color.YELLOW) for row in (1, 2) for col in (1, 2)]
 
         # Build white on LEFT
         _, result = build_center(cube, CENTERS_PLAN[1], keep)

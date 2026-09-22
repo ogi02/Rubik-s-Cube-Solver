@@ -8,9 +8,9 @@ from rubik_cube_solver.enums.Layer import Layer
 from rubik_cube_solver.solve.center_search import CenterSearchResult, search_center
 
 
-class CenterSticker(NamedTuple):
+class Sticker(NamedTuple):
     """
-    A center cell of one face, together with the colour it has to hold.
+    A cell of one face, together with the colour it has to hold.
     """
 
     layer: Layer
@@ -216,8 +216,8 @@ def protected(
     cell: tuple[int, int],
     target: Layer,
     inserted: list[int],
-    keep: list[CenterSticker],
-) -> list[CenterSticker]:
+    keep: list[Sticker],
+) -> list[Sticker]:
     """
     Returns every position that must still hold its colour after a FRONT cell is filled.
 
@@ -229,12 +229,12 @@ def protected(
     2 and 3 come before column 1 in the fill order, and row 3 of RIGHT holds the inserted bar:
 
         >>> protected(Cube(6), Color.GREEN, (3, 1), Layer.RIGHT, [3], [])
-        [CenterSticker(layer=<Layer.FRONT: 'F'>, row=3, col=2, color=<Color.GREEN: 'G'>),
-         CenterSticker(layer=<Layer.FRONT: 'F'>, row=3, col=3, color=<Color.GREEN: 'G'>),
-         CenterSticker(layer=<Layer.RIGHT: 'R'>, row=3, col=1, color=<Color.GREEN: 'G'>),
-         CenterSticker(layer=<Layer.RIGHT: 'R'>, row=3, col=2, color=<Color.GREEN: 'G'>),
-         CenterSticker(layer=<Layer.RIGHT: 'R'>, row=3, col=3, color=<Color.GREEN: 'G'>),
-         CenterSticker(layer=<Layer.RIGHT: 'R'>, row=3, col=4, color=<Color.GREEN: 'G'>)]
+        [Sticker(layer=<Layer.FRONT: 'F'>, row=3, col=2, color=<Color.GREEN: 'G'>),
+         Sticker(layer=<Layer.FRONT: 'F'>, row=3, col=3, color=<Color.GREEN: 'G'>),
+         Sticker(layer=<Layer.RIGHT: 'R'>, row=3, col=1, color=<Color.GREEN: 'G'>),
+         Sticker(layer=<Layer.RIGHT: 'R'>, row=3, col=2, color=<Color.GREEN: 'G'>),
+         Sticker(layer=<Layer.RIGHT: 'R'>, row=3, col=3, color=<Color.GREEN: 'G'>),
+         Sticker(layer=<Layer.RIGHT: 'R'>, row=3, col=4, color=<Color.GREEN: 'G'>)]
 
     :param cube: The cube
     :param color: The colour being built
@@ -249,16 +249,16 @@ def protected(
     row, col = cell
     order = fill_order(size)
     bar = [
-        CenterSticker(Layer.FRONT, row, earlier, color)
+        Sticker(Layer.FRONT, row, earlier, color)
         for earlier in order[: order.index(col)]
         if cube.layers[Layer.FRONT][row * size + earlier] is color
     ]
-    built = [CenterSticker(target, r, c, color) for r, c in sorted(built_cells(size, target, inserted))]
+    built = [Sticker(target, r, c, color) for r, c in sorted(built_cells(size, target, inserted))]
 
     return bar + built + list(keep)
 
 
-def finished_centers(cube: Cube, done: list[Color]) -> list[CenterSticker]:
+def finished_centers(cube: Cube, done: list[Color]) -> list[Sticker]:
     """
     Returns every cell of the centers already built, tagged with the colour it has to keep.
 
@@ -269,10 +269,10 @@ def finished_centers(cube: Cube, done: list[Color]) -> list[CenterSticker]:
     Example, on a solved 4x4 once yellow is built:
 
         >>> finished_centers(Cube(4), [Color.YELLOW])
-        [CenterSticker(layer=<Layer.DOWN: 'D'>, row=1, col=1, color=<Color.YELLOW: 'Y'>),
-         CenterSticker(layer=<Layer.DOWN: 'D'>, row=1, col=2, color=<Color.YELLOW: 'Y'>),
-         CenterSticker(layer=<Layer.DOWN: 'D'>, row=2, col=1, color=<Color.YELLOW: 'Y'>),
-         CenterSticker(layer=<Layer.DOWN: 'D'>, row=2, col=2, color=<Color.YELLOW: 'Y'>)]
+        [Sticker(layer=<Layer.DOWN: 'D'>, row=1, col=1, color=<Color.YELLOW: 'Y'>),
+         Sticker(layer=<Layer.DOWN: 'D'>, row=1, col=2, color=<Color.YELLOW: 'Y'>),
+         Sticker(layer=<Layer.DOWN: 'D'>, row=2, col=1, color=<Color.YELLOW: 'Y'>),
+         Sticker(layer=<Layer.DOWN: 'D'>, row=2, col=2, color=<Color.YELLOW: 'Y'>)]
 
     :param cube: The cube
     :param done: The colours whose centers are finished
@@ -290,12 +290,12 @@ def finished_centers(cube: Cube, done: list[Color]) -> list[CenterSticker]:
         colors = {cube.layers[face][row * size + col] for row, col in cells}
 
         if len(colors) == 1 and (color := colors.pop()) in done:
-            keep += [CenterSticker(face, row, col, color) for row, col in cells]
+            keep += [Sticker(face, row, col, color) for row, col in cells]
 
     return keep
 
 
-def fixed_centers(cube: Cube) -> list[CenterSticker]:
+def fixed_centers(cube: Cube) -> list[Sticker]:
     """
     Returns the fixed center of every face of an odd cube, tagged with the colour it holds.
 
@@ -305,8 +305,8 @@ def fixed_centers(cube: Cube) -> list[CenterSticker]:
     Example, on a solved 5x5:
 
         >>> fixed_centers(Cube(5))[:2]
-        [CenterSticker(layer=<Layer.UP: 'U'>, row=2, col=2, color=<Color.WHITE: 'W'>),
-         CenterSticker(layer=<Layer.DOWN: 'D'>, row=2, col=2, color=<Color.YELLOW: 'Y'>)]
+        [Sticker(layer=<Layer.UP: 'U'>, row=2, col=2, color=<Color.WHITE: 'W'>),
+         Sticker(layer=<Layer.DOWN: 'D'>, row=2, col=2, color=<Color.YELLOW: 'Y'>)]
 
     :param cube: The cube, of odd size
     :return: The fixed center of every face, with its colour
@@ -315,7 +315,7 @@ def fixed_centers(cube: Cube) -> list[CenterSticker]:
     middle = cube.size // 2
     index = middle * cube.size + middle
 
-    return [CenterSticker(face, middle, middle, cube.layers[face][index]) for face in Layer]
+    return [Sticker(face, middle, middle, cube.layers[face][index]) for face in Layer]
 
 
 def bar_columns(size: int) -> list[int]:

@@ -5,7 +5,7 @@ from rubik_cube_solver.enums.Layer import Layer
 from rubik_cube_solver.solve.center_search import search_center
 from rubik_cube_solver.solve.cube_nxn.centers import CENTERS_PLAN, first_route
 from rubik_cube_solver.solve.cube_nxn.pieces import (
-    CenterSticker,
+    Sticker,
     bar_columns,
     fill_order,
     finished_centers,
@@ -23,7 +23,7 @@ from rubik_cube_solver.solve.cube_nxn.routes import (
 )
 
 
-def build_front_line(cube: Cube, color: Color, keep: list[CenterSticker]) -> tuple[list[str], Cube]:
+def build_front_line(cube: Cube, color: Color, keep: list[Sticker]) -> tuple[list[str], Cube]:
     """
     Fills the middle row of an odd cube's FRONT, one cell at a time in `line_cells` order.
 
@@ -51,8 +51,8 @@ def build_front_line(cube: Cube, color: Color, keep: list[CenterSticker]) -> tup
 
     for cell in line_cells(size, False):
         if cube.layers[Layer.FRONT][cell[0] * size + cell[1]] is not color:
-            protect = [CenterSticker(Layer.FRONT, row, col, color) for row, col in built] + keep
-            goal = CenterSticker(Layer.FRONT, *cell, color)
+            protect = [Sticker(Layer.FRONT, row, col, color) for row, col in built] + keep
+            goal = Sticker(Layer.FRONT, *cell, color)
             fetched = None
 
             for piece in search_center(cube, color, *cell):
@@ -72,9 +72,7 @@ def build_front_line(cube: Cube, color: Color, keep: list[CenterSticker]) -> tup
     return moves, cube
 
 
-def fill_staging_cell(
-    cube: Cube, color: Color, cell: tuple[int, int], protect: list[CenterSticker]
-) -> tuple[str, Cube]:
+def fill_staging_cell(cube: Cube, color: Color, cell: tuple[int, int], protect: list[Sticker]) -> tuple[str, Cube]:
     """
     Fills a cell of the bar staged on UP by the first commutator that leaves everything protected
     intact.
@@ -99,7 +97,7 @@ def fill_staging_cell(
     """
 
     size = cube.size
-    goal = CenterSticker(Layer.UP, *cell, color)
+    goal = Sticker(Layer.UP, *cell, color)
     routes = commutator_routes(size, cell)
 
     if fetched := first_route(cube, routes, goal, protect):
@@ -118,7 +116,7 @@ def fill_staging_cell(
 
 
 def build_front_bar(
-    cube: Cube, color: Color, col: int, built: list[tuple[int, int]], keep: list[CenterSticker]
+    cube: Cube, color: Color, col: int, built: list[tuple[int, int]], keep: list[Sticker]
 ) -> tuple[list[str], Cube]:
     """
     Stages one bar on UP and inserts it into a column of FRONT's left half.
@@ -147,8 +145,8 @@ def build_front_bar(
 
     size = cube.size
     row = size - 1 - col
-    front = [CenterSticker(Layer.FRONT, r, c, color) for r, c in built] + keep
-    staged: list[CenterSticker] = []
+    front = [Sticker(Layer.FRONT, r, c, color) for r, c in built] + keep
+    staged: list[Sticker] = []
     moves: list[str] = []
 
     for index in fill_order(size):
@@ -158,7 +156,7 @@ def build_front_bar(
             protect = staged + front
 
             if 2 * index == size - 1:
-                goal = CenterSticker(Layer.UP, *cell, color)
+                goal = Sticker(Layer.UP, *cell, color)
                 fetched = None
 
                 for piece in search_center(cube, color, *cell):
@@ -175,7 +173,7 @@ def build_front_bar(
             route, cube = fetched
             moves.append(route)
 
-        staged.append(CenterSticker(Layer.UP, *cell, color))
+        staged.append(Sticker(Layer.UP, *cell, color))
 
     placed = front_insertion(size, col)
 
@@ -183,7 +181,7 @@ def build_front_bar(
 
 
 def fill_right_half(
-    cube: Cube, color: Color, built: list[tuple[int, int]], keep: list[CenterSticker]
+    cube: Cube, color: Color, built: list[tuple[int, int]], keep: list[Sticker]
 ) -> tuple[list[str], Cube]:
     """
     Fills FRONT's right half one cell at a time, in `right_cells` order, from UP.
@@ -213,8 +211,8 @@ def fill_right_half(
 
     for cell in right_cells(size):
         if cube.layers[Layer.FRONT][cell[0] * size + cell[1]] is not color:
-            protect = [CenterSticker(Layer.FRONT, row, col, color) for row, col in built] + keep
-            goal = CenterSticker(Layer.FRONT, *cell, color)
+            protect = [Sticker(Layer.FRONT, row, col, color) for row, col in built] + keep
+            goal = Sticker(Layer.FRONT, *cell, color)
             fetched = None
 
             for piece in search_center(cube, color, *cell):

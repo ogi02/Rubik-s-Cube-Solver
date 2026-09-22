@@ -10,23 +10,26 @@ from rubik_cube_solver.cube_rotation.algorithm import Algorithm
 from rubik_cube_solver.cube_rotation.rotator import Rotator
 from rubik_cube_solver.enums.Color import Color
 from rubik_cube_solver.enums.Direction import Direction
+from rubik_cube_solver.enums.EdgeSlot import EdgeSlot
 from rubik_cube_solver.enums.Layer import Layer
 from rubik_cube_solver.solve.center_search import CenterSearchResult
-from rubik_cube_solver.solve.cube_nxn import centers, last_centers, pieces, routes
+from rubik_cube_solver.solve.cube_nxn import centers, edges, last_centers, pieces, routes
 
 # The names the examples use without importing them: the types every example builds its cube from,
-# and the functions and constants of all four modules, since an example in one module may use a
+# and the functions and constants of all five modules, since an example in one module may use a
 # constant from another.
 EXAMPLE_GLOBALS: dict = {
     **vars(pieces),
     **vars(routes),
     **vars(centers),
     **vars(last_centers),
+    **vars(edges),
     "Algorithm": Algorithm,
     "CenterSearchResult": CenterSearchResult,
     "Color": Color,
     "Cube": Cube,
     "Direction": Direction,
+    "EdgeSlot": EdgeSlot,
     "Layer": Layer,
     "Rotator": Rotator,
 }
@@ -34,7 +37,7 @@ EXAMPLE_GLOBALS: dict = {
 
 class TestDocstringExamples:
     # fmt: off
-    @pytest.mark.parametrize("module", [pieces, routes, centers, last_centers])
+    @pytest.mark.parametrize("module", [pieces, routes, centers, last_centers, edges])
     # fmt: on
     def test_success(self, module: ModuleType) -> None:
         """
