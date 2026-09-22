@@ -10,7 +10,7 @@ from rubik_cube_solver.enums.Layer import Layer
 from rubik_cube_solver.solve.center_search import CenterSearchResult
 from rubik_cube_solver.solve.cube_nxn.centers import CENTERS_PLAN
 from rubik_cube_solver.solve.cube_nxn.pieces import (
-    CenterSticker,
+    Sticker,
     bar_columns,
     bar_rows,
     built_cells,
@@ -297,17 +297,17 @@ class TestProtected:
 
         # Generate the cube
         cube = generate_cube(6, "")
-        keep = [CenterSticker(Layer.UP, 1, 1, Color.WHITE)]
+        keep = [Sticker(Layer.UP, 1, 1, Color.WHITE)]
 
         # Assert
         assert protected(cube, Color.GREEN, (3, 1), Layer.RIGHT, [3], keep) == [
-            CenterSticker(Layer.FRONT, 3, 2, Color.GREEN),
-            CenterSticker(Layer.FRONT, 3, 3, Color.GREEN),
-            CenterSticker(Layer.RIGHT, 3, 1, Color.GREEN),
-            CenterSticker(Layer.RIGHT, 3, 2, Color.GREEN),
-            CenterSticker(Layer.RIGHT, 3, 3, Color.GREEN),
-            CenterSticker(Layer.RIGHT, 3, 4, Color.GREEN),
-            CenterSticker(Layer.UP, 1, 1, Color.WHITE),
+            Sticker(Layer.FRONT, 3, 2, Color.GREEN),
+            Sticker(Layer.FRONT, 3, 3, Color.GREEN),
+            Sticker(Layer.RIGHT, 3, 1, Color.GREEN),
+            Sticker(Layer.RIGHT, 3, 2, Color.GREEN),
+            Sticker(Layer.RIGHT, 3, 3, Color.GREEN),
+            Sticker(Layer.RIGHT, 3, 4, Color.GREEN),
+            Sticker(Layer.UP, 1, 1, Color.WHITE),
         ]
 
     def test_first_cell(self, generate_cube: Callable[[int, str], Cube]) -> None:
@@ -338,9 +338,7 @@ class TestProtected:
         cube.layers[Layer.FRONT][3 * 6 + 2] = Color.RED
 
         # Assert
-        assert protected(cube, Color.GREEN, (3, 1), Layer.RIGHT, [], []) == [
-            CenterSticker(Layer.FRONT, 3, 3, Color.GREEN)
-        ]
+        assert protected(cube, Color.GREEN, (3, 1), Layer.RIGHT, [], []) == [Sticker(Layer.FRONT, 3, 3, Color.GREEN)]
 
 
 class TestFinishedCenters:
@@ -357,10 +355,10 @@ class TestFinishedCenters:
 
         # Assert
         assert finished_centers(cube, [Color.YELLOW]) == [
-            CenterSticker(Layer.DOWN, 1, 1, Color.YELLOW),
-            CenterSticker(Layer.DOWN, 1, 2, Color.YELLOW),
-            CenterSticker(Layer.DOWN, 2, 1, Color.YELLOW),
-            CenterSticker(Layer.DOWN, 2, 2, Color.YELLOW),
+            Sticker(Layer.DOWN, 1, 1, Color.YELLOW),
+            Sticker(Layer.DOWN, 1, 2, Color.YELLOW),
+            Sticker(Layer.DOWN, 2, 1, Color.YELLOW),
+            Sticker(Layer.DOWN, 2, 2, Color.YELLOW),
         ]
 
     # fmt: off
@@ -410,12 +408,12 @@ class TestFixedCenters:
 
         # Assert
         assert fixed_centers(cube) == [
-            CenterSticker(Layer.UP, 2, 2, Color.GREEN),
-            CenterSticker(Layer.DOWN, 2, 2, Color.BLUE),
-            CenterSticker(Layer.LEFT, 2, 2, Color.ORANGE),
-            CenterSticker(Layer.RIGHT, 2, 2, Color.RED),
-            CenterSticker(Layer.FRONT, 2, 2, Color.YELLOW),
-            CenterSticker(Layer.BACK, 2, 2, Color.WHITE),
+            Sticker(Layer.UP, 2, 2, Color.GREEN),
+            Sticker(Layer.DOWN, 2, 2, Color.BLUE),
+            Sticker(Layer.LEFT, 2, 2, Color.ORANGE),
+            Sticker(Layer.RIGHT, 2, 2, Color.RED),
+            Sticker(Layer.FRONT, 2, 2, Color.YELLOW),
+            Sticker(Layer.BACK, 2, 2, Color.WHITE),
         ]
 
 

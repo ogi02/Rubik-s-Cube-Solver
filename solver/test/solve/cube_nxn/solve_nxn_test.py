@@ -9,9 +9,11 @@ from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.cube_rotation.algorithm import Algorithm
 from rubik_cube_solver.cube_rotation.rotator import Rotator
 from rubik_cube_solver.enums.Color import Color
+from rubik_cube_solver.enums.EdgeSlot import EdgeSlot
 from rubik_cube_solver.enums.Layer import Layer
 from rubik_cube_solver.enums.Rotation import Rotation
 from rubik_cube_solver.scramble.scrambler import Scrambler
+from rubik_cube_solver.solve.cube_nxn.edges import EDGES_DOWN_CYCLE, EDGES_UP_CYCLE, is_paired
 from rubik_cube_solver.solve.cube_nxn.solve_nxn import SolveNxN
 
 FIRST_FOUR: set[Color] = {Color.YELLOW, Color.WHITE, Color.GREEN, Color.RED}
@@ -34,6 +36,18 @@ def _built_centers(cube: Cube) -> set[Color]:
     ]
 
     return {face_colors.pop() for face_colors in colors if len(face_colors) == 1}
+
+
+def _paired_edges(cube: Cube, slots: tuple[EdgeSlot, ...]) -> int:
+    """
+    Counts the paired edges among some slots.
+
+    :param cube: The cube
+    :param slots: The slots
+    :return: The number of slots whose edge is paired
+    """
+
+    return sum(is_paired(cube, slot) for slot in slots)
 
 
 class TestSolveNxNInit:
@@ -78,7 +92,8 @@ class TestSolveNxNInit:
 class TestSolveNxNSteps:
     def test_returns_the_steps_in_order(self, generate_cube: Callable[[int, str], Cube]) -> None:
         """
-        Tests that `_steps` returns the first-four-centers step, then the last-two-centers step.
+        Tests that `_steps` returns the first-four-centers step, the last-two-centers step, then the
+        first-eight-edges step.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :return: None
@@ -89,7 +104,7 @@ class TestSolveNxNSteps:
         solve = SolveNxN(cube)
 
         # Assert
-        assert solve._steps() == [solve._first_four_centers, solve._last_two_centers]
+        assert solve._steps() == [solve._first_four_centers, solve._last_two_centers, solve._first_eight_edges]
 
 
 class TestSolveNxNFirstFourCenters:
@@ -141,14 +156,42 @@ class TestSolveNxNLastTwoCenters:
         assert replay.layers == cube.layers
 
 
+class TestSolveNxNFirstEightEdges:
+    def test_builds_the_edges(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that the step, run after the centers, pairs eight edges on UP and DOWN with every center
+        still built, and records every move it makes in the solution.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube
+        cube = generate_cube(5, "Rw U2 Lw' F Dw")
+        solve = SolveNxN(cube)
+
+        # Run the steps
+        solve._first_four_centers()
+        solve._last_two_centers()
+        solve._first_eight_edges()
+
+        # Assert
+        replay = generate_cube(5, "Rw U2 Lw' F Dw")
+        Rotator(replay).apply(solve.solution)
+        assert _built_centers(cube) == ALL_SIX
+        assert _paired_edges(cube, EDGES_UP_CYCLE + EDGES_DOWN_CYCLE) == 8
+        assert replay.layers == cube.layers
+
+
 class TestSolveNxNSolve:
     # fmt: off
     @pytest.mark.parametrize("cube_size", [4, 5, 6, 7])
     # fmt: on
     def test_solves_random_scrambles(self, generate_cube: Callable[[int, str], Cube], cube_size: int) -> None:
         """
-        Tests that solving builds every center, and that the returned solution holds no whole-cube
-        rotation and builds them again when replayed on the scramble.
+        Tests that solving builds every center and pairs eight edges on UP and DOWN, and that the
+        returned solution holds no whole-cube rotation and does the same when replayed on the scramble.
+        The replay ends in another grip, so its paired edges are counted over every slot.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :param cube_size: The cube size
@@ -172,4 +215,6 @@ class TestSolveNxNSolve:
             # Assert
             assert _built_centers(cube) == ALL_SIX, scramble
             assert _built_centers(replay) == ALL_SIX, scramble
+            assert _paired_edges(cube, EDGES_UP_CYCLE + EDGES_DOWN_CYCLE) == 8, scramble
+            assert _paired_edges(replay, tuple(EdgeSlot)) >= 8, scramble
             assert not any(isinstance(move.layer, Rotation) for move in solution.moves)
