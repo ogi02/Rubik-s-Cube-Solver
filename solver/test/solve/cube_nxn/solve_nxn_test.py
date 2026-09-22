@@ -7,6 +7,7 @@ import pytest
 # Project imports
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.cube_rotation.algorithm import Algorithm
+from rubik_cube_solver.cube_rotation.move import Move
 from rubik_cube_solver.cube_rotation.rotator import Rotator
 from rubik_cube_solver.enums.Color import Color
 from rubik_cube_solver.enums.EdgeSlot import EdgeSlot
@@ -48,6 +49,21 @@ def _paired_edges(cube: Cube, slots: tuple[EdgeSlot, ...]) -> int:
     """
 
     return sum(is_paired(cube, slot) for slot in slots)
+
+
+def _rotations_only_at_the_ends(moves: list[Move]) -> bool:
+    """
+    Returns whether every whole-cube rotation among some moves sits in a block at the very start or
+    a block at the very end, so the layer turns between them form one contiguous run with no
+    rotation breaking it up.
+
+    :param moves: The moves
+    :return: Whether the layer turns form one contiguous, rotation-free run
+    """
+
+    turn_indices = [i for i, move in enumerate(moves) if not isinstance(move.layer, Rotation)]
+
+    return not turn_indices or turn_indices == list(range(turn_indices[0], turn_indices[-1] + 1))
 
 
 def _is_solved(cube: Cube) -> bool:
@@ -253,6 +269,32 @@ class TestSolveNxNFirstEightEdges:
         assert replay.layers == cube.layers
         assert any(isinstance(move.layer, Rotation) for move in solve.solution.moves)
 
+    def test_no_interior_rotation_when_kept(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that with the grips kept, the step's part of the solution holds a whole-cube rotation
+        only at its start and its end, so the FL wing stays in view for the whole step instead of
+        being regripped partway through, and that the eight edges are still paired.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube
+        cube = generate_cube(5, "Rw U2 Lw' F Dw")
+        solve = SolveNxN(cube)
+
+        # Run the centers steps, then ask to keep grips for the edges step
+        solve._first_four_centers()
+        solve._last_two_centers()
+        solve._keep_grips = True
+        start = len(solve.solution.moves)
+        solve._first_eight_edges()
+
+        # Assert
+        step_moves = solve.solution.moves[start:]
+        assert _paired_edges(cube, EDGES_UP_CYCLE + EDGES_DOWN_CYCLE) == 8
+        assert _rotations_only_at_the_ends(step_moves)
+
 
 class TestSolveNxNLastFourEdges:
     def test_builds_the_edges(self, generate_cube: Callable[[int, str], Cube]) -> None:
@@ -310,6 +352,33 @@ class TestSolveNxNLastFourEdges:
         assert replay.layers == cube.layers
         assert any(isinstance(move.layer, Rotation) for move in solve.solution.moves)
 
+    def test_no_interior_rotation_when_kept(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that with the grips kept, the step's part of the solution holds a whole-cube rotation
+        only at its start and its end, so the FL wing stays in view for the whole step instead of
+        being regripped partway through, and that every edge but FR's is still paired.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube
+        cube = generate_cube(5, "Rw U2 Lw' F Dw")
+        solve = SolveNxN(cube)
+
+        # Run the earlier steps without keeping grips, then ask to keep grips for this step
+        solve._first_four_centers()
+        solve._last_two_centers()
+        solve._first_eight_edges()
+        solve._keep_grips = True
+        start = len(solve.solution.moves)
+        solve._last_four_edges()
+
+        # Assert
+        step_moves = solve.solution.moves[start:]
+        assert _paired_edges(cube, tuple(set(EdgeSlot) - {EdgeSlot.FR})) == 11
+        assert _rotations_only_at_the_ends(step_moves)
+
 
 class TestSolveNxNParity:
     # fmt: off
@@ -342,6 +411,38 @@ class TestSolveNxNParity:
         assert _built_centers(cube) == ALL_SIX
         assert _paired_edges(cube, tuple(EdgeSlot)) == 12
         assert replay.layers == cube.layers
+
+    # fmt: off
+    @pytest.mark.parametrize("cube_size", [4, 5, 6, 7])
+    # fmt: on
+    def test_no_rotation_when_kept(self, generate_cube: Callable[[int, str], Cube], cube_size: int) -> None:
+        """
+        Tests that with the grips kept, the step's part of the solution holds no whole-cube rotation
+        at all, since the rotations the parity algorithms turn the cube by always come in cancelling
+        pairs, and that every edge is still paired.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :param cube_size: The cube size
+        :return: None
+        """
+
+        # Generate the cube
+        cube = generate_cube(cube_size, "Rw U2 Lw' F Dw")
+        solve = SolveNxN(cube)
+
+        # Run the earlier steps without keeping grips, then ask to keep grips for the parity step
+        solve._first_four_centers()
+        solve._last_two_centers()
+        solve._first_eight_edges()
+        solve._last_four_edges()
+        solve._keep_grips = True
+        start = len(solve.solution.moves)
+        solve._parity()
+
+        # Assert
+        step_moves = solve.solution.moves[start:]
+        assert _paired_edges(cube, tuple(EdgeSlot)) == 12
+        assert not any(isinstance(move.layer, Rotation) for move in step_moves)
 
 
 class TestSolveNxNSolveAs3x3:

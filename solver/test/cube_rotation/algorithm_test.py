@@ -328,6 +328,172 @@ RENAME_CASES: list[tuple[str, str]] = [
 ]
 
 
+SETTLE_ROTATIONS_CASES: list[str] = [
+    "x R U R' U'",
+    "R y U y' F y",
+    "z' y2 x' U L2 Fw",
+    "Rw2 D x2 F'",
+    "Rw' B2 y R z' U2",
+]
+
+
+class TestAlgorithmSettleRotations:
+    def test_worked_example(self) -> None:
+        """
+        Tests the docstring example: `R y U y' F y` becomes `R U F y`.
+
+        :return: None
+        """
+
+        # Mock the algorithm
+        algorithm = Algorithm.from_str("R y U y' F y")
+
+        # Act
+        algorithm.settle_rotations()
+
+        # Assert
+        assert str(algorithm) == "R U F y"
+
+    def test_no_rotations(self) -> None:
+        """
+        Tests that an algorithm with no rotations at all is left untouched.
+
+        :return: None
+        """
+
+        # Mock the algorithm
+        algorithm = Algorithm.from_str("R U R' U'")
+
+        # Act
+        algorithm.settle_rotations()
+
+        # Assert
+        assert str(algorithm) == "R U R' U'"
+
+    def test_empty_algorithm(self) -> None:
+        """
+        Tests that an empty algorithm stays empty.
+
+        :return: None
+        """
+
+        # Mock the algorithm
+        algorithm = Algorithm.from_str("")
+
+        # Act
+        algorithm.settle_rotations()
+
+        # Assert
+        assert str(algorithm) == ""
+
+    def test_cancelling_rotations_leave_nothing_at_the_end(self) -> None:
+        """
+        Tests that rotations that cancel out leave nothing at the end of the algorithm.
+
+        :return: None
+        """
+
+        # Mock the algorithm
+        algorithm = Algorithm.from_str("R y U y'")
+
+        # Act
+        algorithm.settle_rotations()
+
+        # Assert
+        assert str(algorithm) == "R U"
+
+    # fmt: off
+    @pytest.mark.parametrize("algorithm_string", SETTLE_ROTATIONS_CASES)
+    # fmt: on
+    def test_no_rotation_before_the_trailing_sequence(self, algorithm_string: str) -> None:
+        """
+        Tests that rotations that do not cancel leave exactly one shortest sequence at the end of
+        the algorithm, never longer than two moves, with no rotation surviving anywhere before it.
+
+        :param algorithm_string: The string representation of the algorithm
+        :return: None
+        """
+
+        # Mock the algorithm
+        algorithm = Algorithm.from_str(algorithm_string)
+
+        # Act
+        algorithm.settle_rotations()
+
+        # Assert
+        moves = algorithm.moves
+        first_rotation = next((i for i, move in enumerate(moves) if isinstance(move.layer, Rotation)), len(moves))
+        assert all(isinstance(move.layer, Rotation) for move in moves[first_rotation:])
+        assert len(moves) - first_rotation <= 2
+
+    # fmt: off
+    @pytest.mark.parametrize("algorithm_string", SETTLE_ROTATIONS_CASES)
+    # fmt: on
+    def test_equivalent_to_the_original(
+        self,
+        generate_cube: Callable[[int], Cube],
+        generate_rotator: Callable[[Cube], Rotator],
+        algorithm_string: str,
+    ) -> None:
+        """
+        Tests that the settled algorithm leaves the cube in the identical state as the original one,
+        orientation included, unlike `remove_rotations`, which leaves the cube turned differently.
+
+        :param generate_cube: Fixture to generate a cube
+        :param generate_rotator: Fixture to generate a rotator
+        :param algorithm_string: The string representation of the algorithm
+        :return: None
+        """
+
+        # Mock the cubes
+        original_cube = generate_cube(5)
+        settled_cube = generate_cube(5)
+
+        # Mock the algorithms
+        original = Algorithm.from_str(algorithm_string)
+        settled = Algorithm.from_str(algorithm_string)
+        settled.settle_rotations()
+
+        # Act
+        generate_rotator(original_cube).apply(original)
+        generate_rotator(settled_cube).apply(settled)
+
+        # Assert
+        assert original_cube.layers == settled_cube.layers
+
+    def test_differs_from_remove_rotations(
+        self,
+        generate_cube: Callable[[int], Cube],
+        generate_rotator: Callable[[Cube], Rotator],
+    ) -> None:
+        """
+        Tests that, for rotations that do not cancel out, `remove_rotations` leaves the cube in a
+        different state than the original algorithm, which `settle_rotations` matches exactly - the
+        property that separates the two.
+
+        :param generate_cube: Fixture to generate a cube
+        :param generate_rotator: Fixture to generate a rotator
+        :return: None
+        """
+
+        # Mock the cubes
+        algorithm_string = "x R U R' U'"
+        original_cube = generate_cube(5)
+        removed_cube = generate_cube(5)
+
+        # Mock the algorithms
+        original = Algorithm.from_str(algorithm_string)
+        removed = Algorithm.from_str(algorithm_string)
+        removed.remove_rotations()
+
+        # Act
+        generate_rotator(original_cube).apply(original)
+        generate_rotator(removed_cube).apply(removed)
+
+        # Assert
+        assert original_cube.layers != removed_cube.layers
+
+
 class TestAlgorithmRename:
     # fmt: off
     @pytest.mark.parametrize("grip_string, algorithm_string", RENAME_CASES)
