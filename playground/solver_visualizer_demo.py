@@ -6,6 +6,9 @@ server as a `cube_state` message, solves the cube and sends the solution as an `
 then disconnects. Every step prints a numbered header and pauses afterwards, so the output can be read
 alongside the animation in the visualizer.
 
+The solution keeps its grips, so it carries the whole-cube rotations the method turns the cube by and
+the visualizer turns the cube to where each step works, the way a hand regrips it.
+
 Every size ends up solved. A 4x4 or larger cube is first reduced to a 3x3 - all six centers built and
 all twelve edges paired, with the parities fixed - and then solved as a 3x3, all within one solution.
 
@@ -149,7 +152,7 @@ async def run_demo() -> None:
 
     announce("Solving the cube")
     solver = create_solver(cube)
-    solution = solver.solve()
+    solution = solver.solve(keep_grips=True)
     print(f"Solver: {type(solver).__name__}")
     print(f"Solution ({len(solution.moves)} moves): {solution}")
     print(f"Solved {CUBE_SIZE}x{CUBE_SIZE}:")

@@ -2,10 +2,9 @@
 from typing import Self
 
 # Project imports
-from rubik_cube_solver.cube_rotation.cube_rotation import MOVE_TRANSLATION_MAP
 from rubik_cube_solver.cube_rotation.move import Move
 from rubik_cube_solver.cube_rotation.move_cancellation import can_combine, combine
-from rubik_cube_solver.enums.Layer import Layer
+from rubik_cube_solver.cube_rotation.orientation import Orientation
 from rubik_cube_solver.enums.Rotation import Rotation
 
 
@@ -94,16 +93,48 @@ class Algorithm:
         :return: None
         """
 
-        # The layer each move names, expressed in the orientation the algorithm started from
-        orientation: dict[Layer, Layer] = {layer: layer for layer in Layer}
+        # The way the cube is held, expressed in the orientation the algorithm started from
+        orientation = Orientation()
         moves: list[Move] = []
 
         for move in self.__moves:
             if isinstance(move.layer, Rotation):
-                translation = MOVE_TRANSLATION_MAP[(move.layer, move.direction)]
-                orientation = {layer: orientation[translation[layer]] for layer in Layer}
+                orientation = orientation.rotate(move)
             else:
-                moves.append(Move(orientation[move.layer], move.direction, move.layer_amount))
+                moves.append(Move(orientation.layers[move.layer], move.direction, move.layer_amount))
+
+        self.__moves = moves
+
+    def shorten_rotations(self) -> None:
+        """
+        Replaces every run of adjacent whole-cube rotations with the shortest sequence that holds
+        the cube the same way.
+
+        The layer turns are left exactly where they are, so the algorithm keeps turning the cube
+        the way it was written; only the rotations between them are rewritten, and a run that
+        holds the cube the way it already was disappears.
+
+        Example: `R x x L z z' U` becomes `R x2 L U`.
+
+        :return: None
+        """
+
+        moves: list[Move] = []
+        rotations: list[Move] = []
+
+        for move in self.__moves:
+            if isinstance(move.layer, Rotation):
+                rotations.append(move)
+                continue
+
+            if rotations:
+                moves += Orientation.from_moves(rotations).to_moves()
+                rotations = []
+
+            moves.append(move)
+
+        if rotations:
+            moves += Orientation.from_moves(rotations).to_moves()
 
         self.__moves = moves
 

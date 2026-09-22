@@ -106,9 +106,11 @@ class SolveNxN(Solve):
         Solves the cube like a 3x3, once it is reduced.
 
         The 3x3 the cube stands for is solved with `Solve3x3`, and its solution is applied to the cube
-        unchanged, since it holds only outer-face turns, which turn a reduced big cube the same way.
+        unchanged, since it holds only outer-face turns and whole-cube rotations, which turn a reduced
+        big cube the same way. The grips are kept or dropped exactly as they are for the whole solve, so
+        the reduced phase turns the cube between its cross, F2L, OLL and PLL pieces like any other step.
 
         :return: None
         """
 
-        self._apply(Solve3x3(as_3x3(self.cube)).solve())
+        self._apply(Solve3x3(as_3x3(self.cube)).solve(keep_grips=self._keep_grips))

@@ -53,6 +53,11 @@ is how a solution is accumulated step by step. `cancel_moves` reduces adjacent m
 layer, so `R U U' R2` becomes `R'`. `remove_rotations` rewrites an algorithm containing whole-cube
 rotations into an equivalent one made only of layer turns, so `x R U R' U'` becomes `R F R' F'` —
 necessary when the moves are handed to a machine that cannot pick the cube up and turn it around.
+`shorten_rotations` keeps the rotations instead and only tidies them, rewriting each run of adjacent
+ones as the shortest sequence that holds the cube the same way, so `R x x L z z' U` becomes
+`R x2 L U`. No orientation ever needs more than two rotations, since a cube can be held in only
+twenty-four ways — that is what the `Orientation` type derives, from the same rotation maps the
+rotator turns by.
 
 ### Scrambling
 
@@ -83,6 +88,12 @@ Solvers share the `Solve` base class, which holds the cube, the rotator and the 
 so far. Calling `solve()` runs the ordered steps of the method, applies every move to the cube, and
 returns the complete solution as an `Algorithm` — the cube is left solved and the solution can be
 replayed on a second cube, printed as notation, or sent on to the visualizer or the machine.
+
+The solution comes back as layer turns only, because a machine cannot pick the cube up and turn it
+around. `solve(keep_grips=True)` returns it with the whole-cube rotations the method turns the cube
+by left in, so the solution regrips the way a person does: a quarter turn between each cross edge, a
+different face brought to the front for each center. That is the form to send to the visualizer,
+which can turn the whole cube as well as a single layer.
 
 `create_solver` is the entry point: it takes any cube, reads its size and returns the solver for
 it, so callers never pick a class themselves. A size no solver handles is rejected there and then,

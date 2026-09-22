@@ -182,6 +182,11 @@ Output:
 
 The visualizer supports receiving a series of moves to apply to a cube via a websocket connection.
 
+A move is a layer turn (`R`, `Rw'`, `3Fw2`) or a whole-cube rotation (`x`, `y'`, `z2`), which turns
+every layer at once in the direction of `R`, `U` and `F` respectively. Both are animated the same way
+and both appear in the message box, so a solution that regrips between its steps can be shown exactly
+as it was solved.
+
 #### 3x3x3 Cube
 
 Message:

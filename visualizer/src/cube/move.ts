@@ -6,9 +6,11 @@ import { roundToDecimal } from "../utils/mathUtils.ts";
  * Parses move notation and provides methods to get the axis, angle,
  * and layer indexes for the move.
  * Examples of move notation: R, R', R2, Rw, Rw', 3Rw2, 2Uw', etc.
+ * Whole-cube rotations are also supported: x, x', x2, y, y', y2, z, z', z2.
  *
  * @class Move
- * @property {string | null} layer - The face of the cube being turned (R, L, U, D, F, B).
+ * @property {string | null} layer - The face of the cube being turned (R, L, U, D, F, B), or the
+ * rotation axis (x, y, z).
  * @property {string} direction - The direction of the turn ('', "'", '2').
  * @property {number} layerAmount - The number of layers to turn.
  *
@@ -20,6 +22,10 @@ import { roundToDecimal } from "../utils/mathUtils.ts";
  * const move = new Move("Uw");
  * console.log(move.getTurn(5));
  * // Output: { axis: 'y', angle: 1.5707963267948966, layerIndexes: [-2, -1] }
+ *
+ * const move = new Move("y'");
+ * console.log(move.getTurn(3));
+ * // Output: { axis: 'y', angle: 1.5707963267948966, layerIndexes: [1, 0, -1] }
  */
 export class Move {
     layer: string | null;
@@ -54,14 +60,19 @@ export class Move {
      * const move = new Move("U'");
      * console.log(move.parse("U'"));
      * // Output: [{ layer: 'U', direction: "'", layerAmount: 1 }]
+     *
+     * const move = new Move("y2");
+     * console.log(move.parse("y2"));
+     * // Output: [{ layer: 'y', direction: '2', layerAmount: 1 }]
      */
     parse(fromText: string) : {
         layer: string | null;
         direction: string | null;
         layerAmount: number;
     }[] {
-        // Match examples: R, R', R2, Rw, Rw', 3Rw2, 2Uw', etc.
-        const tokens = fromText.match(/\d*[RLUDFB]w?[2']?/g);
+        // Match examples: R, R', R2, Rw, Rw', 3Rw2, 2Uw', x, y', z2, etc.
+        // Rotations (x/y/z) never take a layer-count prefix or the wide "w" suffix.
+        const tokens = fromText.match(/(?<!\d)[xyz](?!w)[2']?|\d*[RLUDFB]w?[2']?/g);
 
         if (!tokens) {
             return [{
@@ -76,8 +87,8 @@ export class Move {
             const layerAmountMatch = token.match(/^\d*/);
             let layerAmount = layerAmountMatch ? parseInt(layerAmountMatch[0], 10) : null;
 
-            // Extract face (R, L, etc.)
-            const layerMatch = token.match(/[RLUDFB]/);
+            // Extract face (R, L, etc.) or rotation axis (x, y, z)
+            const layerMatch = token.match(/[RLUDFBxyz]/);
             const layer = layerMatch ? layerMatch[0] : null;
 
             // Check for wide move (contains "w")
@@ -116,17 +127,24 @@ export class Move {
      * const move = new Move("U'");
      * console.log(move.getAxis());
      * // Output: 'y'
+     *
+     * const move = new Move("z2");
+     * console.log(move.getAxis());
+     * // Output: 'z'
      */
     getAxis() : string {
         switch (this.layer) {
             case 'U':
             case 'D':
+            case 'y':
                 return 'y';
             case 'F':
             case 'B':
+            case 'z':
                 return 'z';
             case 'L':
             case 'R':
+            case 'x':
                 return 'x';
             default:
                 throw new Error(`Invalid layer: ${this.layer}`);
@@ -151,20 +169,24 @@ export class Move {
      * const move = new Move("L2");
      * console.log(move.getAngle());
      * // Output: 3.141592653589793 (180 degrees)
+     *
+     * const move = new Move("y");
+     * console.log(move.getAngle());
+     * // Output: -1.5707963267948966 (90 degrees counter-clockwise, y follows U)
      */
     getAngle() : number {
         switch (this.direction) {
             case '':
                 // Default 90 degrees clockwise
-                // U, B, L are reversed
-                if (['U', 'B', 'L'].includes(this.layer!)) {
+                // U, B, L are reversed; y rotates with U, so it is reversed too
+                if (['U', 'B', 'L', 'y'].includes(this.layer!)) {
                     return -Math.PI / 2;
                 }
                 return Math.PI / 2;
             case '\'':
                 // 90 degrees counter-clockwise
-                // U, B, L are reversed
-                if (['U', 'B', 'L'].includes(this.layer!)) {
+                // U, B, L are reversed; y rotates with U, so it is reversed too
+                if (['U', 'B', 'L', 'y'].includes(this.layer!)) {
                     return Math.PI / 2;
                 }
                 return -Math.PI / 2;
@@ -191,6 +213,10 @@ export class Move {
      * const move = new Move("Uw");
      * console.log(move.getLayerIndexes(5));
      * // Output: [-2, -1]
+     *
+     * const move = new Move("x");
+     * console.log(move.getLayerIndexes(4));
+     * // Output: [1.5, 0.5, -0.5, -1.5]
      */
     getLayerIndexes(dim: number) : number[] {
         // Ensure layerAmount does not exceed half the cube dimension
@@ -215,6 +241,14 @@ export class Move {
             case 'B':
             case 'L':
                 for (let i = leftBoundary; i < leftBoundary + this.layerAmount; i++) {
+                    indexes.push(i);
+                }
+                return indexes;
+            case 'x':
+            case 'y':
+            case 'z':
+                // A rotation turns every layer, from the right boundary to the left boundary
+                for (let i = rightBoundary; i >= leftBoundary; i--) {
                     indexes.push(i);
                 }
                 return indexes;

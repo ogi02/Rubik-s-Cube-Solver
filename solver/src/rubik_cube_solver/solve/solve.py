@@ -29,6 +29,7 @@ class Solve(ABC):
         self.__cube = cube
         self.__rotator = Rotator(cube)
         self.__solution = Algorithm([])
+        self._keep_grips = False
 
     @property
     def cube(self) -> Cube:
@@ -73,7 +74,7 @@ class Solve(ABC):
 
         self.__solution = solution
 
-    def solve(self) -> Algorithm:
+    def solve(self, keep_grips: bool = False) -> Algorithm:
         """
         Solves the cube by validating its state and running every step in order.
 
@@ -81,15 +82,29 @@ class Solve(ABC):
         reduced by cancelling adjacent moves, in that order, since rotations are cancellation
         barriers and must be gone before moves either side of one can collapse into each other.
 
+        With the grips kept, the whole-cube rotations stay in the solution instead, so it turns the
+        cube the way the method does - the way a hand regrips it between pieces and between steps.
+        Adjacent moves are cancelled first, which brings rotations separated only by cancelling
+        turns together, and each run of them is then written as the shortest sequence that holds
+        the cube the same way.
+
+        :param keep_grips: Whether to keep the whole-cube rotations the method turns the cube by
         :return: The solution
         """
 
         Validator().validate(self.__cube)
 
+        self._keep_grips = keep_grips
+
         for step in self._steps():
             step()
 
-        self.__solution.remove_rotations()
+        if keep_grips:
+            self.__solution.cancel_moves()
+            self.__solution.shorten_rotations()
+        else:
+            self.__solution.remove_rotations()
+
         self.__solution.cancel_moves()
 
         return self.__solution
