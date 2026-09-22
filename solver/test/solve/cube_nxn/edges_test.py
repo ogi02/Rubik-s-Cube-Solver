@@ -546,7 +546,7 @@ class TestBuildEdge:
         cube = generate_cube(4, "Uw")
 
         # Build the edge
-        moves, result = build_edge(cube)
+        moves, result = build_edge(cube, wing_routes)
 
         # Assert
         assert moves == ["Dw'"]
@@ -564,7 +564,7 @@ class TestBuildEdge:
         cube = generate_cube(5, OUTER_TURNS)
 
         # Assert
-        assert build_edge(cube) == ([], cube)
+        assert build_edge(cube, wing_routes) == ([], cube)
 
     # fmt: off
     @pytest.mark.parametrize("size", [4, 5, 6, 7, 8])
@@ -589,7 +589,7 @@ class TestBuildEdge:
             paired = [slot for slot in EDGES_UP_CYCLE + EDGES_DOWN_CYCLE if is_paired(cube, slot)]
 
             # Build the edge
-            _, result = build_edge(cube)
+            _, result = build_edge(cube, wing_routes)
 
             # Assert
             assert set(_wings(result, EdgeSlot.FL)) == {pivot}, scramble
@@ -610,7 +610,7 @@ class TestBuildEdge:
 
         # Assert
         with pytest.raises(ValueError, match="No route fills row 2 of the GREEN-ORANGE edge"):
-            build_edge(cube)
+            build_edge(cube, wing_routes)
 
 
 class TestOpenSlot:
