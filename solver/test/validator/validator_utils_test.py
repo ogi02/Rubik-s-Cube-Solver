@@ -22,6 +22,7 @@ from rubik_cube_solver.validator.validator_utils import (
     get_edges,
     get_index_formulas,
     get_wing_edges,
+    permutation_parity,
     wing_edge_indices,
 )
 
@@ -131,6 +132,22 @@ class TestFaceCenterColor:
         cube = Cube(3)
         Rotator(cube).apply(Algorithm.from_str("x"))
         assert face_center_color(cube, layer) == expected_color
+
+    # fmt: off
+    @pytest.mark.parametrize("cube_size", [4, 6])
+    # fmt: on
+    def test_success_even_size(self, cube_size: int) -> None:
+        """
+        Test that face_center_color reads a center sticker on an even cube, which has no middle sticker,
+        so turning LEFT, which moves FRONT's edge stickers but not its center, leaves the color unchanged.
+
+        :param cube_size: The size of the cube
+        :return: None
+        """
+
+        cube = Cube(cube_size)
+        Rotator(cube).apply(Algorithm.from_str("L"))
+        assert face_center_color(cube, Layer.FRONT) == Color.GREEN
 
 
 class TestGetCanonicalPieces:
@@ -513,3 +530,29 @@ class TestGetWingEdges:
         wing_edges = get_wing_edges(cube)
 
         assert wing_edges == generate_expected_wing_edges(cube_size)
+
+
+class TestPermutationParity:
+    # fmt: off
+    @pytest.mark.parametrize(
+        "perm, parity", [
+            ([],           0),
+            ([0, 1, 2, 3], 0),
+            ([1, 0, 2, 3], 1),
+            ([1, 2, 0, 3], 0),
+            ([1, 2, 3, 0], 1),
+            ([3, 2, 1, 0], 0),
+        ]
+    )
+    # fmt: on
+    def test_success(self, perm: list[int], parity: int) -> None:
+        """
+        Test that permutation_parity is 0 for the identity, a 3-cycle and two swaps, and 1 for a swap and a
+        4-cycle.
+
+        :param perm: The permutation
+        :param parity: The expected parity
+        :return: None
+        """
+
+        assert permutation_parity(perm) == parity

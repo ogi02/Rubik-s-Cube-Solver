@@ -9,14 +9,30 @@ from rubik_cube_solver.validator.validator_constants import WING_EDGES_LAYER_PAI
 
 def face_center_color(cube: Cube, layer: Layer) -> Color:
     """
-    Returns the center sticker color of a face.
+    Returns the center sticker color of a face: the middle sticker of an odd cube, and on an even
+    cube the sticker just below and right of the middle, which lies on the face's center.
 
     :param cube: The Cube instance
     :param layer: The face to read the center sticker of
     :return: The center sticker color
     """
 
-    return cube.layers[layer][cube.size * cube.size // 2]
+    middle = cube.size // 2
+
+    return cube.layers[layer][middle * cube.size + middle]
+
+
+def permutation_parity(perm: list[int]) -> int:
+    """
+    Returns the parity of a permutation, from the number of pairs it puts out of order.
+
+    :param perm: The permutation, as the position each item is taken to
+    :return: 0 for an even permutation, 1 for an odd one
+    """
+
+    inversions = sum(perm[i] > perm[j] for i in range(len(perm)) for j in range(i + 1, len(perm)))
+
+    return inversions % 2
 
 
 def get_canonical_pieces(cube: Cube, slot_layers: list[tuple[Layer, ...]]) -> list[frozenset[Color]]:
