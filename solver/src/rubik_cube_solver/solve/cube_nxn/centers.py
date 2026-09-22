@@ -7,7 +7,7 @@ from rubik_cube_solver.enums.Color import Color
 from rubik_cube_solver.enums.Layer import Layer
 from rubik_cube_solver.solve.center_search import CenterSearchResult, search_center
 from rubik_cube_solver.solve.cube_nxn.pieces import (
-    CenterSticker,
+    Sticker,
     bar_rows,
     built_cells,
     fill_order,
@@ -74,7 +74,7 @@ def fetch(
     cell: tuple[int, int],
     piece: CenterSearchResult,
     target: Layer,
-    protect: list[CenterSticker],
+    protect: list[Sticker],
 ) -> tuple[str, Cube] | None:
     """
     Brings a piece into the FRONT cell, by the first route that leaves everything protected intact.
@@ -114,12 +114,10 @@ def fetch(
         case _:
             routes = [direct_route(size, cell, piece, restore) for restore in (False, True)]
 
-    return first_route(cube, routes, CenterSticker(Layer.FRONT, *cell, color), protect)
+    return first_route(cube, routes, Sticker(Layer.FRONT, *cell, color), protect)
 
 
-def first_route(
-    cube: Cube, routes: list[str], goal: CenterSticker, protect: list[CenterSticker]
-) -> tuple[str, Cube] | None:
+def first_route(cube: Cube, routes: list[str], goal: Sticker, protect: list[Sticker]) -> tuple[str, Cube] | None:
     """
     Returns the first route that puts the colour on the goal cell and leaves everything protected
     intact, together with the cube after it.
@@ -131,8 +129,8 @@ def first_route(
 
         >>> cube = Cube(4)
         >>> Rotator(cube).apply(Algorithm.from_str("Lw L'"))
-        >>> goal = CenterSticker(Layer.FRONT, 2, 1, Color.GREEN)
-        >>> first_route(cube, ["F2", "Lw' L"], goal, [CenterSticker(Layer.FRONT, 1, 2, Color.GREEN)])[0]
+        >>> goal = Sticker(Layer.FRONT, 2, 1, Color.GREEN)
+        >>> first_route(cube, ["F2", "Lw' L"], goal, [Sticker(Layer.FRONT, 1, 2, Color.GREEN)])[0]
         "Lw' L"
 
     :param cube: The cube
@@ -163,7 +161,7 @@ def fetch_line_piece(
     cell: tuple[int, int],
     piece: CenterSearchResult,
     target: Layer,
-    protect: list[CenterSticker],
+    protect: list[Sticker],
 ) -> tuple[str, Cube] | None:
     """
     Brings a piece into a cell of the target's middle line, by the first route that leaves everything
@@ -198,11 +196,11 @@ def fetch_line_piece(
     else:
         routes = line_routes(size, cell, piece, target)
 
-    return first_route(cube, routes, CenterSticker(target, *cell, color), protect)
+    return first_route(cube, routes, Sticker(target, *cell, color), protect)
 
 
 def build_middle_line(
-    cube: Cube, color: Color, target: Layer, vertical: bool, keep: list[CenterSticker]
+    cube: Cube, color: Color, target: Layer, vertical: bool, keep: list[Sticker]
 ) -> tuple[list[str], Cube]:
     """
     Fills the middle line of an odd cube's target face, one cell at a time in `line_cells` order.
@@ -235,7 +233,7 @@ def build_middle_line(
 
     for cell in line_cells(size, vertical):
         if cube.layers[target][cell[0] * size + cell[1]] is not color:
-            protect = [CenterSticker(target, row, col, color) for row, col in built] + keep
+            protect = [Sticker(target, row, col, color) for row, col in built] + keep
             candidates = [
                 piece
                 for piece in search_center(cube, color, *cell)
@@ -265,7 +263,7 @@ def build_bar(
     priority: tuple[tuple[Layer, ...], ...],
     target: Layer,
     inserted: list[int],
-    keep: list[CenterSticker],
+    keep: list[Sticker],
 ) -> tuple[list[str], Cube]:
     """
     Fills one row of FRONT with the colour, one cell at a time in `fill_order`.
@@ -325,7 +323,7 @@ def build_bar(
     return moves, cube
 
 
-def build_center(cube: Cube, plan: CenterPlan, keep: list[CenterSticker]) -> tuple[list[str], Cube]:
+def build_center(cube: Cube, plan: CenterPlan, keep: list[Sticker]) -> tuple[list[str], Cube]:
     """
     Builds one center on the target face of its plan.
 
@@ -354,9 +352,7 @@ def build_center(cube: Cube, plan: CenterPlan, keep: list[CenterSticker]) -> tup
     if size % 2:
         keep = keep + fixed_centers(cube)
         moves, cube = build_middle_line(cube, plan.color, plan.target, plan.vertical_line, keep)
-        keep = keep + [
-            CenterSticker(plan.target, row, col, plan.color) for row, col in line_cells(size, plan.vertical_line)
-        ]
+        keep = keep + [Sticker(plan.target, row, col, plan.color) for row, col in line_cells(size, plan.vertical_line)]
 
     rows = bar_rows(size)
 
