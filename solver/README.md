@@ -99,8 +99,11 @@ Kept grips also turn a big cube to where it can be watched. The method builds th
 the left of the cube and the green and red ones underneath it, and pairs its edges into the front
 left slot, all of which point away from anyone looking at the front. So each of those is built with
 the cube held to bring that face forward and turned back afterwards — the same pieces in the same
-order, only held the way a person holds a cube to see what they are doing. Without the grips the
-solution is unchanged, since taking the rotations out gives exactly the moves it had before.
+order, only held the way a person holds a cube to see what they are doing. The edges go further and
+hold a single grip for the whole of their step: the regrips the method makes between one edge and
+the next are settled into a single turn at the finish, so the slot being paired stays where it is
+rather than moving around while it fills. Without the grips the solution is unchanged, since taking
+the rotations out gives exactly the moves it had before.
 
 `create_solver` is the entry point: it takes any cube, reads its size and returns the solver for
 it, so callers never pick a class themselves. A size no solver handles is rejected there and then,

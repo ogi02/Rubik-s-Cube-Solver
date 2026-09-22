@@ -136,6 +136,27 @@ class Algorithm:
 
         self.__moves = moves
 
+    def settle_rotations(self) -> None:
+        """
+        Moves every whole-cube rotation out of the algorithm and leaves one at the end.
+
+        The moves are rewritten in the orientation the algorithm started from, exactly as
+        `remove_rotations` does, and the orientation all the rotations added up to is then written at
+        the end as the shortest sequence that reaches it. The cube is therefore held still while the
+        work happens and turned once at the finish, and it is left held exactly as it would have been,
+        so whatever runs next still finds the cube the way it expects it.
+
+        Example: `R y U y' F y` becomes `R U F y`.
+
+        :return: None
+        """
+
+        rotations = [move for move in self.__moves if isinstance(move.layer, Rotation)]
+        settled = Orientation.from_moves(rotations).to_moves()
+
+        self.remove_rotations()
+        self.__moves = self.__moves + settled
+
     def shorten_rotations(self) -> None:
         """
         Replaces every run of adjacent whole-cube rotations with the shortest sequence that holds

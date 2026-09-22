@@ -99,26 +99,43 @@ class SolveNxN(Solve):
 
     def _in_view(self, moves: list[str]) -> list[str]:
         """
-        Holds an edge step's algorithms so the edge being paired can be seen, when grips are kept.
+        Holds an edge step's algorithms in one grip, so the edge being paired can be seen throughout.
 
         Both edge steps pair into FL, whose left half points away from a viewer, so the cube is turned
-        to bring that half forward and turned back afterwards. The same wings are paired either way.
+        to bring that half forward and turned back afterwards. The regrips the method makes between
+        edges are settled out first, leaving the cube held still for the whole step and turned once at
+        the finish, since a slot that keeps moving is harder to follow than one that stays put. The
+        same wings are paired either way.
 
         :param moves: The algorithms of the step
-        :return: The algorithms, held to be seen if the grips are kept
+        :return: The algorithms, held in one grip to be seen if the grips are kept
         """
 
-        return held_in_view(moves, Layer.LEFT) if self._keep_grips else moves
+        if not self._keep_grips:
+            return moves
+
+        algorithm = Algorithm.from_str(" ".join(moves))
+        algorithm.settle_rotations()
+
+        return held_in_view([str(algorithm)], Layer.LEFT)
 
     def _parity(self) -> None:
         """
         Pairs the twelfth edge and fixes the parities an even cube can be left with, once every other
         edge is paired.
 
+        It finishes the edges, so with the grips kept it holds the cube still the same way the edge
+        steps do, turning once at the end rather than partway through.
+
         :return: None
         """
 
-        self._apply(Algorithm.from_str(" ".join(build_parity(self.cube))))
+        algorithm = Algorithm.from_str(" ".join(build_parity(self.cube)))
+
+        if self._keep_grips:
+            algorithm.settle_rotations()
+
+        self._apply(algorithm)
 
     def _solve_as_3x3(self) -> None:
         """
