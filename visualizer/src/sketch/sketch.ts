@@ -43,7 +43,9 @@ export const cubeSketch = (p: p5) => {
         // Create a default 3x3 cube
         settings = loadCubeSettings(3, p);
         cube = new Cube(settings);
-        cube.setMoveListener(messageBox);
+        if (settings.showSubtitles) {
+            cube.setMoveListener(messageBox);
+        }
 
         // Set up server connection if needed
         if (import.meta.env.VITE_CONNECT_TO_SERVER === "true") {
@@ -109,9 +111,12 @@ export const cubeSketch = (p: p5) => {
                     // Detach the replaced cube, so a batch it is still running cannot hide the box
                     cube.setMoveListener(null);
                     cube = handleCubeStateMessage(data, p);
-                    cube.setMoveListener(messageBox);
                     settings = cube.settings;
-                    messageBox.showCubeState(settings.cubeDimensions);
+                    // Subtitles are the message box, so without them nothing is attached or shown
+                    if (settings.showSubtitles) {
+                        cube.setMoveListener(messageBox);
+                        messageBox.showCubeState(settings.cubeDimensions);
+                    }
                 }
 
                 // Handle apply moves message

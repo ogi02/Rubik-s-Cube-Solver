@@ -1,5 +1,7 @@
 import p5 from "p5";
 
+import { readEnvSettings } from "./envSettings.ts";
+
 /**
  * Settings for different cube dimensions in the visualizer.
  *
@@ -9,6 +11,7 @@ import p5 from "p5";
  * @property {number} moveDelay - The delay between moves in milliseconds
  * @property {number} cameraScale - The scale of the camera
  * @property {boolean} drawBlackFaces - Whether to draw black faces (for rendering optimization)
+ * @property {boolean} showSubtitles - Whether to show the message box while the cube is solved
  * @property {string} colorWhite - Color for the white face
  * @property {string} colorYellow - Color for the yellow face
  * @property {string} colorGreen - Color for the green face
@@ -29,6 +32,8 @@ export interface CubeSettings {
     cameraScale: number;
     // Whether to draw black faces (for rendering optimization)
     drawBlackFaces: boolean;
+    // Whether to show the message box while the cube is solved
+    showSubtitles: boolean;
     // Color settings
     colorWhite: string;
     colorYellow: string;
@@ -48,6 +53,7 @@ export const DefaultSettings: CubeSettings = {
     moveDelay: 125,
     cameraScale: 200,
     drawBlackFaces: true,
+    showSubtitles: true,
     colorWhite: "#FFFFFF",
     colorYellow: "#FFFF00",
     colorGreen: "#00FF00",
@@ -103,17 +109,33 @@ export const Settings7x7: CubeSettings = {
 }
 
 /**
- * Load cube settings based on the given dimensions.
+ * Load cube settings based on the given dimensions, overridden by any environment variables that are set.
  *
  * @param {number} dimensions - The dimensions of the cube (e.g., 3 for a 3x3 cube)
  * @param {p5} p5Instance - The p5 instance
  * @returns {CubeSettings} - The settings for the specified cube dimensions
- * @throws {Error} - If the dimensions are less than 1
+ * @throws {Error} - If the dimensions are less than 1, or an environment variable holds an invalid value
  *
  * @example
  * const settings = loadCubeSettings(3, p);
  */
 export const loadCubeSettings = (dimensions: number, p5Instance: p5) : CubeSettings => {
+    // Environment variables override the settings of every cube size
+    return {...loadDimensionSettings(dimensions, p5Instance), ...readEnvSettings()};
+}
+
+/**
+ * Load the default cube settings for the given dimensions.
+ *
+ * @param {number} dimensions - The dimensions of the cube (e.g., 3 for a 3x3 cube)
+ * @param {p5} p5Instance - The p5 instance
+ * @returns {CubeSettings} - The default settings for the specified cube dimensions
+ * @throws {Error} - If the dimensions are less than 1
+ *
+ * @example
+ * const settings = loadDimensionSettings(3, p);
+ */
+const loadDimensionSettings = (dimensions: number, p5Instance: p5) : CubeSettings => {
     // Validate dimensions
     if (dimensions < 1) {
         throw new Error(`Unsupported cube dimensions: ${dimensions}.`);

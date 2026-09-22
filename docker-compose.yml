@@ -25,6 +25,11 @@ services:
         # Vite inlines these at build time, so a changed key needs `docker compose build visualizer`
         VITE_API_KEY: ${VISUALIZER_API_KEY:-visualizer}
         VITE_CONNECT_TO_SERVER: "true"
+        # Optional cube setting overrides; empty keeps every cube size at its default
+        VITE_ANIMATION_SPEED: ${VITE_ANIMATION_SPEED:-}
+        VITE_MOVE_DELAY: ${VITE_MOVE_DELAY:-}
+        VITE_DRAW_BLACK_FACES: ${VITE_DRAW_BLACK_FACES:-}
+        VITE_SHOW_SUBTITLES: ${VITE_SHOW_SUBTITLES:-}
     image: rubik-cube-visualizer
     # Published on 5173, the only origin the server's CORS configuration allows
     ports:

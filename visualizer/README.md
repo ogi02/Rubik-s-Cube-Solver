@@ -17,6 +17,24 @@ npm install
 npm run dev
 ```
 
+## Cube Settings
+
+These environment variables override the cube settings for every cube size. An unset or empty
+variable keeps the default of the cube size, and an invalid value stops the visualizer with an
+error naming the variable. Vite inlines them at build time, so restart `npm run dev` or rebuild
+after changing one.
+
+| Variable | Value | Default |
+| --- | --- | --- |
+| `VITE_ANIMATION_SPEED` | Positive number, the percentage of a turn covered per frame | `8` |
+| `VITE_MOVE_DELAY` | Non-negative number, the pause between moves in milliseconds | `125` |
+| `VITE_DRAW_BLACK_FACES` | `true` or `false`, whether the inner black faces are drawn | `true`, `false` from 6x6x6 |
+| `VITE_SHOW_SUBTITLES` | `true` or `false`, whether the message box is shown | `true` |
+
+```bash
+VITE_ANIMATION_SPEED=15 VITE_MOVE_DELAY=0 VITE_SHOW_SUBTITLES=false npm run dev
+```
+
 ## Run with Docker
 
 The image builds the bundle with Vite and serves it with nginx. Vite inlines the `VITE_*` values
