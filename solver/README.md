@@ -95,11 +95,14 @@ are the ones a person would recognize rather than the shortest ones. Either can 
 constructed directly, and each accepts only its own cube size.
 
 `SolveNxN` handles cubes of 4x4 and larger, even and odd, but only partly: it builds all six
-centers, then pairs eight of the edges and stores them on the white and yellow faces, so the cube
-does not come back solved. On an odd cube each center's middle line, through the fixed center, is
-built before the rest of it. The edges are paired with a free slice: the edge between FRONT and
-LEFT is built from its middle outwards with wide turns of the rows, and the rows of the side
-centers that this turns are put back once the eight edges are stored. Every other part of the library — representation, turning, scrambling and
+centers, pairs eight of the edges and stores them on the white and yellow faces, then pairs three of
+the last four, so the cube does not come back solved. On an odd cube each center's middle line,
+through the fixed center, is built before the rest of it. The edges are paired with a free slice:
+the edge between FRONT and LEFT is built from its middle outwards with wide turns of the rows, and
+the rows of the side centers that this turns are put back once the eight edges are stored. The last
+four edges have no free slice left, so every row turned to pair them is turned back straight away,
+and the twelfth edge is left with all its pieces in one place but not necessarily paired. Every
+other part of the library — representation, turning, scrambling and
 validation — supports cubes of any size.
 
 ## Examples

@@ -13,10 +13,10 @@ from rubik_cube_solver.enums.Direction import Direction
 from rubik_cube_solver.enums.EdgeSlot import EdgeSlot
 from rubik_cube_solver.enums.Layer import Layer
 from rubik_cube_solver.solve.center_search import CenterSearchResult
-from rubik_cube_solver.solve.cube_nxn import centers, edges, last_centers, pieces, routes
+from rubik_cube_solver.solve.cube_nxn import centers, edges, last_centers, last_edges, pieces, routes
 
 # The names the examples use without importing them: the types every example builds its cube from,
-# and the functions and constants of all five modules, since an example in one module may use a
+# and the functions and constants of all six modules, since an example in one module may use a
 # constant from another.
 EXAMPLE_GLOBALS: dict = {
     **vars(pieces),
@@ -24,6 +24,7 @@ EXAMPLE_GLOBALS: dict = {
     **vars(centers),
     **vars(last_centers),
     **vars(edges),
+    **vars(last_edges),
     "Algorithm": Algorithm,
     "CenterSearchResult": CenterSearchResult,
     "Color": Color,
@@ -37,7 +38,7 @@ EXAMPLE_GLOBALS: dict = {
 
 class TestDocstringExamples:
     # fmt: off
-    @pytest.mark.parametrize("module", [pieces, routes, centers, last_centers, edges])
+    @pytest.mark.parametrize("module", [pieces, routes, centers, last_centers, edges, last_edges])
     # fmt: on
     def test_success(self, module: ModuleType) -> None:
         """
