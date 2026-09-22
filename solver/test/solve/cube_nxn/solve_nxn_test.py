@@ -149,6 +149,31 @@ class TestSolveNxNFirstFourCenters:
         assert FIRST_FOUR <= _built_centers(cube)
         assert replay.layers == cube.layers
 
+    def test_holds_grips_when_kept(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that with the grips kept, the step's part of the solution holds whole-cube rotations,
+        since white, green and red are built on a face pointing away from a viewer, and that the
+        centers are still built.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube and ask to keep grips
+        cube = generate_cube(4, "Rw U2 Lw' F Dw")
+        solve = SolveNxN(cube)
+        solve._keep_grips = True
+
+        # Run the step
+        solve._first_four_centers()
+
+        # Assert
+        replay = generate_cube(4, "Rw U2 Lw' F Dw")
+        Rotator(replay).apply(solve.solution)
+        assert FIRST_FOUR <= _built_centers(cube)
+        assert replay.layers == cube.layers
+        assert any(isinstance(move.layer, Rotation) for move in solve.solution.moves)
+
 
 class TestSolveNxNLastTwoCenters:
     def test_builds_the_centers(self, generate_cube: Callable[[int, str], Cube]) -> None:
@@ -201,6 +226,33 @@ class TestSolveNxNFirstEightEdges:
         assert _paired_edges(cube, EDGES_UP_CYCLE + EDGES_DOWN_CYCLE) == 8
         assert replay.layers == cube.layers
 
+    def test_holds_grip_when_kept(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that with the grips kept, the step holds the cube so the FL wing can be seen, adding
+        whole-cube rotations to the solution, and that the eight edges are still paired.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube
+        cube = generate_cube(5, "Rw U2 Lw' F Dw")
+        solve = SolveNxN(cube)
+
+        # Run the centers steps, then ask to keep grips for the edges step
+        solve._first_four_centers()
+        solve._last_two_centers()
+        solve._keep_grips = True
+        solve._first_eight_edges()
+
+        # Assert
+        replay = generate_cube(5, "Rw U2 Lw' F Dw")
+        Rotator(replay).apply(solve.solution)
+        assert _built_centers(cube) == ALL_SIX
+        assert _paired_edges(cube, EDGES_UP_CYCLE + EDGES_DOWN_CYCLE) == 8
+        assert replay.layers == cube.layers
+        assert any(isinstance(move.layer, Rotation) for move in solve.solution.moves)
+
 
 class TestSolveNxNLastFourEdges:
     def test_builds_the_edges(self, generate_cube: Callable[[int, str], Cube]) -> None:
@@ -228,6 +280,35 @@ class TestSolveNxNLastFourEdges:
         assert _built_centers(cube) == ALL_SIX
         assert _paired_edges(cube, tuple(set(EdgeSlot) - {EdgeSlot.FR})) == 11
         assert replay.layers == cube.layers
+
+    def test_holds_grip_when_kept(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that with the grips kept, the step holds the cube so the FL wing can be seen, adding
+        whole-cube rotations to the solution although the earlier steps ran without them, and that
+        every edge but FR's is still paired.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube
+        cube = generate_cube(5, "Rw U2 Lw' F Dw")
+        solve = SolveNxN(cube)
+
+        # Run the earlier steps without keeping grips, then ask to keep grips for this step
+        solve._first_four_centers()
+        solve._last_two_centers()
+        solve._first_eight_edges()
+        solve._keep_grips = True
+        solve._last_four_edges()
+
+        # Assert
+        replay = generate_cube(5, "Rw U2 Lw' F Dw")
+        Rotator(replay).apply(solve.solution)
+        assert _built_centers(cube) == ALL_SIX
+        assert _paired_edges(cube, tuple(set(EdgeSlot) - {EdgeSlot.FR})) == 11
+        assert replay.layers == cube.layers
+        assert any(isinstance(move.layer, Rotation) for move in solve.solution.moves)
 
 
 class TestSolveNxNParity:

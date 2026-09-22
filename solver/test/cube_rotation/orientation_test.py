@@ -221,6 +221,127 @@ class TestOrientationRotate:
         assert rotated is not orientation
 
 
+class TestOrientationInverse:
+    def test_identity_inverts_to_itself(self) -> None:
+        """
+        Tests that inverting the identity orientation, where every name refers to its own layer,
+        returns the identity again.
+
+        :return: None
+        """
+
+        # Assert
+        assert Orientation().inverse() == Orientation()
+
+    # fmt: off
+    @pytest.mark.parametrize(
+        "layers, expected_layers", [
+            (X_CW_LAYERS,  X_CCW_LAYERS),
+            (X_CCW_LAYERS, X_CW_LAYERS),
+            (Y_CW_LAYERS,  Y_CCW_LAYERS),
+            (Z_CW_LAYERS,  Z_CCW_LAYERS),
+            (X2_LAYERS,    X2_LAYERS),
+            (Y2_LAYERS,    Y2_LAYERS),
+        ]
+    )
+    # fmt: on
+    def test_success(self, layers: dict[Layer, Layer], expected_layers: dict[Layer, Layer]) -> None:
+        """
+        Tests that inverting a single whole-cube rotation's orientation returns the orientation of
+        the opposite turn, which calls every layer by the name the first rotation gave it.
+
+        :param layers: The layers of the orientation to invert
+        :param expected_layers: The layers of the expected inverse orientation
+        :return: None
+        """
+
+        # Assert
+        assert Orientation(layers).inverse() == Orientation(expected_layers)
+
+    # fmt: off
+    @pytest.mark.parametrize("rotations", ORIENTATION_ROTATIONS)
+    # fmt: on
+    def test_inverting_twice_returns_the_original(self, rotations: str) -> None:
+        """
+        Tests that inverting an orientation twice returns the original orientation, for every one of
+        the 24 orientations.
+
+        :param rotations: The whole-cube rotations, in standard notation, that reach the orientation
+        :return: None
+        """
+
+        # Mock the orientation
+        orientation = Orientation.from_moves(Algorithm.from_str(rotations).moves)
+
+        # Assert
+        assert orientation.inverse().inverse() == orientation
+
+    # fmt: off
+    @pytest.mark.parametrize("rotations", ORIENTATION_ROTATIONS)
+    # fmt: on
+    def test_is_the_mapping_the_other_way_round(self, rotations: str) -> None:
+        """
+        Tests that the inverted orientation answers "what is this layer called now": looking up, in
+        the inverse, the layer a name points at in the original returns that same name back.
+
+        :param rotations: The whole-cube rotations, in standard notation, that reach the orientation
+        :return: None
+        """
+
+        # Mock the orientation
+        orientation = Orientation.from_moves(Algorithm.from_str(rotations).moves)
+        inverse = orientation.inverse()
+
+        # Assert
+        assert all(inverse.layers[orientation.layers[name]] == name for name in Layer)
+
+
+class TestOrientationShortestSequences:
+    def test_twenty_four_entries(self) -> None:
+        """
+        Tests that every one of the 24 orientations a cube can be held in is present.
+
+        :return: None
+        """
+
+        # Assert
+        assert len(Orientation.shortest_sequences()) == 24
+
+    def test_identity_maps_to_no_moves(self) -> None:
+        """
+        Tests that the identity orientation is reached by an empty sequence of rotations.
+
+        :return: None
+        """
+
+        # Assert
+        assert Orientation.shortest_sequences()[Orientation()] == []
+
+    def test_no_sequence_longer_than_two(self) -> None:
+        """
+        Tests that none of the 24 orientations needs more than two rotations to reach.
+
+        :return: None
+        """
+
+        # Assert
+        assert all(len(moves) <= 2 for moves in Orientation.shortest_sequences().values())
+
+    def test_every_entry_reaches_the_orientation_it_is_keyed_by(self) -> None:
+        """
+        Tests that performing each orientation's own sequence of rotations, from the identity, really
+        does reach that orientation.
+
+        :return: None
+        """
+
+        # Assert
+        assert all(
+            Orientation.from_moves(moves) == orientation
+            for orientation, moves in Orientation.shortest_sequences().items()
+        )
+
+
 class TestOrientationToMoves:
     def test_identity_orientation_yields_no_moves(self) -> None:
         """

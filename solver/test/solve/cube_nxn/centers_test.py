@@ -10,6 +10,7 @@ from rubik_cube_solver.cube_rotation.algorithm import Algorithm
 from rubik_cube_solver.enums.Color import Color
 from rubik_cube_solver.enums.Direction import Direction
 from rubik_cube_solver.enums.Layer import Layer
+from rubik_cube_solver.enums.Rotation import Rotation
 from rubik_cube_solver.scramble.scrambler import Scrambler
 from rubik_cube_solver.solve.center_search import CenterSearchResult
 from rubik_cube_solver.solve.cube_nxn import centers
@@ -518,3 +519,64 @@ class TestBuildFirstFourCenters:
 
         # Assert
         assert any(move.startswith(f"{lift(6, 2, Direction.DOUBLE)} ") for move in build_first_four_centers(cube))
+
+    def test_in_view_matches_without(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that building the centers with the cube held in view leaves the cube in the identical
+        state as building them without, and that the centers are still built.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube
+        cube = generate_cube(4, "Rw U2 Lw' F Dw")
+
+        # Build the centers, in view and not
+        result = trial(cube, " ".join(build_first_four_centers(cube)))
+        in_view_result = trial(cube, " ".join(build_first_four_centers(cube, in_view=True)))
+
+        # Assert
+        assert result.layers == in_view_result.layers
+        assert all(_center_is(in_view_result, face, color) for color, face in FIRST_FOUR_FACES.items())
+
+    def test_in_view_reduces_to_the_same_algorithm(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that the in-view algorithms and the plain ones reduce to the same algorithm once
+        their rotations are removed, the plan's own regrips included.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube
+        cube = generate_cube(4, "Rw U2 Lw' F Dw")
+
+        # Build the centers, in view and not
+        algorithm = Algorithm.from_str(" ".join(build_first_four_centers(cube)))
+        in_view_algorithm = Algorithm.from_str(" ".join(build_first_four_centers(cube, in_view=True)))
+
+        # Act
+        algorithm.remove_rotations()
+        in_view_algorithm.remove_rotations()
+
+        # Assert
+        assert in_view_algorithm == algorithm
+
+    def test_in_view_holds_the_hidden_centers(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that building the centers in view produces whole-cube rotations, since white, green and
+        red are built on a face pointing away from a viewer.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube
+        cube = generate_cube(4, "Rw U2 Lw' F Dw")
+
+        # Build the centers in view
+        in_view_moves = build_first_four_centers(cube, in_view=True)
+
+        # Assert
+        assert any(isinstance(move.layer, Rotation) for move in Algorithm.from_str(" ".join(in_view_moves)).moves)

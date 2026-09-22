@@ -105,6 +105,49 @@ class TestLayerAxis:
         assert layer.axis() is expected
 
 
+class TestLayerFromAxis:
+    # fmt: off
+    @pytest.mark.parametrize(
+        "axis, expected", [
+            (Rotation.X, Layer.RIGHT),
+            (Rotation.Y, Layer.UP),
+            (Rotation.Z, Layer.FRONT),
+        ]
+    )
+    # fmt: on
+    def test_success(self, axis: Rotation, expected: Layer) -> None:
+        """
+        Tests that each rotation axis is paired with the face it turns like.
+
+        :param axis: The rotation axis
+        :param expected: The expected face
+        :return: None
+        """
+
+        # Assert
+        assert Layer.from_axis(axis) is expected
+
+    # fmt: off
+    @pytest.mark.parametrize(
+        "layer", [
+            Layer.RIGHT,
+            Layer.UP,
+            Layer.FRONT,
+        ]
+    )
+    # fmt: on
+    def test_round_trips_with_axis(self, layer: Layer) -> None:
+        """
+        Tests that from_axis is the inverse of axis for the three faces that turn with their axis.
+
+        :param layer: The face
+        :return: None
+        """
+
+        # Assert
+        assert Layer.from_axis(layer.axis()) is layer
+
+
 class TestLayerTurnsWithAxis:
     # fmt: off
     @pytest.mark.parametrize(

@@ -318,6 +318,119 @@ class TestAlgorithmRemoveRotations:
         assert original_cube.layers == rotation_free_cube.layers
 
 
+RENAME_CASES: list[tuple[str, str]] = [
+    ("y'", "L U L'"),
+    ("x", "Rw2 Fw D'"),
+    ("z", "R U2 Fw'"),
+    ("x", "z R U"),
+    ("y2", "x R U R' U' x'"),
+    ("x y", "Rw2 D x2 F'"),
+]
+
+
+class TestAlgorithmRename:
+    # fmt: off
+    @pytest.mark.parametrize("grip_string, algorithm_string", RENAME_CASES)
+    # fmt: on
+    def test_equivalent_to_the_original(
+        self,
+        generate_cube: Callable[[int], Cube],
+        generate_rotator: Callable[[Cube], Rotator],
+        grip_string: str,
+        algorithm_string: str,
+    ) -> None:
+        """
+        Tests that performing the grip, the renamed algorithm and then the grip's inverse does
+        exactly the same work as the original algorithm alone.
+
+        :param generate_cube: Fixture to generate a cube
+        :param generate_rotator: Fixture to generate a rotator
+        :param grip_string: The whole-cube rotations the cube is held in
+        :param algorithm_string: The algorithm to rename
+        :return: None
+        """
+
+        # Mock the cubes
+        original_cube = generate_cube(5)
+        renamed_cube = generate_cube(5)
+
+        # Mock the algorithms
+        grip = Algorithm.from_str(grip_string)
+        renamed = Algorithm.from_str(algorithm_string)
+        renamed.rename(grip)
+
+        # Act
+        generate_rotator(original_cube).apply(Algorithm.from_str(algorithm_string))
+        renamed_rotator = generate_rotator(renamed_cube)
+        renamed_rotator.apply(grip)
+        renamed_rotator.apply(renamed)
+        renamed_rotator.apply(grip.inverse())
+
+        # Assert
+        assert original_cube.layers == renamed_cube.layers
+
+    # fmt: off
+    @pytest.mark.parametrize("grip_string, algorithm_string", RENAME_CASES)
+    # fmt: on
+    def test_remove_rotations_gives_the_original_back(self, grip_string: str, algorithm_string: str) -> None:
+        """
+        Tests that removing the rotations from the grip followed by the renamed algorithm gives the
+        same rotation-free algorithm as removing the rotations from the original alone.
+
+        :param grip_string: The whole-cube rotations the cube is held in
+        :param algorithm_string: The algorithm to rename
+        :return: None
+        """
+
+        # Mock the algorithms
+        grip = Algorithm.from_str(grip_string)
+        renamed = Algorithm.from_str(algorithm_string)
+        renamed.rename(grip)
+        original = Algorithm.from_str(algorithm_string)
+
+        # Act
+        combined = Algorithm(grip.moves + renamed.moves)
+        combined.remove_rotations()
+        original.remove_rotations()
+
+        # Assert
+        assert combined == original
+
+    def test_does_not_mutate_the_grip(self) -> None:
+        """
+        Tests that renaming an algorithm leaves the grip algorithm untouched.
+
+        :return: None
+        """
+
+        # Mock the algorithms
+        grip = Algorithm.from_str("y'")
+        algorithm = Algorithm.from_str("L U L'")
+
+        # Act
+        algorithm.rename(grip)
+
+        # Assert
+        assert grip == Algorithm.from_str("y'")
+
+    def test_worked_example(self) -> None:
+        """
+        Tests the docstring example: `L U L'` renamed for the grip `y'` becomes `F U F'`, since a
+        cube turned by `y'` calls its left face the front one.
+
+        :return: None
+        """
+
+        # Mock the algorithm
+        algorithm = Algorithm.from_str("L U L'")
+
+        # Act
+        algorithm.rename(Algorithm.from_str("y'"))
+
+        # Assert
+        assert str(algorithm) == "F U F'"
+
+
 class TestAlgorithmShortenRotations:
     # fmt: off
     @pytest.mark.parametrize(
