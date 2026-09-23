@@ -10,7 +10,6 @@ from rubik_cube_solver.cube_rotation.algorithm import Algorithm
 from rubik_cube_solver.enums.Color import Color
 from rubik_cube_solver.enums.Direction import Direction
 from rubik_cube_solver.enums.Layer import Layer
-from rubik_cube_solver.enums.Rotation import Rotation
 from rubik_cube_solver.scramble.scrambler import Scrambler
 from rubik_cube_solver.solve.center_search import CenterSearchResult
 from rubik_cube_solver.solve.cube_nxn import centers
@@ -20,11 +19,12 @@ from rubik_cube_solver.solve.cube_nxn.centers import (
     build_center,
     build_first_four_centers,
     build_middle_line,
+    build_nth_center,
     fetch,
     fetch_line_piece,
     first_route,
 )
-from rubik_cube_solver.solve.cube_nxn.pieces import Sticker, fixed_centers
+from rubik_cube_solver.solve.cube_nxn.pieces import Sticker, finished_centers, fixed_centers
 from rubik_cube_solver.solve.cube_nxn.routes import lift, line_target_routes, staging_routes, trial
 
 YELLOW_PRIORITY: tuple[tuple[Layer, ...], ...] = CENTERS_PLAN[0].priority
@@ -520,10 +520,11 @@ class TestBuildFirstFourCenters:
         # Assert
         assert any(move.startswith(f"{lift(6, 2, Direction.DOUBLE)} ") for move in build_first_four_centers(cube))
 
-    def test_in_view_matches_without(self, generate_cube: Callable[[int, str], Cube]) -> None:
+
+class TestBuildNthCenter:
+    def test_regrip_emitted_first(self, generate_cube: Callable[[int, str], Cube]) -> None:
         """
-        Tests that building the centers with the cube held in view leaves the cube in the identical
-        state as building them without, and that the centers are still built.
+        Tests that a plan with a regrip emits it as the first move.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :return: None
@@ -532,51 +533,49 @@ class TestBuildFirstFourCenters:
         # Generate the cube
         cube = generate_cube(4, "Rw U2 Lw' F Dw")
 
-        # Build the centers, in view and not
-        result = trial(cube, " ".join(build_first_four_centers(cube)))
-        in_view_result = trial(cube, " ".join(build_first_four_centers(cube, in_view=True)))
+        # Build the center
+        moves, _ = build_nth_center(cube, CENTERS_PLAN[0], [])
 
         # Assert
-        assert result.layers == in_view_result.layers
-        assert all(_center_is(in_view_result, face, color) for color, face in FIRST_FOUR_FACES.items())
+        assert CENTERS_PLAN[0].regrip == "z'"
+        assert moves[0] == "z'"
 
-    def test_in_view_reduces_to_the_same_algorithm(self, generate_cube: Callable[[int, str], Cube]) -> None:
+    def test_no_regrip_not_emitted(self, generate_cube: Callable[[int, str], Cube]) -> None:
         """
-        Tests that the in-view algorithms and the plain ones reduce to the same algorithm once
-        their rotations are removed, the plan's own regrips included.
+        Tests that a plan without a regrip does not prepend one to the moves, matching `build_center`
+        called directly with the same colours protected.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :return: None
         """
 
-        # Generate the cube
-        cube = generate_cube(4, "Rw U2 Lw' F Dw")
+        # Generate the cube and build yellow first
+        cube = generate_cube(4, "z' Rw U2 Lw' F Dw")
+        _, cube = build_center(cube, CENTERS_PLAN[0], [])
+        expected_moves, _ = build_center(cube, CENTERS_PLAN[1], finished_centers(cube, [CENTERS_PLAN[0].color]))
 
-        # Build the centers, in view and not
-        algorithm = Algorithm.from_str(" ".join(build_first_four_centers(cube)))
-        in_view_algorithm = Algorithm.from_str(" ".join(build_first_four_centers(cube, in_view=True)))
-
-        # Act
-        algorithm.remove_rotations()
-        in_view_algorithm.remove_rotations()
+        # Build white through build_nth_center
+        moves, _ = build_nth_center(cube, CENTERS_PLAN[1], [CENTERS_PLAN[0].color])
 
         # Assert
-        assert in_view_algorithm == algorithm
+        assert CENTERS_PLAN[1].regrip == ""
+        assert moves == expected_moves
 
-    def test_in_view_holds_the_hidden_centers(self, generate_cube: Callable[[int, str], Cube]) -> None:
+    def test_keeps_the_done_centers(self, generate_cube: Callable[[int, str], Cube]) -> None:
         """
-        Tests that building the centers in view produces whole-cube rotations, since white, green and
-        red are built on a face pointing away from a viewer.
+        Tests that the centers named in `done` are still intact once the next center is built.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :return: None
         """
 
-        # Generate the cube
+        # Generate the cube and build yellow first
         cube = generate_cube(4, "Rw U2 Lw' F Dw")
+        _, cube = build_nth_center(cube, CENTERS_PLAN[0], [])
 
-        # Build the centers in view
-        in_view_moves = build_first_four_centers(cube, in_view=True)
+        # Build white, protecting yellow
+        _, result = build_nth_center(cube, CENTERS_PLAN[1], [CENTERS_PLAN[0].color])
 
         # Assert
-        assert any(isinstance(move.layer, Rotation) for move in Algorithm.from_str(" ".join(in_view_moves)).moves)
+        assert _center_is(result, Layer.RIGHT, Color.YELLOW)
+        assert _center_is(result, Layer.LEFT, Color.WHITE)

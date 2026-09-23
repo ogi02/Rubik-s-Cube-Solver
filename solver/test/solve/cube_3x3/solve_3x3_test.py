@@ -259,7 +259,8 @@ class TestSolve3x3Steps:
     def test_returns_cross_then_f2l_then_oll_then_pll(self, generate_cube: Callable[[int, str], Cube]) -> None:
         """
         Tests that `_steps` returns the cross step, then the first-two-layers step, then the
-        orientation step, then the permutation step, in that order.
+        orientation step, then the permutation step, in that order, named and bound to the
+        solver's own methods.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :return: None
@@ -270,7 +271,12 @@ class TestSolve3x3Steps:
         solve = Solve3x3(cube)
 
         # Assert
-        assert solve._steps() == [solve._cross, solve._f2l, solve._oll, solve._pll]
+        assert solve._steps() == {
+            "cross": solve._cross,
+            "f2l": solve._f2l,
+            "oll": solve._oll,
+            "pll": solve._pll,
+        }
 
 
 class TestSolve3x3Cross:
@@ -667,27 +673,36 @@ class TestSolve3x3Solve:
         # Assert the solution contains no whole-cube rotations
         assert all(not isinstance(move.layer, Rotation) for move in result.moves)
 
-    def test_solves_with_grips_kept(self, generate_cube: Callable[[int, str], Cube]) -> None:
+    def test_steps_true_returns_named_rotation_free_steps_that_solve(
+        self, generate_cube: Callable[[int, str], Cube]
+    ) -> None:
         """
-        Tests that `solve(keep_grips=True)` still solves the cube: the returned solution holds
-        whole-cube rotations, and replaying it on a cube scrambled the same way from its original
-        orientation leaves that cube solved too.
+        Tests that `solve(steps=True)` returns the cross, f2l, oll and pll steps in that order,
+        each free of whole-cube rotations, that replaying them in order on a cube scrambled the
+        same way solves it, and that the solver's own cube ends up solved too.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :return: None
         """
 
-        # Generate the cube and solve it with grips kept
+        # Generate the cube and solve it, split into steps
         scramble = "x D R F' U L2 D' B R'"
         cube = generate_cube(3, scramble)
-        result = Solve3x3(cube).solve(keep_grips=True)
+        steps = Solve3x3(cube).solve(steps=True)
 
-        # Assert the solution contains whole-cube rotations
-        assert any(isinstance(move.layer, Rotation) for move in result.moves)
+        # Assert the keys and their order
+        assert list(steps) == ["cross", "f2l", "oll", "pll"]
 
-        # Assert the solution solves a cube scrambled the same way, from its original orientation
-        replayed = generate_cube(3, f"{scramble} {result}")
+        # Assert every step is free of whole-cube rotations
+        assert all(not isinstance(move.layer, Rotation) for algorithm in steps.values() for move in algorithm.moves)
+
+        # Assert replaying the steps in order solves a cube scrambled the same way
+        replay = " ".join(str(algorithm) for algorithm in steps.values())
+        replayed = generate_cube(3, f"{scramble} {replay}")
         assert _cube_is_solved(replayed)
+
+        # Assert the solver's own cube is solved too
+        assert _cube_is_solved(cube)
 
     def test_solves_random_scrambles(self, generate_cube: Callable[[int, str], Cube]) -> None:
         """

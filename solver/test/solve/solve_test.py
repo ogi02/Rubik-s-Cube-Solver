@@ -6,6 +6,7 @@ import pytest
 # Project imports
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.cube_rotation.algorithm import Algorithm
+from rubik_cube_solver.enums.Rotation import Rotation
 from rubik_cube_solver.solve.solve import Solve
 
 
@@ -31,14 +32,14 @@ class _StubSolve(Solve):
         self.__algorithms = algorithms
         self.calls: list[str] = []
 
-    def _steps(self) -> list[Callable[[], None]]:
+    def _steps(self) -> dict[str, Callable[[], None]]:
         """
-        Builds one step per algorithm string given to the constructor.
+        Builds one named step per algorithm string given to the constructor, named by its index.
 
-        :return: The ordered solving steps
+        :return: The named solving steps, in order
         """
 
-        return [self.__make_step(algorithm) for algorithm in self.__algorithms]
+        return {f"step_{index}": self.__make_step(algorithm) for index, algorithm in enumerate(self.__algorithms)}
 
     def __make_step(self, algorithm: str) -> Callable[[], None]:
         """
@@ -333,14 +334,37 @@ class TestSolveSolve:
         # Assert
         assert result == Algorithm([])
 
-    def test_keep_grips_keeps_the_rotation_in_the_returned_solution(
+    def test_steps_true_returns_rotation_free_steps_that_merge_to_the_solution(
         self, generate_cube: Callable[[int, str], Cube]
     ) -> None:
         """
-        Tests that `solve(keep_grips=True)` leaves the whole-cube rotation a step turned the cube
-        by in the returned solution, instead of removing it: `x` is already the shortest sequence
-        that holds the cube the way it is turned to, and no adjacent move combines with it, so it
-        survives cancelling, shortening and cancelling again unchanged.
+        Tests that `solve(steps=True)` returns every step free of whole-cube rotations, and that
+        merging the step algorithms together in order reduces to the exact solution `solve()`
+        returns for the same steps.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cubes
+        plain_cube = generate_cube(3, "")
+        split_cube = generate_cube(3, "")
+
+        # Act
+        solution = _StubSolve(plain_cube, ["x R U R' U'", "z' R'"]).solve()
+        steps = _StubSolve(split_cube, ["x R U R' U'", "z' R'"]).solve(steps=True)
+
+        # Assert
+        assert all(not isinstance(move.layer, Rotation) for algorithm in steps.values() for move in algorithm.moves)
+        combined = Algorithm([])
+        for algorithm in steps.values():
+            combined.merge(algorithm)
+        assert combined == solution
+
+    def test_steps_true_keeps_a_step_that_contributes_no_moves(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that a step which contributes no moves comes back in `solve(steps=True)` as an empty
+        Algorithm under its own name, instead of being left out of the result.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :return: None
@@ -348,28 +372,11 @@ class TestSolveSolve:
 
         # Generate the cube
         cube = generate_cube(3, "")
-        solve = _StubSolve(cube, ["x R U R' U'"])
-        result = solve.solve(keep_grips=True)
+        solve = _StubSolve(cube, ["R", "", "R'"])
+
+        # Act
+        steps = solve.solve(steps=True)
 
         # Assert
-        assert result == Algorithm.from_str("x R U R' U'")
-
-    def test_keep_grips_shortens_a_run_and_cancels_across_it(self, generate_cube: Callable[[int, str], Cube]) -> None:
-        """
-        Tests that `solve(keep_grips=True)` shortens a run of mixed-axis rotations to the
-        orientation it actually holds, and that the final cancellation reaches across the shortened
-        run: `x y x' z'` holds the cube exactly as it started (`x y x'` is the same orientation as
-        `z`, and the following `z'` undoes it), so shortening collapses the whole run to nothing,
-        which brings the `R` before it and the `R'` after it together and cancels them too.
-
-        :param generate_cube: Fixture generating a cube with an algorithm applied
-        :return: None
-        """
-
-        # Generate the cube
-        cube = generate_cube(3, "")
-        solve = _StubSolve(cube, ["R x y x'", "z' R'"])
-        result = solve.solve(keep_grips=True)
-
-        # Assert
-        assert result == Algorithm([])
+        assert list(steps) == ["step_0", "step_1", "step_2"]
+        assert steps["step_1"] == Algorithm([])

@@ -7,7 +7,6 @@ import pytest
 # Project imports
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.cube_rotation.algorithm import Algorithm
-from rubik_cube_solver.cube_rotation.move import Move
 from rubik_cube_solver.cube_rotation.rotator import Rotator
 from rubik_cube_solver.enums.Color import Color
 from rubik_cube_solver.enums.EdgeSlot import EdgeSlot
@@ -49,21 +48,6 @@ def _paired_edges(cube: Cube, slots: tuple[EdgeSlot, ...]) -> int:
     """
 
     return sum(is_paired(cube, slot) for slot in slots)
-
-
-def _rotations_only_at_the_ends(moves: list[Move]) -> bool:
-    """
-    Returns whether every whole-cube rotation among some moves sits in a block at the very start or
-    a block at the very end, so the layer turns between them form one contiguous run with no
-    rotation breaking it up.
-
-    :param moves: The moves
-    :return: Whether the layer turns form one contiguous, rotation-free run
-    """
-
-    turn_indices = [i for i, move in enumerate(moves) if not isinstance(move.layer, Rotation)]
-
-    return not turn_indices or turn_indices == list(range(turn_indices[0], turn_indices[-1] + 1))
 
 
 def _is_solved(cube: Cube) -> bool:
@@ -120,8 +104,8 @@ class TestSolveNxNInit:
 class TestSolveNxNSteps:
     def test_returns_the_steps_in_order(self, generate_cube: Callable[[int, str], Cube]) -> None:
         """
-        Tests that `_steps` returns the first-four-centers step, the last-two-centers step, the
-        first-eight-edges step, the last-four-edges step, the parity step, then the 3x3 step.
+        Tests that `_steps` returns the four individual center steps, the last-two-centers step,
+        the edges step, then the 3x3 step, named and bound to the solver's own methods.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :return: None
@@ -132,21 +116,22 @@ class TestSolveNxNSteps:
         solve = SolveNxN(cube)
 
         # Assert
-        assert solve._steps() == [
-            solve._first_four_centers,
-            solve._last_two_centers,
-            solve._first_eight_edges,
-            solve._last_four_edges,
-            solve._parity,
-            solve._solve_as_3x3,
-        ]
+        assert solve._steps() == {
+            "1st center": solve._first_center,
+            "2nd center": solve._second_center,
+            "3rd center": solve._third_center,
+            "4th center": solve._fourth_center,
+            "last 2 centers": solve._last_two_centers,
+            "edges": solve._edges,
+            "3x3 stage": solve._solve_as_3x3,
+        }
 
 
-class TestSolveNxNFirstFourCenters:
-    def test_builds_the_centers(self, generate_cube: Callable[[int, str], Cube]) -> None:
+class TestSolveNxNFirstCenter:
+    def test_builds_the_center(self, generate_cube: Callable[[int, str], Cube]) -> None:
         """
-        Tests that the step turns the cube until yellow, white, green and red are built, and records
-        every move it makes in the solution.
+        Tests that the step turns the cube until the yellow center is built, and records every move
+        it makes in the solution.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :return: None
@@ -157,38 +142,91 @@ class TestSolveNxNFirstFourCenters:
         solve = SolveNxN(cube)
 
         # Run the step
-        solve._first_four_centers()
+        solve._first_center()
 
         # Assert
         replay = generate_cube(4, "Rw U2 Lw' F Dw")
         Rotator(replay).apply(solve.solution)
-        assert FIRST_FOUR <= _built_centers(cube)
+        assert {Color.YELLOW} <= _built_centers(cube)
         assert replay.layers == cube.layers
 
-    def test_holds_grips_when_kept(self, generate_cube: Callable[[int, str], Cube]) -> None:
+
+class TestSolveNxNSecondCenter:
+    def test_builds_the_center(self, generate_cube: Callable[[int, str], Cube]) -> None:
         """
-        Tests that with the grips kept, the step's part of the solution holds whole-cube rotations,
-        since white, green and red are built on a face pointing away from a viewer, and that the
-        centers are still built.
+        Tests that the step, run after the first center, turns the cube until yellow and white are
+        built, and records every move it makes in the solution.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :return: None
         """
 
-        # Generate the cube and ask to keep grips
+        # Generate the cube
         cube = generate_cube(4, "Rw U2 Lw' F Dw")
         solve = SolveNxN(cube)
-        solve._keep_grips = True
 
-        # Run the step
-        solve._first_four_centers()
+        # Run the steps
+        solve._first_center()
+        solve._second_center()
+
+        # Assert
+        replay = generate_cube(4, "Rw U2 Lw' F Dw")
+        Rotator(replay).apply(solve.solution)
+        assert {Color.YELLOW, Color.WHITE} <= _built_centers(cube)
+        assert replay.layers == cube.layers
+
+
+class TestSolveNxNThirdCenter:
+    def test_builds_the_center(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that the step, run after the first two centers, turns the cube until yellow, white and
+        green are built, and records every move it makes in the solution.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube
+        cube = generate_cube(4, "Rw U2 Lw' F Dw")
+        solve = SolveNxN(cube)
+
+        # Run the steps
+        solve._first_center()
+        solve._second_center()
+        solve._third_center()
+
+        # Assert
+        replay = generate_cube(4, "Rw U2 Lw' F Dw")
+        Rotator(replay).apply(solve.solution)
+        assert {Color.YELLOW, Color.WHITE, Color.GREEN} <= _built_centers(cube)
+        assert replay.layers == cube.layers
+
+
+class TestSolveNxNFourthCenter:
+    def test_builds_the_center(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that the step, run after the first three centers, turns the cube until yellow, white,
+        green and red are built, and records every move it makes in the solution.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube
+        cube = generate_cube(4, "Rw U2 Lw' F Dw")
+        solve = SolveNxN(cube)
+
+        # Run the steps
+        solve._first_center()
+        solve._second_center()
+        solve._third_center()
+        solve._fourth_center()
 
         # Assert
         replay = generate_cube(4, "Rw U2 Lw' F Dw")
         Rotator(replay).apply(solve.solution)
         assert FIRST_FOUR <= _built_centers(cube)
         assert replay.layers == cube.layers
-        assert any(isinstance(move.layer, Rotation) for move in solve.solution.moves)
 
 
 class TestSolveNxNLastTwoCenters:
@@ -206,7 +244,10 @@ class TestSolveNxNLastTwoCenters:
         solve = SolveNxN(cube)
 
         # Run the steps
-        solve._first_four_centers()
+        solve._first_center()
+        solve._second_center()
+        solve._third_center()
+        solve._fourth_center()
         solve._last_two_centers()
 
         # Assert
@@ -231,7 +272,10 @@ class TestSolveNxNFirstEightEdges:
         solve = SolveNxN(cube)
 
         # Run the steps
-        solve._first_four_centers()
+        solve._first_center()
+        solve._second_center()
+        solve._third_center()
+        solve._fourth_center()
         solve._last_two_centers()
         solve._first_eight_edges()
 
@@ -241,59 +285,6 @@ class TestSolveNxNFirstEightEdges:
         assert _built_centers(cube) == ALL_SIX
         assert _paired_edges(cube, EDGES_UP_CYCLE + EDGES_DOWN_CYCLE) == 8
         assert replay.layers == cube.layers
-
-    def test_holds_grip_when_kept(self, generate_cube: Callable[[int, str], Cube]) -> None:
-        """
-        Tests that with the grips kept, the step holds the cube so the FL wing can be seen, adding
-        whole-cube rotations to the solution, and that the eight edges are still paired.
-
-        :param generate_cube: Fixture generating a cube with an algorithm applied
-        :return: None
-        """
-
-        # Generate the cube
-        cube = generate_cube(5, "Rw U2 Lw' F Dw")
-        solve = SolveNxN(cube)
-
-        # Run the centers steps, then ask to keep grips for the edges step
-        solve._first_four_centers()
-        solve._last_two_centers()
-        solve._keep_grips = True
-        solve._first_eight_edges()
-
-        # Assert
-        replay = generate_cube(5, "Rw U2 Lw' F Dw")
-        Rotator(replay).apply(solve.solution)
-        assert _built_centers(cube) == ALL_SIX
-        assert _paired_edges(cube, EDGES_UP_CYCLE + EDGES_DOWN_CYCLE) == 8
-        assert replay.layers == cube.layers
-        assert any(isinstance(move.layer, Rotation) for move in solve.solution.moves)
-
-    def test_no_interior_rotation_when_kept(self, generate_cube: Callable[[int, str], Cube]) -> None:
-        """
-        Tests that with the grips kept, the step's part of the solution holds a whole-cube rotation
-        only at its start and its end, so the FL wing stays in view for the whole step instead of
-        being regripped partway through, and that the eight edges are still paired.
-
-        :param generate_cube: Fixture generating a cube with an algorithm applied
-        :return: None
-        """
-
-        # Generate the cube
-        cube = generate_cube(5, "Rw U2 Lw' F Dw")
-        solve = SolveNxN(cube)
-
-        # Run the centers steps, then ask to keep grips for the edges step
-        solve._first_four_centers()
-        solve._last_two_centers()
-        solve._keep_grips = True
-        start = len(solve.solution.moves)
-        solve._first_eight_edges()
-
-        # Assert
-        step_moves = solve.solution.moves[start:]
-        assert _paired_edges(cube, EDGES_UP_CYCLE + EDGES_DOWN_CYCLE) == 8
-        assert _rotations_only_at_the_ends(step_moves)
 
 
 class TestSolveNxNLastFourEdges:
@@ -311,7 +302,10 @@ class TestSolveNxNLastFourEdges:
         solve = SolveNxN(cube)
 
         # Run the steps
-        solve._first_four_centers()
+        solve._first_center()
+        solve._second_center()
+        solve._third_center()
+        solve._fourth_center()
         solve._last_two_centers()
         solve._first_eight_edges()
         solve._last_four_edges()
@@ -322,62 +316,6 @@ class TestSolveNxNLastFourEdges:
         assert _built_centers(cube) == ALL_SIX
         assert _paired_edges(cube, tuple(set(EdgeSlot) - {EdgeSlot.FR})) == 11
         assert replay.layers == cube.layers
-
-    def test_holds_grip_when_kept(self, generate_cube: Callable[[int, str], Cube]) -> None:
-        """
-        Tests that with the grips kept, the step holds the cube so the FL wing can be seen, adding
-        whole-cube rotations to the solution although the earlier steps ran without them, and that
-        every edge but FR's is still paired.
-
-        :param generate_cube: Fixture generating a cube with an algorithm applied
-        :return: None
-        """
-
-        # Generate the cube
-        cube = generate_cube(5, "Rw U2 Lw' F Dw")
-        solve = SolveNxN(cube)
-
-        # Run the earlier steps without keeping grips, then ask to keep grips for this step
-        solve._first_four_centers()
-        solve._last_two_centers()
-        solve._first_eight_edges()
-        solve._keep_grips = True
-        solve._last_four_edges()
-
-        # Assert
-        replay = generate_cube(5, "Rw U2 Lw' F Dw")
-        Rotator(replay).apply(solve.solution)
-        assert _built_centers(cube) == ALL_SIX
-        assert _paired_edges(cube, tuple(set(EdgeSlot) - {EdgeSlot.FR})) == 11
-        assert replay.layers == cube.layers
-        assert any(isinstance(move.layer, Rotation) for move in solve.solution.moves)
-
-    def test_no_interior_rotation_when_kept(self, generate_cube: Callable[[int, str], Cube]) -> None:
-        """
-        Tests that with the grips kept, the step's part of the solution holds a whole-cube rotation
-        only at its start and its end, so the FL wing stays in view for the whole step instead of
-        being regripped partway through, and that every edge but FR's is still paired.
-
-        :param generate_cube: Fixture generating a cube with an algorithm applied
-        :return: None
-        """
-
-        # Generate the cube
-        cube = generate_cube(5, "Rw U2 Lw' F Dw")
-        solve = SolveNxN(cube)
-
-        # Run the earlier steps without keeping grips, then ask to keep grips for this step
-        solve._first_four_centers()
-        solve._last_two_centers()
-        solve._first_eight_edges()
-        solve._keep_grips = True
-        start = len(solve.solution.moves)
-        solve._last_four_edges()
-
-        # Assert
-        step_moves = solve.solution.moves[start:]
-        assert _paired_edges(cube, tuple(set(EdgeSlot) - {EdgeSlot.FR})) == 11
-        assert _rotations_only_at_the_ends(step_moves)
 
 
 class TestSolveNxNParity:
@@ -399,7 +337,10 @@ class TestSolveNxNParity:
         solve = SolveNxN(cube)
 
         # Run the steps
-        solve._first_four_centers()
+        solve._first_center()
+        solve._second_center()
+        solve._third_center()
+        solve._fourth_center()
         solve._last_two_centers()
         solve._first_eight_edges()
         solve._last_four_edges()
@@ -412,14 +353,15 @@ class TestSolveNxNParity:
         assert _paired_edges(cube, tuple(EdgeSlot)) == 12
         assert replay.layers == cube.layers
 
+
+class TestSolveNxNEdges:
     # fmt: off
-    @pytest.mark.parametrize("cube_size", [4, 5, 6, 7])
+    @pytest.mark.parametrize("cube_size", [4, 5])
     # fmt: on
-    def test_no_rotation_when_kept(self, generate_cube: Callable[[int, str], Cube], cube_size: int) -> None:
+    def test_pairs_every_edge(self, generate_cube: Callable[[int, str], Cube], cube_size: int) -> None:
         """
-        Tests that with the grips kept, the step's part of the solution holds no whole-cube rotation
-        at all, since the rotations the parity algorithms turn the cube by always come in cancelling
-        pairs, and that every edge is still paired.
+        Tests that the step, run after every center, pairs every edge by running the first-eight-edges,
+        last-four-edges and parity steps in turn, and records every move it makes in the solution.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :param cube_size: The cube size
@@ -430,19 +372,20 @@ class TestSolveNxNParity:
         cube = generate_cube(cube_size, "Rw U2 Lw' F Dw")
         solve = SolveNxN(cube)
 
-        # Run the earlier steps without keeping grips, then ask to keep grips for the parity step
-        solve._first_four_centers()
+        # Run the steps
+        solve._first_center()
+        solve._second_center()
+        solve._third_center()
+        solve._fourth_center()
         solve._last_two_centers()
-        solve._first_eight_edges()
-        solve._last_four_edges()
-        solve._keep_grips = True
-        start = len(solve.solution.moves)
-        solve._parity()
+        solve._edges()
 
         # Assert
-        step_moves = solve.solution.moves[start:]
+        replay = generate_cube(cube_size, "Rw U2 Lw' F Dw")
+        Rotator(replay).apply(solve.solution)
+        assert _built_centers(cube) == ALL_SIX
         assert _paired_edges(cube, tuple(EdgeSlot)) == 12
-        assert not any(isinstance(move.layer, Rotation) for move in step_moves)
+        assert replay.layers == cube.layers
 
 
 class TestSolveNxNSolveAs3x3:
@@ -464,7 +407,10 @@ class TestSolveNxNSolveAs3x3:
         solve = SolveNxN(cube)
 
         # Run the steps
-        solve._first_four_centers()
+        solve._first_center()
+        solve._second_center()
+        solve._third_center()
+        solve._fourth_center()
         solve._last_two_centers()
         solve._first_eight_edges()
         solve._last_four_edges()
@@ -495,28 +441,6 @@ class TestSolveNxNSolveAs3x3:
 
         # Assert
         assert _is_solved(cube)
-
-    def test_keeps_grips_when_the_flag_is_set(self, generate_cube: Callable[[int, str], Cube]) -> None:
-        """
-        Tests that the step passes `_keep_grips` down to the reduced 3x3's own solve, so the grips
-        its cross, F2L, OLL and PLL steps turn the cube by land in the part of the solution this
-        step contributes.
-
-        :param generate_cube: Fixture generating a cube with an algorithm applied
-        :return: None
-        """
-
-        # Generate a cube already reduced by outer-face turns only, and ask to keep grips
-        cube = generate_cube(6, "R U F' L2 D B' R2 U'")
-        solve = SolveNxN(cube)
-        solve._keep_grips = True
-
-        # Run the step
-        solve._solve_as_3x3()
-
-        # Assert
-        assert _is_solved(cube)
-        assert any(isinstance(move.layer, Rotation) for move in solve.solution.moves)
 
 
 class TestSolveNxNSolve:
@@ -555,28 +479,42 @@ class TestSolveNxNSolve:
     # fmt: off
     @pytest.mark.parametrize("cube_size", [4, 5])
     # fmt: on
-    def test_solves_with_grips_kept(self, generate_cube: Callable[[int, str], Cube], cube_size: int) -> None:
+    def test_steps_true_returns_named_rotation_free_steps_that_solve(
+        self, generate_cube: Callable[[int, str], Cube], cube_size: int
+    ) -> None:
         """
-        Tests that `solve(keep_grips=True)` still solves an even and an odd big cube: the returned
-        solution holds whole-cube rotations, and replaying it on a cube scrambled the same way from
-        its original orientation leaves that cube solved too.
+        Tests that `solve(steps=True)` returns the seven named steps in order, each free of
+        whole-cube rotations, that replaying them in order on a cube scrambled the same way solves
+        it, and that the solver's own cube ends up solved too. Covers an even and an odd big cube.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :param cube_size: The cube size
         :return: None
         """
 
-        random.seed(cube_size)
+        # Generate the cube and solve it, split into steps
+        scramble = "Rw U2 Lw' F Dw"
+        cube = generate_cube(cube_size, scramble)
+        steps = SolveNxN(cube).solve(steps=True)
 
-        for _ in range(2):
-            # Scramble the cube and solve it with grips kept
-            scramble = str(Algorithm(Scrambler().generate_scramble(cube_size)))
-            cube = generate_cube(cube_size, scramble)
-            result = SolveNxN(cube).solve(keep_grips=True)
+        # Assert the keys and their order
+        assert list(steps) == [
+            "1st center",
+            "2nd center",
+            "3rd center",
+            "4th center",
+            "last 2 centers",
+            "edges",
+            "3x3 stage",
+        ]
 
-            # Assert the solution contains whole-cube rotations
-            assert any(isinstance(move.layer, Rotation) for move in result.moves), scramble
+        # Assert every step is free of whole-cube rotations
+        assert all(not isinstance(move.layer, Rotation) for algorithm in steps.values() for move in algorithm.moves)
 
-            # Assert the solution solves a cube scrambled the same way, from its original orientation
-            replayed = generate_cube(cube_size, f"{scramble} {result}")
-            assert _is_solved(replayed), scramble
+        # Assert replaying the steps in order solves a cube scrambled the same way
+        replay = " ".join(str(algorithm) for algorithm in steps.values())
+        replayed = generate_cube(cube_size, f"{scramble} {replay}")
+        assert _is_solved(replayed)
+
+        # Assert the solver's own cube is solved too
+        assert _is_solved(cube)
