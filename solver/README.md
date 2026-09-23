@@ -93,11 +93,6 @@ in the order they were solved — `first layer`, `oll` and `pll` for a 2x2, `cro
 a big cube. Each step is an `Algorithm` of layer turns, written in the orientation the cube started
 in, so concatenating them in order is the whole solve again.
 
-Steps are what a caller needs to show a solve rather than just perform it: the moves can be sent or
-printed a step at a time, counted per step, or interleaved with whatever the caller wants between
-them. Where the cube is pointing while that happens is the caller's business, not the library's —
-the solver describes the solve and nothing about how it is watched.
-
 `create_solver` is the entry point: it takes any cube, reads its size and returns the solver for
 it, so callers never pick a class themselves. A size no solver handles is rejected there and then,
 before any solving starts.
