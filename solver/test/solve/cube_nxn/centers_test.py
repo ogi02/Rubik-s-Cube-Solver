@@ -19,11 +19,12 @@ from rubik_cube_solver.solve.cube_nxn.centers import (
     build_center,
     build_first_four_centers,
     build_middle_line,
+    build_nth_center,
     fetch,
     fetch_line_piece,
     first_route,
 )
-from rubik_cube_solver.solve.cube_nxn.pieces import Sticker, fixed_centers
+from rubik_cube_solver.solve.cube_nxn.pieces import Sticker, finished_centers, fixed_centers
 from rubik_cube_solver.solve.cube_nxn.routes import lift, line_target_routes, staging_routes, trial
 
 YELLOW_PRIORITY: tuple[tuple[Layer, ...], ...] = CENTERS_PLAN[0].priority
@@ -518,3 +519,63 @@ class TestBuildFirstFourCenters:
 
         # Assert
         assert any(move.startswith(f"{lift(6, 2, Direction.DOUBLE)} ") for move in build_first_four_centers(cube))
+
+
+class TestBuildNthCenter:
+    def test_regrip_emitted_first(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that a plan with a regrip emits it as the first move.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube
+        cube = generate_cube(4, "Rw U2 Lw' F Dw")
+
+        # Build the center
+        moves, _ = build_nth_center(cube, CENTERS_PLAN[0], [])
+
+        # Assert
+        assert CENTERS_PLAN[0].regrip == "z'"
+        assert moves[0] == "z'"
+
+    def test_no_regrip_not_emitted(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that a plan without a regrip does not prepend one to the moves, matching `build_center`
+        called directly with the same colours protected.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube and build yellow first
+        cube = generate_cube(4, "z' Rw U2 Lw' F Dw")
+        _, cube = build_center(cube, CENTERS_PLAN[0], [])
+        expected_moves, _ = build_center(cube, CENTERS_PLAN[1], finished_centers(cube, [CENTERS_PLAN[0].color]))
+
+        # Build white through build_nth_center
+        moves, _ = build_nth_center(cube, CENTERS_PLAN[1], [CENTERS_PLAN[0].color])
+
+        # Assert
+        assert CENTERS_PLAN[1].regrip == ""
+        assert moves == expected_moves
+
+    def test_keeps_the_done_centers(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that the centers named in `done` are still intact once the next center is built.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube and build yellow first
+        cube = generate_cube(4, "Rw U2 Lw' F Dw")
+        _, cube = build_nth_center(cube, CENTERS_PLAN[0], [])
+
+        # Build white, protecting yellow
+        _, result = build_nth_center(cube, CENTERS_PLAN[1], [CENTERS_PLAN[0].color])
+
+        # Assert
+        assert _center_is(result, Layer.RIGHT, Color.YELLOW)
+        assert _center_is(result, Layer.LEFT, Color.WHITE)

@@ -365,6 +365,37 @@ def build_center(cube: Cube, plan: CenterPlan, keep: list[Sticker]) -> tuple[lis
     return moves, cube
 
 
+def build_nth_center(cube: Cube, plan: CenterPlan, done: list[Color]) -> tuple[list[str], Cube]:
+    """
+    Returns the algorithms that build one of the first four centers, after its regrip.
+
+    The centers already built are protected while this one goes up.
+
+    Example, on a 4x4 scrambled with `Rw U2 Lw' F Dw`. Yellow opens with its regrip, then the one
+    fetch its first bar needs and that bar's insertion:
+
+        >>> cube = Cube(4)
+        >>> Rotator(cube).apply(Algorithm.from_str("Rw U2 Lw' F Dw"))
+        >>> build_nth_center(cube, CENTERS_PLAN[0], [])[0][:3]
+        ["z'", "U Rw' R", "Dw R2 Dw' R2"]
+
+    :param cube: The cube, of size 4 or more
+    :param plan: The plan of the center
+    :param done: The colours of the centers already built
+    :return: The algorithms used and the cube with the center built
+    """
+
+    moves: list[str] = []
+
+    if plan.regrip:
+        cube = trial(cube, plan.regrip)
+        moves.append(plan.regrip)
+
+    center_moves, cube = build_center(cube, plan, finished_centers(cube, done))
+
+    return moves + center_moves, cube
+
+
 def build_first_four_centers(cube: Cube) -> list[str]:
     """
     Returns the algorithms that build the yellow, white, green and red centers of a big cube.
@@ -389,11 +420,7 @@ def build_first_four_centers(cube: Cube) -> list[str]:
     done: list[Color] = []
 
     for plan in CENTERS_PLAN:
-        if plan.regrip:
-            cube = trial(cube, plan.regrip)
-            moves.append(plan.regrip)
-
-        center_moves, cube = build_center(cube, plan, finished_centers(cube, done))
+        center_moves, cube = build_nth_center(cube, plan, done)
         moves += center_moves
         done.append(plan.color)
 

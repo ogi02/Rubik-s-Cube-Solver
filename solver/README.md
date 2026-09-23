@@ -53,6 +53,8 @@ is how a solution is accumulated step by step. `cancel_moves` reduces adjacent m
 layer, so `R U U' R2` becomes `R'`. `remove_rotations` rewrites an algorithm containing whole-cube
 rotations into an equivalent one made only of layer turns, so `x R U R' U'` becomes `R F R' F'` —
 necessary when the moves are handed to a machine that cannot pick the cube up and turn it around.
+It works out which layer each face name refers to once the cube has been turned from the same rotation
+maps the rotator turns by.
 
 ### Scrambling
 
@@ -83,6 +85,13 @@ Solvers share the `Solve` base class, which holds the cube, the rotator and the 
 so far. Calling `solve()` runs the ordered steps of the method, applies every move to the cube, and
 returns the complete solution as an `Algorithm` — the cube is left solved and the solution can be
 replayed on a second cube, printed as notation, or sent on to the visualizer or the machine.
+
+The solution comes back as layer turns only, because a machine cannot pick the cube up and turn it
+around. `solve(steps=True)` returns the very same solution split into the named steps of the method,
+in the order they were solved — `first layer`, `oll` and `pll` for a 2x2, `cross`, `f2l`, `oll` and
+`pll` for a 3x3, and the four centers one by one, then `last 2 centers`, `edges` and `3x3 stage` for
+a big cube. Each step is an `Algorithm` of layer turns, written in the orientation the cube started
+in, so concatenating them in order is the whole solve again.
 
 `create_solver` is the entry point: it takes any cube, reads its size and returns the solver for
 it, so callers never pick a class themselves. A size no solver handles is rejected there and then,

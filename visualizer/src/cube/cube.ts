@@ -1,3 +1,5 @@
+import { mat4, type mat4 as Mat4Type } from "gl-matrix";
+
 import { Move } from "./move.ts";
 import { Piece } from "./piece.ts";
 import { Animation } from "./animation.ts";
@@ -19,6 +21,8 @@ import type { MoveListener } from "./moveListener.ts";
  * @property {string[]} batch - Every move of the batch currently being applied
  * @property {number} batchIndex - Index within that batch of the move being applied
  * @property {MoveListener | null} moveListener - Listener notified as the batch progresses
+ * @property {Mat4Type} viewMatrix - Accumulated viewpoint transform, folded in from completed
+ * whole-cube rotations (x, y, z); applied when drawing, never to a piece's own coordinates
  */
 export class Cube {
     settings: CubeSettings;
@@ -29,6 +33,7 @@ export class Cube {
     batch: string[] = [];
     batchIndex: number = -1;
     moveListener: MoveListener | null = null;
+    viewMatrix: Mat4Type = mat4.create();
 
     /**
      * Constructor for the Cube class
@@ -61,6 +66,9 @@ export class Cube {
     /**
      * Display the cube by showing all its pieces
      *
+     * Draws every piece inside the cube's accumulated view transform, so completed whole-cube
+     * rotations change how the cube looks without ever touching a piece's own coordinates.
+     *
      * @method show
      * @returns {void}
      *
@@ -78,6 +86,9 @@ export class Cube {
             this.currentAnimation.update();
             this.completeTurn();
         }
+        this.settings.p5Instance.push();
+        // Apply the accumulated view transform before drawing any piece
+        this.applyViewMatrix();
         // Draw the pieces
         this.pieces.forEach(piece => {
             this.settings.p5Instance.push();
@@ -87,6 +98,22 @@ export class Cube {
             piece.show();
             this.settings.p5Instance.pop();
         });
+        this.settings.p5Instance.pop();
+    };
+
+    /**
+     * Apply the cube's accumulated view transform to the current p5 matrix
+     *
+     * @example
+     * cube.applyViewMatrix();
+     */
+    applyViewMatrix() : void {
+        this.settings.p5Instance.applyMatrix(
+            this.viewMatrix[0], this.viewMatrix[1], this.viewMatrix[2], this.viewMatrix[3],
+            this.viewMatrix[4], this.viewMatrix[5], this.viewMatrix[6], this.viewMatrix[7],
+            this.viewMatrix[8], this.viewMatrix[9], this.viewMatrix[10], this.viewMatrix[11],
+            this.viewMatrix[12], this.viewMatrix[13], this.viewMatrix[14], this.viewMatrix[15]
+        );
     };
 
     /**
@@ -146,32 +173,80 @@ export class Cube {
     /**
      * Complete the current turn if the animation is finished
      *
+     * A whole-cube rotation (x, y, z) is folded into the view transform instead of being
+     * committed to the pieces, so it never changes what a later move's layer indexes select.
+     *
      * @example
      * cube.completeTurn();
      */
     completeTurn() : void {
         if (this.currentAnimation && this.currentAnimation.isFinished()) {
             // Get the move details
-            const axis = this.currentAnimation.move.getAxis();
-            const angle = this.currentAnimation.move.getAngle();
-            const layerIndexes = this.currentAnimation.move.getLayerIndexes(this.settings.cubeDimensions);
-            // Perform the turn immediately after the animation
-            switch (axis) {
-                case 'x':
-                    turnX(this.pieces, angle, layerIndexes);
-                    break;
-                case 'y':
-                    turnY(this.pieces, angle, layerIndexes);
-                    break;
-                case 'z':
-                    turnZ(this.pieces, angle, layerIndexes);
-                    break;
-                default:
-                    throw new Error(`Invalid axis: ${axis}`);
+            const move = this.currentAnimation.move;
+            const axis = move.getAxis();
+            const angle = move.getAngle();
+            if (move.isRotation()) {
+                // Fold the completed rotation into the persistent view transform
+                this.rotateView(axis, angle);
+            } else {
+                const layerIndexes = move.getLayerIndexes(this.settings.cubeDimensions);
+                // Perform the turn immediately after the animation
+                switch (axis) {
+                    case 'x':
+                        turnX(this.pieces, angle, layerIndexes);
+                        break;
+                    case 'y':
+                        turnY(this.pieces, angle, layerIndexes);
+                        break;
+                    case 'z':
+                        turnZ(this.pieces, angle, layerIndexes);
+                        break;
+                    default:
+                        throw new Error(`Invalid axis: ${axis}`);
+                }
             }
             // Clear the current animation
             this.currentAnimation = null;
         }
+    }
+
+    /**
+     * Fold a completed whole-cube rotation into the persistent view transform
+     *
+     * The rotation is applied about the fixed world axis, on top of the view transform
+     * accumulated so far, so successive rotations compose the same way repeated turnX/turnY/
+     * turnZ calls used to.
+     *
+     * @param axis - The axis to rotate the view around ('x', 'y', or 'z').
+     * @param angle - The angle to rotate the view by (in radians).
+     * @throws Error - Will throw an error if the axis is invalid.
+     *
+     * @example
+     * const cube = new Cube(cubeSettings);
+     * cube.rotateView('x', Math.PI / 2);
+     * console.log(cube.viewMatrix);
+     * // Output: Float32Array [1, 0, 0, 0, 0, 6.123234262925839e-17, 1, 0, 0, -1, 6.123234262925839e-17, 0, 0, 0, 0, 1]
+     */
+    rotateView(axis: string, angle: number) : void {
+        // Build the rotation for this move about the cube's own axis
+        const rotation = mat4.create();
+        switch (axis) {
+            case 'x':
+                mat4.rotateX(rotation, rotation, angle);
+                break;
+            case 'y':
+                mat4.rotateY(rotation, rotation, angle);
+                break;
+            case 'z':
+                mat4.rotateZ(rotation, rotation, angle);
+                break;
+            default:
+                throw new Error(`Invalid axis: ${axis}`);
+        }
+        // Apply it inside the view transform accumulated so far, which is where the animation drew
+        // it: a piece is rotated after the view matrix has been applied, so the finished rotation
+        // has to land on the same side of the multiplication or the cube jumps as it commits
+        mat4.multiply(this.viewMatrix, this.viewMatrix, rotation);
     }
 
     /**

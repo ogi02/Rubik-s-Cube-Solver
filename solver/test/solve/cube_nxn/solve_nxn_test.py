@@ -104,8 +104,8 @@ class TestSolveNxNInit:
 class TestSolveNxNSteps:
     def test_returns_the_steps_in_order(self, generate_cube: Callable[[int, str], Cube]) -> None:
         """
-        Tests that `_steps` returns the first-four-centers step, the last-two-centers step, the
-        first-eight-edges step, the last-four-edges step, the parity step, then the 3x3 step.
+        Tests that `_steps` returns the four individual center steps, the last-two-centers step,
+        the edges step, then the 3x3 step, named and bound to the solver's own methods.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :return: None
@@ -116,21 +116,22 @@ class TestSolveNxNSteps:
         solve = SolveNxN(cube)
 
         # Assert
-        assert solve._steps() == [
-            solve._first_four_centers,
-            solve._last_two_centers,
-            solve._first_eight_edges,
-            solve._last_four_edges,
-            solve._parity,
-            solve._solve_as_3x3,
-        ]
+        assert solve._steps() == {
+            "1st center": solve._first_center,
+            "2nd center": solve._second_center,
+            "3rd center": solve._third_center,
+            "4th center": solve._fourth_center,
+            "last 2 centers": solve._last_two_centers,
+            "edges": solve._edges,
+            "3x3 stage": solve._solve_as_3x3,
+        }
 
 
-class TestSolveNxNFirstFourCenters:
-    def test_builds_the_centers(self, generate_cube: Callable[[int, str], Cube]) -> None:
+class TestSolveNxNFirstCenter:
+    def test_builds_the_center(self, generate_cube: Callable[[int, str], Cube]) -> None:
         """
-        Tests that the step turns the cube until yellow, white, green and red are built, and records
-        every move it makes in the solution.
+        Tests that the step turns the cube until the yellow center is built, and records every move
+        it makes in the solution.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :return: None
@@ -141,7 +142,85 @@ class TestSolveNxNFirstFourCenters:
         solve = SolveNxN(cube)
 
         # Run the step
-        solve._first_four_centers()
+        solve._first_center()
+
+        # Assert
+        replay = generate_cube(4, "Rw U2 Lw' F Dw")
+        Rotator(replay).apply(solve.solution)
+        assert {Color.YELLOW} <= _built_centers(cube)
+        assert replay.layers == cube.layers
+
+
+class TestSolveNxNSecondCenter:
+    def test_builds_the_center(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that the step, run after the first center, turns the cube until yellow and white are
+        built, and records every move it makes in the solution.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube
+        cube = generate_cube(4, "Rw U2 Lw' F Dw")
+        solve = SolveNxN(cube)
+
+        # Run the steps
+        solve._first_center()
+        solve._second_center()
+
+        # Assert
+        replay = generate_cube(4, "Rw U2 Lw' F Dw")
+        Rotator(replay).apply(solve.solution)
+        assert {Color.YELLOW, Color.WHITE} <= _built_centers(cube)
+        assert replay.layers == cube.layers
+
+
+class TestSolveNxNThirdCenter:
+    def test_builds_the_center(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that the step, run after the first two centers, turns the cube until yellow, white and
+        green are built, and records every move it makes in the solution.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube
+        cube = generate_cube(4, "Rw U2 Lw' F Dw")
+        solve = SolveNxN(cube)
+
+        # Run the steps
+        solve._first_center()
+        solve._second_center()
+        solve._third_center()
+
+        # Assert
+        replay = generate_cube(4, "Rw U2 Lw' F Dw")
+        Rotator(replay).apply(solve.solution)
+        assert {Color.YELLOW, Color.WHITE, Color.GREEN} <= _built_centers(cube)
+        assert replay.layers == cube.layers
+
+
+class TestSolveNxNFourthCenter:
+    def test_builds_the_center(self, generate_cube: Callable[[int, str], Cube]) -> None:
+        """
+        Tests that the step, run after the first three centers, turns the cube until yellow, white,
+        green and red are built, and records every move it makes in the solution.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube
+        cube = generate_cube(4, "Rw U2 Lw' F Dw")
+        solve = SolveNxN(cube)
+
+        # Run the steps
+        solve._first_center()
+        solve._second_center()
+        solve._third_center()
+        solve._fourth_center()
 
         # Assert
         replay = generate_cube(4, "Rw U2 Lw' F Dw")
@@ -165,7 +244,10 @@ class TestSolveNxNLastTwoCenters:
         solve = SolveNxN(cube)
 
         # Run the steps
-        solve._first_four_centers()
+        solve._first_center()
+        solve._second_center()
+        solve._third_center()
+        solve._fourth_center()
         solve._last_two_centers()
 
         # Assert
@@ -190,7 +272,10 @@ class TestSolveNxNFirstEightEdges:
         solve = SolveNxN(cube)
 
         # Run the steps
-        solve._first_four_centers()
+        solve._first_center()
+        solve._second_center()
+        solve._third_center()
+        solve._fourth_center()
         solve._last_two_centers()
         solve._first_eight_edges()
 
@@ -217,7 +302,10 @@ class TestSolveNxNLastFourEdges:
         solve = SolveNxN(cube)
 
         # Run the steps
-        solve._first_four_centers()
+        solve._first_center()
+        solve._second_center()
+        solve._third_center()
+        solve._fourth_center()
         solve._last_two_centers()
         solve._first_eight_edges()
         solve._last_four_edges()
@@ -249,11 +337,48 @@ class TestSolveNxNParity:
         solve = SolveNxN(cube)
 
         # Run the steps
-        solve._first_four_centers()
+        solve._first_center()
+        solve._second_center()
+        solve._third_center()
+        solve._fourth_center()
         solve._last_two_centers()
         solve._first_eight_edges()
         solve._last_four_edges()
         solve._parity()
+
+        # Assert
+        replay = generate_cube(cube_size, "Rw U2 Lw' F Dw")
+        Rotator(replay).apply(solve.solution)
+        assert _built_centers(cube) == ALL_SIX
+        assert _paired_edges(cube, tuple(EdgeSlot)) == 12
+        assert replay.layers == cube.layers
+
+
+class TestSolveNxNEdges:
+    # fmt: off
+    @pytest.mark.parametrize("cube_size", [4, 5])
+    # fmt: on
+    def test_pairs_every_edge(self, generate_cube: Callable[[int, str], Cube], cube_size: int) -> None:
+        """
+        Tests that the step, run after every center, pairs every edge by running the first-eight-edges,
+        last-four-edges and parity steps in turn, and records every move it makes in the solution.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :param cube_size: The cube size
+        :return: None
+        """
+
+        # Generate the cube
+        cube = generate_cube(cube_size, "Rw U2 Lw' F Dw")
+        solve = SolveNxN(cube)
+
+        # Run the steps
+        solve._first_center()
+        solve._second_center()
+        solve._third_center()
+        solve._fourth_center()
+        solve._last_two_centers()
+        solve._edges()
 
         # Assert
         replay = generate_cube(cube_size, "Rw U2 Lw' F Dw")
@@ -282,7 +407,10 @@ class TestSolveNxNSolveAs3x3:
         solve = SolveNxN(cube)
 
         # Run the steps
-        solve._first_four_centers()
+        solve._first_center()
+        solve._second_center()
+        solve._third_center()
+        solve._fourth_center()
         solve._last_two_centers()
         solve._first_eight_edges()
         solve._last_four_edges()
@@ -347,3 +475,46 @@ class TestSolveNxNSolve:
             assert _is_solved(cube), scramble
             assert _is_solved(replay), scramble
             assert not any(isinstance(move.layer, Rotation) for move in solution.moves)
+
+    # fmt: off
+    @pytest.mark.parametrize("cube_size", [4, 5])
+    # fmt: on
+    def test_steps_true_returns_named_rotation_free_steps_that_solve(
+        self, generate_cube: Callable[[int, str], Cube], cube_size: int
+    ) -> None:
+        """
+        Tests that `solve(steps=True)` returns the seven named steps in order, each free of
+        whole-cube rotations, that replaying them in order on a cube scrambled the same way solves
+        it, and that the solver's own cube ends up solved too. Covers an even and an odd big cube.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :param cube_size: The cube size
+        :return: None
+        """
+
+        # Generate the cube and solve it, split into steps
+        scramble = "Rw U2 Lw' F Dw"
+        cube = generate_cube(cube_size, scramble)
+        steps = SolveNxN(cube).solve(steps=True)
+
+        # Assert the keys and their order
+        assert list(steps) == [
+            "1st center",
+            "2nd center",
+            "3rd center",
+            "4th center",
+            "last 2 centers",
+            "edges",
+            "3x3 stage",
+        ]
+
+        # Assert every step is free of whole-cube rotations
+        assert all(not isinstance(move.layer, Rotation) for algorithm in steps.values() for move in algorithm.moves)
+
+        # Assert replaying the steps in order solves a cube scrambled the same way
+        replay = " ".join(str(algorithm) for algorithm in steps.values())
+        replayed = generate_cube(cube_size, f"{scramble} {replay}")
+        assert _is_solved(replayed)
+
+        # Assert the solver's own cube is solved too
+        assert _is_solved(cube)

@@ -6,6 +6,7 @@ from typing import Callable
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.cube_rotation.algorithm import Algorithm
 from rubik_cube_solver.cube_rotation.rotator import Rotator
+from rubik_cube_solver.enums.Rotation import Rotation
 from rubik_cube_solver.validator.validator import Validator
 
 
@@ -29,6 +30,7 @@ class Solve(ABC):
         self.__cube = cube
         self.__rotator = Rotator(cube)
         self.__solution = Algorithm([])
+        self.__step = Algorithm([])
 
     @property
     def cube(self) -> Cube:
@@ -73,7 +75,7 @@ class Solve(ABC):
 
         self.__solution = solution
 
-    def solve(self) -> Algorithm:
+    def solve(self, steps: bool = False) -> Algorithm | dict[str, Algorithm]:
         """
         Solves the cube by validating its state and running every step in order.
 
@@ -81,25 +83,65 @@ class Solve(ABC):
         reduced by cancelling adjacent moves, in that order, since rotations are cancellation
         barriers and must be gone before moves either side of one can collapse into each other.
 
-        :return: The solution
+        Asked for the steps, the same solution comes back split into the named steps of the method,
+        in the order they were solved. Every step holds layer turns only, written in the orientation
+        the cube started in, so the steps can be read, printed or sent on one at a time and still
+        describe the same solve.
+
+        :param steps: Whether to return the solution split into the steps of the method
+        :return: The solution, or the solution of each step by name
         """
 
         Validator().validate(self.__cube)
 
-        for step in self._steps():
-            step()
+        solved: dict[str, Algorithm] = {}
 
+        for name, step in self._steps().items():
+            self.__step = Algorithm([])
+            step()
+            solved[name] = self.__step
+
+        # Removing the rotations keeps every layer turn, in order, so each step can be cut back out
+        # of the result by the number of turns it contributed
+        turns = {
+            name: sum(1 for move in algorithm.moves if not isinstance(move.layer, Rotation))
+            for name, algorithm in solved.items()
+        }
+        self.__solution = Algorithm([move for algorithm in solved.values() for move in algorithm.moves])
         self.__solution.remove_rotations()
+
+        if steps:
+            solved = self.__split(turns)
+
         self.__solution.cancel_moves()
 
-        return self.__solution
+        return solved if steps else self.__solution
+
+    def __split(self, turns: dict[str, int]) -> dict[str, Algorithm]:
+        """
+        Cuts the solution back into its steps, by how many turns each one contributed.
+
+        :param turns: The number of layer turns each step contributed
+        :return: The solution of each step by name
+        """
+
+        solved: dict[str, Algorithm] = {}
+        start = 0
+
+        for name, count in turns.items():
+            step = Algorithm(self.__solution.moves[start : start + count])
+            step.cancel_moves()
+            solved[name] = step
+            start += count
+
+        return solved
 
     @abstractmethod
-    def _steps(self) -> list[Callable[[], None]]:
+    def _steps(self) -> dict[str, Callable[[], None]]:
         """
-        The ordered solving steps for this cube type.
+        The named solving steps for this cube type, in the order they are solved.
 
-        :return: The ordered solving steps
+        :return: The solving steps by name, in order
         """
 
     def _apply(self, algorithm: Algorithm) -> None:
@@ -112,3 +154,4 @@ class Solve(ABC):
 
         self.__rotator.apply(algorithm)
         self.__solution.merge(algorithm)
+        self.__step.merge(algorithm)

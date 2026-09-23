@@ -56,14 +56,14 @@ class Solve3x3(Solve):
 
         super().__init__(cube)
 
-    def _steps(self) -> list[Callable[[], None]]:
+    def _steps(self) -> dict[str, Callable[[], None]]:
         """
-        The ordered solving steps for a 3x3 cube.
+        The named solving steps for a 3x3 cube, in the order they are solved.
 
-        :return: The ordered solving steps
+        :return: The solving steps by name, in order
         """
 
-        return [self._cross, self._f2l, self._oll, self._pll]
+        return {"cross": self._cross, "f2l": self._f2l, "oll": self._oll, "pll": self._pll}
 
     def _cross(self) -> None:
         """

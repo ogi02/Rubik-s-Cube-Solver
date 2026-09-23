@@ -152,7 +152,7 @@ class TestSolve2x2Steps:
     def test_returns_the_steps_in_order(self, generate_cube: Callable[[int, str], Cube]) -> None:
         """
         Tests that `_steps` returns the first-layer step, then the orientation of the last layer,
-        then its permutation.
+        then its permutation, named and bound to the solver's own methods.
 
         :param generate_cube: Fixture generating a cube with an algorithm applied
         :return: None
@@ -163,7 +163,7 @@ class TestSolve2x2Steps:
         solve = Solve2x2(cube)
 
         # Assert
-        assert solve._steps() == [solve._first_layer, solve._oll, solve._pll]
+        assert solve._steps() == {"first layer": solve._first_layer, "oll": solve._oll, "pll": solve._pll}
 
 
 class TestSolve2x2SolveFirstLayerCorner:
@@ -381,6 +381,37 @@ class TestSolve2x2Solve:
         # Assert
         assert _cube_is_solved(replayed, generate_cube(2, ""))
         assert replayed.layers == cube.layers
+
+    def test_steps_true_returns_named_rotation_free_steps_that_solve(
+        self, generate_cube: Callable[[int, str], Cube]
+    ) -> None:
+        """
+        Tests that `solve(steps=True)` returns the first-layer, oll and pll steps in that order,
+        each free of whole-cube rotations, that replaying them in order on a cube scrambled the
+        same way solves it, and that the solver's own cube ends up solved too.
+
+        :param generate_cube: Fixture generating a cube with an algorithm applied
+        :return: None
+        """
+
+        # Generate the cube and solve it, split into steps
+        scramble = "x U R2 F' U R'"
+        cube = generate_cube(2, scramble)
+        steps = Solve2x2(cube).solve(steps=True)
+
+        # Assert the keys and their order
+        assert list(steps) == ["first layer", "oll", "pll"]
+
+        # Assert every step is free of whole-cube rotations
+        assert all(not isinstance(move.layer, Rotation) for algorithm in steps.values() for move in algorithm.moves)
+
+        # Assert replaying the steps in order solves a cube scrambled the same way
+        replay = " ".join(str(algorithm) for algorithm in steps.values())
+        replayed = generate_cube(2, f"{scramble} {replay}")
+        assert _cube_is_solved(replayed, generate_cube(2, ""))
+
+        # Assert the solver's own cube is solved too
+        assert _cube_is_solved(cube, generate_cube(2, ""))
 
     def test_solves_random_scrambles(self, generate_cube: Callable[[int, str], Cube]) -> None:
         """
