@@ -199,6 +199,27 @@ export class Move {
     };
 
     /**
+     * Check whether the move is a whole-cube rotation (x, y, z) rather than a face turn.
+     *
+     * A rotation only ever changes the viewpoint the cube is drawn from; it never moves a
+     * piece's coordinates, so later moves in a solution keep addressing the same pieces.
+     *
+     * @returns True if the move rotates the whole cube, false if it turns a face or slice.
+     *
+     * @example
+     * const move = new Move("x'");
+     * console.log(move.isRotation());
+     * // Output: true
+     *
+     * const move = new Move("R");
+     * console.log(move.isRotation());
+     * // Output: false
+     */
+    isRotation() : boolean {
+        return this.layer === 'x' || this.layer === 'y' || this.layer === 'z';
+    };
+
+    /**
      * Get the indexes of the layers to be turned based on the cube dimension.
      *
      * @param dim - The dimension of the cube (e.g., 3 for a 3x3 cube).

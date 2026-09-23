@@ -53,26 +53,6 @@ class Layer(Enum):
             case _:
                 return Rotation.Z
 
-    @classmethod
-    def from_axis(cls, axis: Rotation) -> Self:
-        """
-        Return the face a whole-cube rotation turns like.
-
-        `x` turns like RIGHT, `y` like UP and `z` like FRONT, so this is the inverse of `axis` for
-        the three faces that turn with their axis.
-
-        :param axis: The rotation axis
-        :return: The face the rotation turns like
-        """
-
-        match axis:
-            case Rotation.X:
-                return Layer.RIGHT
-            case Rotation.Y:
-                return Layer.UP
-            case _:
-                return Layer.FRONT
-
     def turns_with_axis(self) -> bool:
         """
         Return whether a clockwise turn of the face turns the same way as its axis's rotation.

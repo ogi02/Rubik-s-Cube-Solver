@@ -6,8 +6,9 @@ server as a `cube_state` message, solves the cube and sends the solution as an `
 then disconnects. Every step prints a numbered header and pauses afterwards, so the output can be read
 alongside the animation in the visualizer.
 
-The solution keeps its grips, so it carries the whole-cube rotations the method turns the cube by and
-the visualizer turns the cube to where each step works, the way a hand regrips it.
+The solution is asked for step by step, and for a big cube the demo turns the view between the steps so
+the face each one works on comes forward. The rotations add up to a full turn, so the cube is left
+facing the way it started.
 
 Every size ends up solved. A 4x4 or larger cube is first reduced to a 3x3 - all six centers built and
 all twelve edges paired, with the parities fixed - and then solved as a 3x3, all within one solution.
@@ -76,6 +77,23 @@ CONNECT_DELAY = 1.0
 # Seconds to pause after each step, so the visualizer has time to show what it was sent
 STEP_DELAY = 2.0
 
+# The view rotation sent before each step of a big-cube solve, so the face that step works on turns
+# to face the viewer. In the orientation the cube starts in, each colour is built on its own face:
+# yellow underneath, white on top, green at the front, red on the right, and blue and orange behind
+# and to the left. The edges are already in view by then, so they need nothing. The rotations add up
+# to a full turn, leaving the cube as it started, white on top and green at the front.
+#
+# They change only the point of view. A rotation never moves a piece, so the moves after it still
+# turn exactly the faces the solver meant.
+BIG_CUBE_VIEWS: dict[str, str] = {
+    "1st center": "x",
+    "2nd center": "x2",
+    "3rd center": "x",
+    "4th center": "y",
+    "last 2 centers": "y",
+    "3x3 stage": "y2",
+}
+
 # Numbers the step headers in the order they are actually printed, so they cannot drift
 _step_numbers = itertools.count(start=1)
 
@@ -124,6 +142,25 @@ def connect_to_server() -> WebSocketClient:
     return client
 
 
+def moves_with_views(steps: dict[str, Algorithm]) -> list[str]:
+    """
+    Lays the steps out as one list of moves, turning the view before each one on a big cube.
+
+    A 2x2 and a 3x3 are solved entirely on the faces already in view, so they are sent as they are.
+
+    :param steps: The solution of each step, by name
+    :return: The moves to send, with the view rotations in place
+    """
+
+    moves: list[str] = []
+
+    for name, algorithm in steps.items():
+        view = BIG_CUBE_VIEWS.get(name, "") if CUBE_SIZE >= 4 else ""
+        moves += f"{view} {algorithm}".split()
+
+    return moves
+
+
 async def run_demo() -> None:
     """
     Runs the whole demo: scramble, connect, send the state, solve, send the solution, disconnect.
@@ -152,15 +189,16 @@ async def run_demo() -> None:
 
     announce("Solving the cube")
     solver = create_solver(cube)
-    solution = solver.solve(keep_grips=True)
+    steps = solver.solve(steps=True)
     print(f"Solver: {type(solver).__name__}")
-    print(f"Solution ({len(solution.moves)} moves): {solution}")
+    for name, algorithm in steps.items():
+        print(f"{name:>16}: {len(algorithm.moves):4d} moves")
     print(f"Solved {CUBE_SIZE}x{CUBE_SIZE}:")
     print(cube)
     await asyncio.sleep(STEP_DELAY)
 
     announce("Sending the solution")
-    moves = [str(move) for move in solution.moves]
+    moves = moves_with_views(steps)
     await client.send_message(apply_moves(moves))
     print(f"Sent an apply_moves message with {len(moves)} moves")
     await asyncio.sleep(STEP_DELAY)

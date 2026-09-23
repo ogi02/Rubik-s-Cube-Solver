@@ -43,14 +43,14 @@ class Solve2x2(Solve):
 
         super().__init__(cube)
 
-    def _steps(self) -> list[Callable[[], None]]:
+    def _steps(self) -> dict[str, Callable[[], None]]:
         """
-        The ordered solving steps for a 2x2 cube.
+        The named solving steps for a 2x2 cube, in the order they are solved.
 
-        :return: The ordered solving steps
+        :return: The solving steps by name, in order
         """
 
-        return [self._first_layer, self._oll, self._pll]
+        return {"first layer": self._first_layer, "oll": self._oll, "pll": self._pll}
 
     def _first_layer(self) -> None:
         """

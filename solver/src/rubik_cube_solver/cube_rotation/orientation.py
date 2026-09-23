@@ -1,13 +1,7 @@
-# Python imports
-from collections import deque
-from typing import Self
-
 # Project imports
 from rubik_cube_solver.cube_rotation.cube_rotation import MOVE_TRANSLATION_MAP
 from rubik_cube_solver.cube_rotation.move import Move
-from rubik_cube_solver.enums.Direction import Direction
 from rubik_cube_solver.enums.Layer import Layer
-from rubik_cube_solver.enums.Rotation import Rotation
 
 
 class Orientation:
@@ -16,7 +10,7 @@ class Orientation:
 
     A cube held as it was built is the identity orientation, where every name refers to its own
     layer. Each whole-cube rotation moves the faces around, so the same name then refers to a
-    different layer, and there are twenty-four orientations in total.
+    different layer.
     """
 
     def __init__(self, layers: dict[Layer, Layer] | None = None) -> None:
@@ -52,15 +46,6 @@ class Orientation:
 
         return self.__layers == other.layers
 
-    def __hash__(self) -> int:
-        """
-        Hash of the orientation, so it can be used as a dictionary key.
-
-        :return: The hash
-        """
-
-        return hash(tuple(self.__layers.items()))
-
     def rotate(self, rotation: Move) -> "Orientation":
         """
         Return the orientation the cube is held in after a whole-cube rotation.
@@ -78,70 +63,3 @@ class Orientation:
         translation = MOVE_TRANSLATION_MAP[(rotation.layer, rotation.direction)]
 
         return Orientation({layer: self.__layers[translation[layer]] for layer in Layer})
-
-    def inverse(self) -> "Orientation":
-        """
-        Return the orientation read the other way round: the name each layer is called by.
-
-        Where this orientation answers "which layer is this name pointing at", the inverted one
-        answers "what is this layer called now", which is what renaming a move into a grip needs.
-
-        :return: The inverted orientation
-        """
-
-        return Orientation({layer: name for name, layer in self.__layers.items()})
-
-    def to_moves(self) -> list[Move]:
-        """
-        Return the shortest sequence of whole-cube rotations that holds a cube this way.
-
-        Example: the orientation of `x` followed by `x` is written as `x2`.
-
-        :return: The shortest sequence of whole-cube rotations
-        """
-
-        return self.shortest_sequences()[self]
-
-    @classmethod
-    def shortest_sequences(cls) -> dict["Orientation", list[Move]]:
-        """
-        Return every orientation a cube can be held in, with the shortest rotation sequence reaching it.
-
-        The orientations are walked breadth-first from the identity one over the nine rotations, so
-        the first sequence that arrives at an orientation is a shortest one. There are twenty-four of
-        them and none needs more than two rotations.
-
-        :return: The shortest rotation sequence for every orientation
-        """
-
-        sequences: dict[Orientation, list[Move]] = {cls(): []}
-        queue: deque[Orientation] = deque(sequences)
-
-        while queue:
-            orientation = queue.popleft()
-            for rotation in Rotation:
-                for direction in Direction:
-                    move = Move(rotation, direction, 1)
-                    rotated = orientation.rotate(move)
-                    if rotated not in sequences:
-                        sequences[rotated] = sequences[orientation] + [move]
-                        queue.append(rotated)
-
-        return sequences
-
-    @classmethod
-    def from_moves(cls, rotations: list[Move]) -> Self:
-        """
-        Create an Orientation from a sequence of whole-cube rotations.
-
-        The rotations are performed in order on a cube held as it was built.
-
-        :param rotations: The whole-cube rotations to perform
-        :return: A new Orientation object
-        """
-
-        orientation = cls()
-        for rotation in rotations:
-            orientation = orientation.rotate(rotation)
-
-        return orientation

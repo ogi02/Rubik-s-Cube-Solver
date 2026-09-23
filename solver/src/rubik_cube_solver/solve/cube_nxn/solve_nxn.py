@@ -4,15 +4,13 @@ from typing import Callable
 # Project imports
 from rubik_cube_solver.cube import Cube
 from rubik_cube_solver.cube_rotation.algorithm import Algorithm
-from rubik_cube_solver.enums.Layer import Layer
 from rubik_cube_solver.solve.cube_3x3.solve_3x3 import Solve3x3
-from rubik_cube_solver.solve.cube_nxn.centers import build_first_four_centers
+from rubik_cube_solver.solve.cube_nxn.centers import CENTERS_PLAN, build_nth_center
 from rubik_cube_solver.solve.cube_nxn.edges import build_first_eight_edges
 from rubik_cube_solver.solve.cube_nxn.last_centers import build_last_two_centers
 from rubik_cube_solver.solve.cube_nxn.last_edges import build_last_four_edges
 from rubik_cube_solver.solve.cube_nxn.parity import build_parity
 from rubik_cube_solver.solve.cube_nxn.reduced_3x3 import as_3x3
-from rubik_cube_solver.solve.cube_nxn.view import held_in_view
 from rubik_cube_solver.solve.solve import Solve
 
 
@@ -40,34 +38,89 @@ class SolveNxN(Solve):
 
         super().__init__(cube)
 
-    def _steps(self) -> list[Callable[[], None]]:
+    def _steps(self) -> dict[str, Callable[[], None]]:
         """
-        The ordered solving steps for a big cube.
+        The named solving steps for a big cube, in the order they are solved.
 
-        :return: The ordered solving steps
+        The four centers are separate steps, since each goes up on a face of its own, while the edges
+        and the parity that finishes them are one.
+
+        :return: The solving steps by name, in order
         """
 
-        return [
-            self._first_four_centers,
-            self._last_two_centers,
-            self._first_eight_edges,
-            self._last_four_edges,
-            self._parity,
-            self._solve_as_3x3,
-        ]
+        return {
+            "1st center": self._first_center,
+            "2nd center": self._second_center,
+            "3rd center": self._third_center,
+            "4th center": self._fourth_center,
+            "last 2 centers": self._last_two_centers,
+            "edges": self._edges,
+            "3x3 stage": self._solve_as_3x3,
+        }
 
-    def _first_four_centers(self) -> None:
+    def _first_center(self) -> None:
         """
-        Builds the yellow, white, green and red centers.
-
-        With the grips kept, each center is built with the cube held so the face it is being built on
-        faces a viewer, since white is built on LEFT and green and red on DOWN, all of which point
-        away from one. The pieces turned are the same either way.
+        Builds the yellow center.
 
         :return: None
         """
 
-        self._apply(Algorithm.from_str(" ".join(build_first_four_centers(self.cube, in_view=self._keep_grips))))
+        self._center(0)
+
+    def _second_center(self) -> None:
+        """
+        Builds the white center, once yellow is built.
+
+        :return: None
+        """
+
+        self._center(1)
+
+    def _third_center(self) -> None:
+        """
+        Builds the green center, once yellow and white are built.
+
+        :return: None
+        """
+
+        self._center(2)
+
+    def _fourth_center(self) -> None:
+        """
+        Builds the red center, once yellow, white and green are built.
+
+        :return: None
+        """
+
+        self._center(3)
+
+    def _center(self, index: int) -> None:
+        """
+        Builds one of the first four centers, protecting the ones built before it.
+
+        :param index: The position of the center in `CENTERS_PLAN`
+        :return: None
+        """
+
+        done = [plan.color for plan in CENTERS_PLAN[:index]]
+        moves, _ = build_nth_center(self.cube, CENTERS_PLAN[index], done)
+
+        self._apply(Algorithm.from_str(" ".join(moves)))
+
+    def _edges(self) -> None:
+        """
+        Pairs every edge, once all six centers are built.
+
+        Eight edges are stored on UP and DOWN, three of the last four are paired between the side
+        faces, and the parity step pairs the twelfth and fixes the parities an even cube can be left
+        with.
+
+        :return: None
+        """
+
+        self._first_eight_edges()
+        self._last_four_edges()
+        self._parity()
 
     def _last_two_centers(self) -> None:
         """
@@ -85,7 +138,7 @@ class SolveNxN(Solve):
         :return: None
         """
 
-        self._apply(Algorithm.from_str(" ".join(self._in_view(build_first_eight_edges(self.cube)))))
+        self._apply(Algorithm.from_str(" ".join(build_first_eight_edges(self.cube))))
 
     def _last_four_edges(self) -> None:
         """
@@ -95,47 +148,17 @@ class SolveNxN(Solve):
         :return: None
         """
 
-        self._apply(Algorithm.from_str(" ".join(self._in_view(build_last_four_edges(self.cube)))))
-
-    def _in_view(self, moves: list[str]) -> list[str]:
-        """
-        Holds an edge step's algorithms in one grip, so the edge being paired can be seen throughout.
-
-        Both edge steps pair into FL, whose left half points away from a viewer, so the cube is turned
-        to bring that half forward and turned back afterwards. The regrips the method makes between
-        edges are settled out first, leaving the cube held still for the whole step and turned once at
-        the finish, since a slot that keeps moving is harder to follow than one that stays put. The
-        same wings are paired either way.
-
-        :param moves: The algorithms of the step
-        :return: The algorithms, held in one grip to be seen if the grips are kept
-        """
-
-        if not self._keep_grips:
-            return moves
-
-        algorithm = Algorithm.from_str(" ".join(moves))
-        algorithm.settle_rotations()
-
-        return held_in_view([str(algorithm)], Layer.LEFT)
+        self._apply(Algorithm.from_str(" ".join(build_last_four_edges(self.cube))))
 
     def _parity(self) -> None:
         """
         Pairs the twelfth edge and fixes the parities an even cube can be left with, once every other
         edge is paired.
 
-        It finishes the edges, so with the grips kept it holds the cube still the same way the edge
-        steps do, turning once at the end rather than partway through.
-
         :return: None
         """
 
-        algorithm = Algorithm.from_str(" ".join(build_parity(self.cube)))
-
-        if self._keep_grips:
-            algorithm.settle_rotations()
-
-        self._apply(algorithm)
+        self._apply(Algorithm.from_str(" ".join(build_parity(self.cube))))
 
     def _solve_as_3x3(self) -> None:
         """
@@ -143,10 +166,9 @@ class SolveNxN(Solve):
 
         The 3x3 the cube stands for is solved with `Solve3x3`, and its solution is applied to the cube
         unchanged, since it holds only outer-face turns and whole-cube rotations, which turn a reduced
-        big cube the same way. The grips are kept or dropped exactly as they are for the whole solve, so
-        the reduced phase turns the cube between its cross, F2L, OLL and PLL pieces like any other step.
+        big cube the same way.
 
         :return: None
         """
 
-        self._apply(Solve3x3(as_3x3(self.cube)).solve(keep_grips=self._keep_grips))
+        self._apply(Solve3x3(as_3x3(self.cube)).solve())

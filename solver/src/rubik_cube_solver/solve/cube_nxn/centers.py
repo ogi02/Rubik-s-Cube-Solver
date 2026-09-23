@@ -27,7 +27,6 @@ from rubik_cube_solver.solve.cube_nxn.routes import (
     target_routes,
     trial,
 )
-from rubik_cube_solver.solve.cube_nxn.view import held_in_view
 
 
 class CenterPlan(NamedTuple):
@@ -366,16 +365,43 @@ def build_center(cube: Cube, plan: CenterPlan, keep: list[Sticker]) -> tuple[lis
     return moves, cube
 
 
-def build_first_four_centers(cube: Cube, in_view: bool = False) -> list[str]:
+def build_nth_center(cube: Cube, plan: CenterPlan, done: list[Color]) -> tuple[list[str], Cube]:
+    """
+    Returns the algorithms that build one of the first four centers, after its regrip.
+
+    The centers already built are protected while this one goes up.
+
+    Example, on a 4x4 scrambled with `Rw U2 Lw' F Dw`. Yellow opens with its regrip, then the one
+    fetch its first bar needs and that bar's insertion:
+
+        >>> cube = Cube(4)
+        >>> Rotator(cube).apply(Algorithm.from_str("Rw U2 Lw' F Dw"))
+        >>> build_nth_center(cube, CENTERS_PLAN[0], [])[0][:3]
+        ["z'", "U Rw' R", "Dw R2 Dw' R2"]
+
+    :param cube: The cube, of size 4 or more
+    :param plan: The plan of the center
+    :param done: The colours of the centers already built
+    :return: The algorithms used and the cube with the center built
+    """
+
+    moves: list[str] = []
+
+    if plan.regrip:
+        cube = trial(cube, plan.regrip)
+        moves.append(plan.regrip)
+
+    center_moves, cube = build_center(cube, plan, finished_centers(cube, done))
+
+    return moves + center_moves, cube
+
+
+def build_first_four_centers(cube: Cube) -> list[str]:
     """
     Returns the algorithms that build the yellow, white, green and red centers of a big cube.
 
     The centers are built in the order of `CENTERS_PLAN`, each after its regrip, and every center
     already finished is protected while the next one is built. The cube itself is not turned.
-
-    Built in view, each center whose face points away from a viewer is instead built with the cube
-    turned so that face comes forward, and turned back afterwards. The work and its result are the
-    same either way, so the two forms differ only in whether the cube is held to be watched.
 
     Example, on a 4x4 scrambled with `Rw U2 Lw' F Dw`. The list opens with yellow's regrip, the one
     fetch its first bar needs, that bar's insertion, and the first fetch of the second bar:
@@ -387,7 +413,6 @@ def build_first_four_centers(cube: Cube, in_view: bool = False) -> list[str]:
         (22, ["z'", "U Rw' R", "Dw R2 Dw' R2", "Lw L'"])
 
     :param cube: The cube, of size 4 or more
-    :param in_view: Whether to hold the cube so the face each center is built on can be seen
     :return: The algorithms, in the order they are applied, including the regrips
     """
 
@@ -395,12 +420,8 @@ def build_first_four_centers(cube: Cube, in_view: bool = False) -> list[str]:
     done: list[Color] = []
 
     for plan in CENTERS_PLAN:
-        if plan.regrip:
-            cube = trial(cube, plan.regrip)
-            moves.append(plan.regrip)
-
-        center_moves, cube = build_center(cube, plan, finished_centers(cube, done))
-        moves += held_in_view(center_moves, plan.target) if in_view else center_moves
+        center_moves, cube = build_nth_center(cube, plan, done)
+        moves += center_moves
         done.append(plan.color)
 
     return moves

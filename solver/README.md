@@ -53,11 +53,8 @@ is how a solution is accumulated step by step. `cancel_moves` reduces adjacent m
 layer, so `R U U' R2` becomes `R'`. `remove_rotations` rewrites an algorithm containing whole-cube
 rotations into an equivalent one made only of layer turns, so `x R U R' U'` becomes `R F R' F'` —
 necessary when the moves are handed to a machine that cannot pick the cube up and turn it around.
-`shorten_rotations` keeps the rotations instead and only tidies them, rewriting each run of adjacent
-ones as the shortest sequence that holds the cube the same way, so `R x x L z z' U` becomes
-`R x2 L U`. No orientation ever needs more than two rotations, since a cube can be held in only
-twenty-four ways — that is what the `Orientation` type derives, from the same rotation maps the
-rotator turns by.
+It tracks the way the cube is held with the `Orientation` type, which answers which layer a face name
+refers to once the cube has been turned, from the same rotation maps the rotator turns by.
 
 ### Scrambling
 
@@ -90,20 +87,16 @@ returns the complete solution as an `Algorithm` — the cube is left solved and 
 replayed on a second cube, printed as notation, or sent on to the visualizer or the machine.
 
 The solution comes back as layer turns only, because a machine cannot pick the cube up and turn it
-around. `solve(keep_grips=True)` returns it with the whole-cube rotations the method turns the cube
-by left in, so the solution regrips the way a person does: a quarter turn between each cross edge, a
-different face brought to the front for each center. That is the form to send to the visualizer,
-which can turn the whole cube as well as a single layer.
+around. `solve(steps=True)` returns the very same solution split into the named steps of the method,
+in the order they were solved — `first layer`, `oll` and `pll` for a 2x2, `cross`, `f2l`, `oll` and
+`pll` for a 3x3, and the four centers one by one, then `last 2 centers`, `edges` and `3x3 stage` for
+a big cube. Each step is an `Algorithm` of layer turns, written in the orientation the cube started
+in, so concatenating them in order is the whole solve again.
 
-Kept grips also turn a big cube to where it can be watched. The method builds the white center on
-the left of the cube and the green and red ones underneath it, and pairs its edges into the front
-left slot, all of which point away from anyone looking at the front. So each of those is built with
-the cube held to bring that face forward and turned back afterwards — the same pieces in the same
-order, only held the way a person holds a cube to see what they are doing. The edges go further and
-hold a single grip for the whole of their step: the regrips the method makes between one edge and
-the next are settled into a single turn at the finish, so the slot being paired stays where it is
-rather than moving around while it fills. Without the grips the solution is unchanged, since taking
-the rotations out gives exactly the moves it had before.
+Steps are what a caller needs to show a solve rather than just perform it: the moves can be sent or
+printed a step at a time, counted per step, or interleaved with whatever the caller wants between
+them. Where the cube is pointing while that happens is the caller's business, not the library's —
+the solver describes the solve and nothing about how it is watched.
 
 `create_solver` is the entry point: it takes any cube, reads its size and returns the solver for
 it, so callers never pick a class themselves. A size no solver handles is rejected there and then,
