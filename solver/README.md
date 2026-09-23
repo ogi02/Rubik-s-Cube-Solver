@@ -53,8 +53,8 @@ is how a solution is accumulated step by step. `cancel_moves` reduces adjacent m
 layer, so `R U U' R2` becomes `R'`. `remove_rotations` rewrites an algorithm containing whole-cube
 rotations into an equivalent one made only of layer turns, so `x R U R' U'` becomes `R F R' F'` —
 necessary when the moves are handed to a machine that cannot pick the cube up and turn it around.
-It tracks the way the cube is held with the `Orientation` type, which answers which layer a face name
-refers to once the cube has been turned, from the same rotation maps the rotator turns by.
+It works out which layer each face name refers to once the cube has been turned from the same rotation
+maps the rotator turns by.
 
 ### Scrambling
 
