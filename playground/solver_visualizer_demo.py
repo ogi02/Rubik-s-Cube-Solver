@@ -80,8 +80,9 @@ STEP_DELAY = 2.0
 # The view rotation sent before each step of a big-cube solve, so the face that step works on turns
 # to face the viewer. In the orientation the cube starts in, each colour is built on its own face:
 # yellow underneath, white on top, green at the front, red on the right, and blue and orange behind
-# and to the left. The edges are already in view by then, so they need nothing. The rotations add up
-# to a full turn, leaving the cube as it started, white on top and green at the front.
+# and to the left. The edges are paired all round the cube rather than on one face, so their turn
+# brings forward the two slots the pairs are actually made in. The rotations add up to a full turn,
+# leaving the cube as it started, white on top and green at the front.
 #
 # They change only the point of view. A rotation never moves a piece, so the moves after it still
 # turn exactly the faces the solver meant.
@@ -91,7 +92,8 @@ BIG_CUBE_VIEWS: dict[str, str] = {
     "3rd center": "x",
     "4th center": "y",
     "last 2 centers": "y",
-    "3x3 stage": "y2",
+    "edges": "y'",
+    "3x3 stage": "y'",
 }
 
 # Numbers the step headers in the order they are actually printed, so they cannot drift
