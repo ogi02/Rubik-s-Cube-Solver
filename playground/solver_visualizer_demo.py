@@ -77,22 +77,25 @@ CONNECT_DELAY = 1.0
 # Seconds to pause after each step, so the visualizer has time to show what it was sent
 STEP_DELAY = 2.0
 
-# The view rotation sent before each step of a big-cube solve, so the face that step works on turns
-# to face the viewer. In the orientation the cube starts in, each colour is built on its own face:
-# yellow underneath, white on top, green at the front, red on the right, and blue and orange behind
-# and to the left. The edges are paired all round the cube rather than on one face, so their turn
-# brings forward the two slots the pairs are actually made in. The rotations add up to a full turn,
-# leaving the cube as it started, white on top and green at the front.
+# The view rotation sent before each step of a big-cube solve, so the faces that step works on turn
+# towards the viewer. A center is built on one face out of pieces gathered on another, and both are
+# worth watching, so each turn brings the pair of them into view. In the orientation the cube starts
+# in they are: yellow gathered at the front and built underneath, white at the front and on top,
+# green on the right and at the front, red at the back and on the right, and the last two behind and
+# to the left. The third center needs no turn, since the second leaves both its faces in view.
+#
+# The edges are paired all round the cube rather than on one face, so their turn brings forward the
+# two slots the pairs are actually made in. The rotations add up to a full turn, leaving the cube as
+# it started, white on top and green at the front.
 #
 # They change only the point of view. A rotation never moves a piece, so the moves after it still
 # turn exactly the faces the solver meant.
 BIG_CUBE_VIEWS: dict[str, str] = {
     "1st center": "x",
-    "2nd center": "x2",
-    "3rd center": "x",
-    "4th center": "y",
-    "last 2 centers": "y",
-    "edges": "y'",
+    "2nd center": "x'",
+    "4th center": "x'",
+    "last 2 centers": "z",
+    "edges": "x",
     "3x3 stage": "y'",
 }
 
