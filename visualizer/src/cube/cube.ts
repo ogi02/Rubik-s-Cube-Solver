@@ -228,7 +228,7 @@ export class Cube {
      * // Output: Float32Array [1, 0, 0, 0, 0, 6.123234262925839e-17, 1, 0, 0, -1, 6.123234262925839e-17, 0, 0, 0, 0, 1]
      */
     rotateView(axis: string, angle: number) : void {
-        // Build the rotation for this move about the fixed world axis
+        // Build the rotation for this move about the cube's own axis
         const rotation = mat4.create();
         switch (axis) {
             case 'x':
@@ -243,8 +243,10 @@ export class Cube {
             default:
                 throw new Error(`Invalid axis: ${axis}`);
         }
-        // Apply it on top of the view transform accumulated so far
-        mat4.multiply(this.viewMatrix, rotation, this.viewMatrix);
+        // Apply it inside the view transform accumulated so far, which is where the animation drew
+        // it: a piece is rotated after the view matrix has been applied, so the finished rotation
+        // has to land on the same side of the multiplication or the cube jumps as it commits
+        mat4.multiply(this.viewMatrix, this.viewMatrix, rotation);
     }
 
     /**

@@ -84,6 +84,9 @@ STEP_DELAY = 2.0
 # green on the right and at the front, red at the back and on the right, and the last two behind and
 # to the left. The third center needs no turn, since the second leaves both its faces in view.
 #
+# From the third center on the cube is only turned about its vertical axis, so white stays on top and
+# yellow underneath and the solve is watched the way it is usually held.
+#
 # The edges are paired all round the cube rather than on one face, so their turn brings forward the
 # two slots the pairs are actually made in. The rotations add up to a full turn, leaving the cube as
 # it started, white on top and green at the front.
@@ -93,9 +96,9 @@ STEP_DELAY = 2.0
 BIG_CUBE_VIEWS: dict[str, str] = {
     "1st center": "x",
     "2nd center": "x'",
-    "4th center": "x'",
-    "last 2 centers": "z",
-    "edges": "x",
+    "4th center": "y",
+    "last 2 centers": "y",
+    "edges": "y'",
     "3x3 stage": "y'",
 }
 
